@@ -2,9 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Felhasznalo extends Model
+class Felhasznalo extends Authenticatable
 {
-    //
+    use HasApiTokens, Notifiable;
+
+    protected $table = 'felhasznalok';
+    protected $primaryKey = 'id';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'nev',
+        'email',
+        'jelszo',
+        'tipus',
+    ];
+
+    protected $hidden = [
+        'jelszo',
+    ];
+
+    public function getAuthPassword()
+    {
+        return $this->jelszo;
+    }
 }
+use App\Models\Felhasznalo;
+use Illuminate\Support\Facades\Hash;
+

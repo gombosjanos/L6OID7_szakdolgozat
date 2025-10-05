@@ -6,5 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Alkatresz extends Model
 {
-    //
+    protected $table = 'alkatreszek';
+    protected $primaryKey = 'ID';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'gyarto', 'alaktresznev', 'a_cikkszam', 'nettoar', 'bruttoar'
+    ];
+
+    public function javitasok()
+    {
+        return $this->hasMany(AlkatreszJavitasra::class, 'alkatresz_id', 'ID');
+    }
 }
