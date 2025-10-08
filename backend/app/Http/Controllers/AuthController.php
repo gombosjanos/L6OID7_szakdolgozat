@@ -35,4 +35,31 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Sikeres kijelentkezés']);
     }
+
+    public function register(Request $request)
+{
+    $request->validate([
+        'nev' => 'required|string|max:50',
+        'email' => 'required|string|email|unique:felhasznalok,email',
+        'jelszo' => 'required|string|min:6',
+        'telefonszam' => 'nullable|string|max:20'
+    ]);
+
+    $user = \App\Models\Felhasznalo::create([
+    'nev' => $request->nev,
+    'felhasznalonev' => $request->nev, // vagy hagyd üresen: ''
+    'email' => $request->email,
+    'jelszo' => bcrypt($request->jelszo),
+    'telefonszam' => $request->telefonszam,
+    'jogosultsag' => 'ugyfel'
+]);
+
+
+    return response()->json([
+        'message' => 'Sikeres regisztráció!',
+        'user' => $user
+    ], 201);
 }
+
+}
+

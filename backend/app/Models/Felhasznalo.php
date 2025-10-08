@@ -11,15 +11,18 @@ class Felhasznalo extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $table = 'felhasznalok';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'id';   // <-- ez itt legyen
     public $timestamps = false;
 
     protected $fillable = [
         'nev',
+        'felhasznalonev',
         'email',
-        'jelszo',
-        'tipus',
+        'telefonszam',
+        'jogosultsag',
+        'jelszo'
     ];
+
 
     protected $hidden = [
         'jelszo',
