@@ -2,8 +2,15 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import MainLayout from '../layouts/MainLayout.vue'
 import AdminView from '../views/AdminView.vue'
+import AdminCustomersView from '../views/admin/CustomersView.vue'
+import AdminMachinesView from '../views/admin/MachinesView.vue'
+import AdminWorkordersView from '../views/admin/WorkordersView.vue'
+import AdminWorkorderDetail from '../views/admin/WorkorderDetail.vue'
+import AdminPartsView from '../views/admin/PartsView.vue'
 
 import RegisterView from '../views/RegisterView.vue'
+import UgyfelView from '../views/UgyfelView.vue'
+import SzereloView from '../views/SzereloView.vue'
 
 const routes = [
   { path: '/login', component: LoginView },
@@ -12,7 +19,14 @@ const routes = [
     path: '/',
     component: MainLayout,
     children: [
-      { path: 'admin', component: AdminView }
+      { path: 'admin', component: AdminView },
+      { path: 'admin/ugyfelek', component: AdminCustomersView },
+      { path: 'admin/gepek', component: AdminMachinesView },
+      { path: 'admin/munkalapok', component: AdminWorkordersView },
+      { path: 'admin/munkalapok/:id', component: AdminWorkorderDetail },
+      { path: 'admin/alkatreszek', component: AdminPartsView },
+      { path: 'ugyfel', component: UgyfelView },
+      { path: 'szerelo', component: SzereloView }
     ]
   }
 ]
@@ -24,14 +38,22 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
+  const user = JSON.parse(localStorage.getItem('user') || 'null')
   const publicPages = ['/login', '/register']
   const authRequired = !publicPages.includes(to.path)
 
   if (authRequired && !token) {
     next('/login')
-  } else {
-    next()
+    return
   }
+
+  // Role-based guard: block non-admins from admin routes
+  if (to.path.startsWith('/admin') && user?.jogosultsag !== 'admin') {
+    if (user?.jogosultsag === 'szerelo') return next('/szerelo')
+    return next('/ugyfel')
+  }
+
+  next()
 })//as
 
 export default router

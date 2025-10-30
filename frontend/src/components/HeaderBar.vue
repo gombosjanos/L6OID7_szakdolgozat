@@ -1,18 +1,13 @@
-<script setup>
+﻿<script setup>
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import { api } from '../api.js'
 
 const router = useRouter()
 const user = JSON.parse(localStorage.getItem('user') || '{}')
 
 const logout = async () => {
   try {
-    const token = localStorage.getItem('token')
-    if (token) {
-      await axios.post('http://127.0.0.1:8000/api/logout', {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-    }
+    await api.post('/logout')
   } catch {}
   localStorage.clear()
   router.push('/login')
@@ -20,13 +15,13 @@ const logout = async () => {
 </script>
 
 <template>
-  <header class="bg-gray-900 text-white shadow-lg px-8 py-4 flex justify-between items-center">
-    <h1 class="text-lg font-semibold tracking-wide">Gépszerviz rendszer</h1>
+  <header class="bg-white text-black shadow px-8 py-4 flex justify-between items-center">
+    <h1 class="text-lg font-semibold tracking-wide text-black">Gépszerviz rendszer</h1>
     <div v-if="user.nev" class="flex items-center gap-4">
-      <span class="text-sm">{{ user.nev }} ({{ user.jogosultsag }})</span>
+      <span class="text-sm text-black">{{ user.nev }} ({{ user.jogosultsag }})</span>
       <button
         @click="logout"
-        class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium transition"
+        class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-md text-sm font-medium transition text-white"
       >
         Kijelentkezés
       </button>

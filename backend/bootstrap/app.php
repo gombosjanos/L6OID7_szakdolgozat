@@ -12,7 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
 )
 
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Ensure CORS headers are applied to all responses, including errors
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+        // Route middleware aliases
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+        ]);
+        // Fallback CORS to ensure headers on error responses and OPTIONS
+        $middleware->append(\App\Http\Middleware\Cors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

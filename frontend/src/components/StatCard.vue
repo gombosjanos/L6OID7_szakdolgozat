@@ -1,8 +1,9 @@
 <template>
-  <div class="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-    <h2 class="text-sm text-gray-500">{{ title }}</h2>
-    <p class="text-3xl font-bold text-blue-600 mt-1">{{ value }}</p>
-  </div>
+  <v-card elevation="1" class="pa-4 stat-card">
+    <div class="text-caption text-medium-emphasis">{{ title }}</div>
+    <div class="text-h5 font-weight-bold mt-1 text-primary">{{ value }}</div>
+  </v-card>
+  
 </template>
 
 <script setup>
@@ -11,3 +12,7 @@ defineProps({
   value: [String, Number],
 })
 </script>
+
+<style scoped>
+.stat-card { border-radius: 14px; }
+</style>

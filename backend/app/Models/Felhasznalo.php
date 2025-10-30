@@ -11,7 +11,7 @@ class Felhasznalo extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $table = 'felhasznalok';
-    protected $primaryKey = 'id';   // <-- ez itt legyen
+    protected $primaryKey = 'id';
     public $timestamps = false;
 
     protected $fillable = [
@@ -20,19 +20,15 @@ class Felhasznalo extends Authenticatable
         'email',
         'telefonszam',
         'jogosultsag',
-        'jelszo'
+        'password',
     ];
 
-
     protected $hidden = [
-        'jelszo',
+        'password',
     ];
 
     public function getAuthPassword()
     {
-        return $this->jelszo;
+        return $this->password;
     }
 }
-use App\Models\Felhasznalo;
-use Illuminate\Support\Facades\Hash;
-
