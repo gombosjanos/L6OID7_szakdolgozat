@@ -36,3 +36,12 @@
     </nav>
   </aside>
 </template>
+<style scoped>
+/* Remove global overrides that forced all Vuetify drawers open. */
+:root { --sidebar-width: 260px; --app-bar-height: 64px; }
+
+/* Optional: only adjust main content margin when a LEFT drawer is open */
+:deep(.v-navigation-drawer:not(.v-navigation-drawer--right):not(.v-navigation-drawer--close)) ~ main.v-main {
+  margin-left: var(--sidebar-width, 260px) !important;
+}
+</style>

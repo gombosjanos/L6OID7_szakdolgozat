@@ -1,0 +1,18 @@
+  <v-container fluid class="pa-4 has-bottom-bar">
+      <v-toolbar density="comfortable" color="white" elevation="0" class="mb-3 detail-toolbar">
+        <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
+    <div class="detail-actions d-flex align-center justify-end ga-2">
+    
+    <v-btn class="action-btn" class="action-btn" color="error" variant="elevated" prepend-icon="mdi-delete" :disabled="!isAdmin" @click="deleteWorkorder">Törlés</v-btn>
+    <v-btn class="action-btn" class="action-btn" color="error" variant="elevated" prepend-icon="mdi-delete" :disabled="!isAdmin" @click="deleteWorkorder">Törlés</v-btn>
+    <v-btn class="action-btn" class="action-btn" color="primary" variant="elevated" prepend-icon="mdi-content-save" @click="saveAll">Mentés</v-btn>
+  </div>
+    <v-btn class="action-btn" class="action-btn" color="primary" variant="elevated" prepend-icon="mdi-content-save" @click="saveAll">Mentés</v-btn>
+  </div>
+</v-container>
+.detail-actions{ position: sticky; bottom: 0; background: #fff; border-top: 1px solid #eee; padding: 8px 16px; }
+.num-input:deep(input){ text-align: right; font-weight: 600; color: #111; width: var(--w, 12ch); }
+.name-input:deep(.v-field){ min-width: 260px; }
+@media (max-width: 600px){ .detail-toolbar{ flex-wrap: wrap; } .detail-toolbar .v-toolbar-title{ flex:1 0 100%; } } .offer-scroll{ overflow-x:auto; } .offer-scroll .v-table{ min-width: 720px; } @media (max-width: 600px){ .detail-toolbar{ flex-wrap: wrap; } .detail-toolbar .v-toolbar-title{ flex:1 0 100%; } } .offer-scroll{ overflow-x:auto; } .offer-scroll .v-table{ min-width: 720px; } \n/* Bottom action bar: sticky/ fixed on mobile */\n.has-bottom-bar{ padding-bottom: 84px; }\n.detail-actions{ position: sticky; bottom: 0; left:0; right:0; z-index: 8; background:#fff; border-top:1px solid #eee; padding: 10px 12px; display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }\n.detail-actions .v-btn.action-btn{ min-width: 148px; font-weight:600; }\n@media (max-width: 600px){\n  .detail-actions{ position: fixed; box-shadow: 0 -6px 16px rgba(0,0,0,.08); padding-bottom: max(12px, env(safe-area-inset-bottom)); }\n  .detail-actions .v-btn.action-btn{ flex: 1 1 48%; min-width: auto; }\n}\n@media (max-width: 380px){\n  .detail-actions .v-btn.action-btn{ flex-basis: 100%; }\n}\n</style>
+
+

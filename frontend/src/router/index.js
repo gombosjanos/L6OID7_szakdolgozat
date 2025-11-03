@@ -1,16 +1,16 @@
-import { createRouter, createWebHistory } from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import MainLayout from '../layouts/MainLayout.vue'
 import AdminView from '../views/AdminView.vue'
 import AdminCustomersView from '../views/admin/CustomersView.vue'
 import AdminMachinesView from '../views/admin/MachinesView.vue'
 import AdminWorkordersView from '../views/admin/WorkordersView.vue'
-import AdminWorkorderDetail from '../views/admin/WorkorderDetail.vue'
 import AdminPartsView from '../views/admin/PartsView.vue'
 
 import RegisterView from '../views/RegisterView.vue'
 import UgyfelView from '../views/UgyfelView.vue'
 import SzereloView from '../views/SzereloView.vue'
+import AdminWorkorderCreate from '../views/admin/WorkorderCreate.vue'
 
 const routes = [
   { path: '/login', component: LoginView },
@@ -23,7 +23,19 @@ const routes = [
       { path: 'admin/ugyfelek', component: AdminCustomersView },
       { path: 'admin/gepek', component: AdminMachinesView },
       { path: 'admin/munkalapok', component: AdminWorkordersView },
-      { path: 'admin/munkalapok/:id', component: AdminWorkorderDetail },
+      { path: 'admin/munkalapok/uj', component: AdminWorkorderCreate },
+      {
+        path: '/admin/munkalapok',
+        name: 'Workorders',
+        component: () => import('../views/admin/WorkordersView.vue'),
+        meta: { requiresAuth: true, role: 'admin' }
+      },
+      {
+        path: '/admin/munkalapok/:id',
+        name: 'WorkorderDetail',
+        component: () => import('../views/admin/WorkorderDetail.vue'),
+        meta: { requiresAuth: true, role: 'admin' }
+      },
       { path: 'admin/alkatreszek', component: AdminPartsView },
       { path: 'ugyfel', component: UgyfelView },
       { path: 'szerelo', component: SzereloView }
@@ -54,6 +66,6 @@ router.beforeEach((to, from, next) => {
   }
 
   next()
-})//as
+})
 
 export default router

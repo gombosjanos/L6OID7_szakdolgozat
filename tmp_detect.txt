@@ -1,0 +1,42 @@
+function detectSidebarWidth() {
+  try {
+    const candidates = Array.from(document.querySelectorAll('aside.v-navigation-drawer'))
+    // pick the first left drawer (exclude right drawers)
+    const left = candidates.find(el => !el.classList.contains('v-navigation-drawer--right'))
+    if (!left) return 0
+    const style = getComputedStyle(left)
+    if (style.display === 'none' || style.visibility === 'hidden') return 0
+    return left.clientWidth || 0
+  } catch { return 0 }
+}
+function detectHeaderHeight(){
+  try{
+    const el = document.querySelector('header.v-app-bar, .v-app-bar')
+    if(!el) return 0
+    const style = getComputedStyle(el)
+    if (style.display === 'none' || style.visibility === 'hidden') return 0
+    return el.clientHeight || 0
+  } catch { return 0 }
+}
+function recalcDrawerWidth() {
+  const sidebar = detectSidebarWidth()
+  headerHeight.value = detectHeaderHeight()
+  const padding = 0
+  const width = Math.max(360, vw - sidebar - padding)
+  drawerWidth.value = Math.min(vw, width)
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', recalcDrawerWidth)
+}
+Vue.onMounted(() => { recalcDrawerWidth() })
+Vue.onBeforeUnmount(() => { if (typeof window !== 'undefined') window.removeEventListener('resize', recalcDrawerWidth) })
+
+const drawerStyle = Vue.computed(() => ({
+  top: `${headerHeight.value}px`,
+  height: `calc(100vh - ${headerHeight.value}px)`,
+  width: `${drawerWidth.value}px`,
+  '--drawer-w': `${drawerWidth.value}px`,
+  '--v-navigation-drawer-width': `${drawerWidth.value}px`,
+}))
+
+// Recalculate when opening and when sidebar toggles

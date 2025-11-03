@@ -1,0 +1,33 @@
+function norm(v){ try{ return (v ?? '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (v ?? '').toString().toLowerCase() } }
+function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
+function getUgyfelNev(row){ return row?.ugyfel?.nev ?? row?.ugyfel_nev ?? row?.nev ?? row?.ugyfel_adatok?.nev ?? '-' }
+
+async function loadAll(){
+  errorMsg.value=''
+  try {
+    const d = await request(`/munkalapok/${id.value}`); detail.value = d || {}
+    const n = await request(`/munkalapok/${id.value}/naplo`); naplo.value = Array.isArray(n)?n:[]
+    const a = await request(`/munkalapok/${id.value}/ajanlat`); offer.value = a || null; applyAjanlat(a)
+  } catch(e){ errorMsg.value = e?.message || 'Betöltési hiba.' }
+}
+
+function applyAjanlat(a){
+  const rows = a?.tetelek || []
+  tetelek.value = rows.map(r => {
+    const tNorm = norm(r.tipus)
+    const nameNorm = norm(r.megnevezes)
+    let tipus = 'egyedi'
+    if (r.alkatresz_id) tipus = 'alkatresz'
+    else if (tNorm.includes('munkadij') || nameNorm.includes('munkadij')) tipus = 'munkadij'
+    return {
+      tipus,
+      alkatresz_id: r.alkatresz_id || null,
+      megnevezes: r.megnevezes || r.alaktresznev || r.alkatresznev || '',
+      db: Number(r.mennyiseg || r.db || 1),
+      netto: Number(r.netto ?? r.nettoar ?? 0),
+      brutto: Number(r.brutto ?? r.bruttoar ?? 0),
+      afa_kulcs: Number(r.afa_kulcs ?? 27)
+    }
+  })
+}
+

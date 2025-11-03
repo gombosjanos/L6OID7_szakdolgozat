@@ -1,4 +1,4 @@
-ï»¿<script setup>
+<script setup>
 import { ref, onMounted, computed } from 'vue'
 import { api } from '../api.js'
 
@@ -11,12 +11,12 @@ const load = async () => {
   error.value = ''
   loading.value = true
   try {
-    if (!user?.id && !user?.ID) throw new Error('Nincs bejelentkezett felhasznÃ¡lÃ³')
+    if (!user?.id && !user?.ID) throw new Error('Nincs bejelentkezett felhasználó')
     const userId = user.id ?? user.ID
     const { data } = await api.get('/munkalapok', { params: { user_id: userId } })
     munkalapok.value = Array.isArray(data) ? data : []
   } catch (e) {
-    error.value = e?.response?.data?.message || e.message || 'Nem sikerÃ¼lt betÃ¶lteni a munkalapokat.'
+    error.value = e?.response?.data?.message || e.message || 'Nem sikerült betölteni a munkalapokat.'
     console.debug('Load munkalapok error', e?.response?.data || e)
   } finally {
     loading.value = false
@@ -30,7 +30,7 @@ const accept = async (row) => {
     await api.put(`/munkalapok/${row.ID || row.id}`, { statusz: 'ajanlat_elfogadva' })
     load()
   } catch (e) {
-    error.value = e?.response?.data?.message || 'Nem sikerÃ¼lt elfogadni az Ã¡rajÃ¡nlatot.'
+    error.value = e?.response?.data?.message || 'Nem sikerült elfogadni az árajánlatot.'
   }
 }
 
@@ -39,16 +39,16 @@ const reject = async (row) => {
     await api.put(`/munkalapok/${row.ID || row.id}`, { statusz: 'ajanlat_elutasitva' })
     load()
   } catch (e) {
-    error.value = e?.response?.data?.message || 'Nem sikerÃ¼lt elutasÃ­tani az Ã¡rajÃ¡nlatot.'
+    error.value = e?.response?.data?.message || 'Nem sikerült elutasítani az árajánlatot.'
   }
 }
 
 const headers = [
-  { title: 'AzonosÃ­tÃ³', key: 'ID' },
-  { title: 'Ãllapot', key: 'statusz' },
-  { title: 'Hiba leÃ­rÃ¡s', key: 'hibaleiras' },
-  { title: 'LÃ©trehozva', key: 'letrehozva' },
-  { title: 'MÅ±veletek', key: 'actions', sortable: false },
+  { title: 'Azonosító', key: 'ID' },
+  { title: 'Állapot', key: 'statusz' },
+  { title: 'Hiba leírás', key: 'hibaleiras' },
+  { title: 'Létrehozva', key: 'letrehozva' },
+  { title: 'Mûveletek', key: 'actions', sortable: false },
 ]
 
 const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
@@ -57,7 +57,7 @@ const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
 <template>
   <v-container class="py-4">
     <div class="text-h6 font-weight-bold mb-2">Munkalapok</div>
-    <div class="text-body-2 text-medium-emphasis mb-4">Itt kÃ¶vetheted a javÃ­tÃ¡s Ã¡llapotÃ¡t Ã©s dÃ¶nthetsz az Ã¡rajÃ¡nlatrÃ³l.</div>
+    <div class="text-body-2 text-medium-emphasis mb-4">Itt követheted a javítás állapotát és dönthetsz az árajánlatról.</div>
 
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
@@ -71,7 +71,7 @@ const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
               :color="{
                 'uj': 'grey',
                 'folyamatban': 'primary',
-                'ajanlat_kesz': 'warning',
+                'ajanlat_elkuldve': 'purple',
                 'ajanlat_elfogadva': 'success',
                 'ajanlat_elutasitva': 'error',
                 'kesz': 'success',
@@ -80,25 +80,25 @@ const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
               size="small"
             >
               {{ {
-                'uj': 'Ãšj',
+                'uj': 'Új',
                 'folyamatban': 'Folyamatban',
-                'ajanlat_kesz': 'AjÃ¡nlat kÃ©sz',
-                'ajanlat_elfogadva': 'AjÃ¡nlat elfogadva',
-                'ajanlat_elutasitva': 'AjÃ¡nlat elutasÃ­tva',
-                'kesz': 'KÃ©sz',
+                'ajanlat_kesz': 'Ajánlat kész',
+                'ajanlat_elfogadva': 'Ajánlat elfogadva',
+                'ajanlat_elutasitva': 'Ajánlat elutasítva',
+                'kesz': 'Kész',
               }[item.statusz] || item.statusz }}
             </v-chip>
           </template>
           <template #item.actions="{ item }">
-            <div v-if="item.statusz === 'ajanlat_kesz'">
+            <div v-if="item.statusz === 'ajanlat_elkuldve'">
               <v-btn size="small" color="success" variant="tonal" class="me-2" @click="accept(item)">Elfogadom</v-btn>
-              <v-btn size="small" color="error" variant="tonal" @click="reject(item)">ElutasÃ­tom</v-btn>
+              <v-btn size="small" color="error" variant="tonal" @click="reject(item)">Elutasítom</v-btn>
             </div>
           </template>
         </v-data-table>
       </v-card>
       <v-card v-else elevation="1" class="pa-6 text-center text-medium-emphasis">
-        MÃ©g nincs munkalapod.
+        Még nincs munkalapod.
       </v-card>
     </template>
   </v-container>
