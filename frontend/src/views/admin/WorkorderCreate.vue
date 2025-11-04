@@ -1,7 +1,143 @@
+<template>
+  <v-container fluid class="pa-4">
+    <!-- Toolbar -->
+    <v-toolbar density="comfortable" color="white" elevation="0" class="mb-4">
+      <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
+      <v-toolbar-title>Új munkalap</v-toolbar-title>
+      <v-spacer />
+      <v-btn class="create-btn" color="primary" variant="elevated" prepend-icon="mdi-plus" :loading="saving" :disabled="disableCreate" @click="createWorkorder">Létrehozás</v-btn>
+    </v-toolbar>
+
+    <v-alert v-if="errorMsg" type="error" variant="tonal" class="mb-3">{{ errorMsg }}</v-alert>
+    <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor" location="top right">
+      {{ snackbarText }}
+      <template #actions>
+        <v-btn variant="text" @click="snackbar = false">OK</v-btn>
+      </template>
+    </v-snackbar>
+
+    <v-row>
+      <!-- Ügyfél blokk -->
+      <v-col cols="12" md="6" lg="4">
+        <v-card class="mb-4">
+          <v-card-title class="text-subtitle-1">Ügyfél</v-card-title>
+          <v-divider />
+          <v-card-text>
+            <div class="d-flex align-center justify-space-between mb-2">
+              <div class="text-caption text-medium-emphasis">Regisztrált ügyfél</div>
+              <v-switch hide-details color="primary" v-model="isRegistered" inset></v-switch>
+            </div>
+
+            <!-- Regisztrált -->
+            <div v-if="isRegistered">
+              <v-autocomplete
+                v-model="ugyfel"
+                :items="ugyfelItems"
+                :loading="ugyfelLoading"
+                :search="ugyfelSearch"
+                @update:search="onSearchUgyfel"
+                item-title="nev"
+                item-value="id"
+                return-object
+                label="Ügyfél kiválasztása"
+                variant="outlined"
+                density="comfortable"
+                clearable
+                @focus="onSearchUgyfel('')"
+              />
+
+              <!-- kiválasztott ügyfél összegzés -->
+              <v-alert v-if="ugyfel" type="info" variant="tonal" class="mt-2">
+                <div><strong>{{ ugyfel.nev }}</strong></div>
+                <div class="text-medium-emphasis">{{ ugyfel.email || '-' }}</div>
+                <div class="text-medium-emphasis">{{ ugyfel.telefonszam || '-' }}</div>
+              </v-alert>
+            </div>
+
+            <!-- Nem regisztrált -->
+            <div v-else>
+              <v-text-field v-model.trim="ugyfel_nev" :rules="nameRules" label="Név" variant="outlined" density="comfortable" />
+              <v-text-field v-model.trim="ugyfel_email" :rules="emailRules" label="E-mail" type="email" variant="outlined" density="comfortable" />
+              <v-text-field v-model.trim="ugyfel_telefon" label="Telefonszám" variant="outlined" density="comfortable" />
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Gép blokk -->
+      <v-col cols="12" md="6" lg="4">
+        <v-card class="mb-4">
+          <v-card-title class="d-flex align-center">
+            <span class="text-subtitle-1">Gép</span>
+            <v-spacer />
+            <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-plus" @click="addMachineDialog = true">Új gép</v-btn>
+          </v-card-title>
+          <v-divider />
+          <v-card-text>
+            <v-autocomplete
+              v-model="gep"
+              :items="gepItems"
+              :loading="gepLoading"
+              :search="gepSearch"
+              @update:search="onSearchGep"
+              :item-title="gepItemTitle"
+              :item-value="item => item.ID"
+              return-object
+              label="Gép kiválasztása (cikkszám / gyártó / típus)"
+              variant="outlined"
+              density="comfortable"
+              clearable
+              @focus="onSearchGep('')"
+            />
+
+            <!-- kiválasztott gép összegzés -->
+            <v-alert v-if="gep" type="info" variant="tonal" class="mt-2">
+              <div><strong>{{ gep.gyarto || '-' }}</strong> — {{ gep.tipusnev || '-' }}</div>
+              <div class="text-medium-emphasis">Cikkszám: {{ gep.g_cikkszam || '-' }}</div>
+              <div class="text-medium-emphasis">Gyártási év: {{ gep.gyartasiev ?? '-' }}</div>
+            </v-alert>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Leírások -->
+      <v-col cols="12" lg="4">
+        <v-card class="mb-4">
+          <v-card-title class="text-subtitle-1">Leírások</v-card-title>
+          <v-divider />
+          <v-card-text>
+            <v-textarea v-model="hibaleiras" label="Hibaleírás" auto-grow rows="3" variant="outlined" density="comfortable" />
+            <v-textarea v-model="megjegyzes" label="Megjegyzés" auto-grow rows="2" variant="outlined" density="comfortable" />
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Dialog: Új gép felvétele -->
+    <v-dialog v-model="addMachineDialog" max-width="560">
+      <v-card>
+        <v-card-title class="text-subtitle-1">Új gép hozzáadása</v-card-title>
+        <v-divider />
+        <v-card-text>
+          <v-text-field v-model="newMachine.gyarto" label="Gyártó" variant="outlined" density="comfortable" />
+          <v-text-field v-model="newMachine.tipusnev" label="Típusnév" variant="outlined" density="comfortable" />
+          <v-text-field v-model="newMachine.g_cikkszam" label="Cikkszám" variant="outlined" density="comfortable" />
+          <v-text-field v-model="newMachine.gyartasiev" label="Gyártási év" type="number" variant="outlined" density="comfortable" />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="tonal" @click="addMachineDialog = false">Mégse</v-btn>
+          <v-btn color="primary" variant="elevated" :loading="addingMachine" :disabled="addingMachine || !canAddMachine" @click="addMachine">Hozzáadás</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
+  </template>
+
 <script setup>
 import * as Vue from 'vue'
 import { useRouter } from 'vue-router'
 
+// Lightweight request helper (matches other views)
 async function request(path, { method = 'GET', body } = {}) {
   const url = `/api${path}`
   const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
@@ -13,107 +149,149 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 const router = useRouter()
-const errorMsg = Vue.ref('')
-const loading = Vue.ref(false)
 
-const createState = Vue.reactive({
-  ugyfel: null,
-  ugyfelItems: [],
-  ugyfelSearch: '',
-  ugyfelLoading: false,
-  gep: null,
-  gepItems: [],
-  gepSearch: '',
-  gepLoading: false,
+// Snackbar
+const snackbar = Vue.ref(false)
+const snackbarText = Vue.ref('')
+const snackbarColor = Vue.ref('success')
+function setSnack(text, color = 'success'){ snackbarText.value = text; snackbarColor.value = color; snackbar.value = true }
+
+// State
+const isRegistered = Vue.ref(true)
+
+const ugyfel = Vue.ref(null)
+const ugyfelItems = Vue.ref([])
+const ugyfelSearch = Vue.ref('')
+const ugyfelLoading = Vue.ref(false)
+const ugyfel_nev = Vue.ref('')
+const ugyfel_email = Vue.ref('')
+const ugyfel_telefon = Vue.ref('')
+
+const gep = Vue.ref(null)
+const gepItems = Vue.ref([])
+const gepSearch = Vue.ref('')
+const gepLoading = Vue.ref(false)
+
+const hibaleiras = Vue.ref('')
+const megjegyzes = Vue.ref('')
+const saving = Vue.ref(false)
+const errorMsg = Vue.ref('')
+
+// New machine dialog
+const addMachineDialog = Vue.ref(false)
+const addingMachine = Vue.ref(false)
+const newMachine = Vue.reactive({ gyarto: '', tipusnev: '', g_cikkszam: '', gyartasiev: '' })
+const canAddMachine = Vue.computed(()=> !!(newMachine.gyarto && newMachine.tipusnev && newMachine.g_cikkszam && String(newMachine.gyartasiev).length >= 4))
+
+// Helpers
+function gepItemTitle(item){ if(!item) return '-'; return [item.gyarto, item.tipusnev, item.g_cikkszam].filter(Boolean).join(' — ') }
+
+// Search handlers (debounced)
+let tU = null
+async function onSearchUgyfel(q){
+  ugyfelSearch.value = q
+  if(tU) clearTimeout(tU)
+  tU = setTimeout(async ()=>{
+    ugyfelLoading.value = true
+    try{ ugyfelItems.value = await request('/felhasznalok', { method: 'GET', body: { q: q || '', limit: '20' } }) }
+    catch(e){ console.error(e) }
+    finally{ ugyfelLoading.value = false }
+  }, 200)
+}
+
+let tG = null
+async function onSearchGep(q){
+  gepSearch.value = q
+  if(tG) clearTimeout(tG)
+  tG = setTimeout(async ()=>{
+    gepLoading.value = true
+    try{ gepItems.value = await request('/gepek', { method: 'GET', body: { q: q || '', limit: '20' } }) }
+    catch(e){ console.error(e) }
+    finally{ gepLoading.value = false }
+  }, 200)
+}
+
+// Add machine from dialog
+async function addMachine(){
+  if(!canAddMachine.value) return
+  addingMachine.value = true
+  try{
+    // Ensure year is a 4-digit number
+    const payload = { ...newMachine, gyartasiev: Number(String(newMachine.gyartasiev).slice(0,4)) || 0 }
+    const rec = await request('/gepek', { method: 'POST', body: payload })
+    gep.value = rec
+    // Reset dialog state
+    Object.assign(newMachine, { gyarto: '', tipusnev: '', g_cikkszam: '', gyartasiev: '' })
+    addMachineDialog.value = false
+    setSnack('Gép hozzáadva')
+  }catch(e){ setSnack(e?.message || 'Gép hozzáadása sikertelen', 'error') }
+  finally{ addingMachine.value = false }
+}
+
+// Simple validators
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const emailValid = Vue.computed(()=> isRegistered.value ? true : emailPattern.test((ugyfel_email.value||'').trim()))
+const nameValid = Vue.computed(()=> isRegistered.value ? true : !!(ugyfel_nev.value||'').trim())
+const nameRules = [ v => isRegistered.value || (!!(v||'').trim()) || 'Név megadása kötelező' ]
+const emailRules = [ v => isRegistered.value || (emailPattern.test((v||'').trim()) || 'Érvénytelen e-mail cím') ]
+
+// Create workorder
+const disableCreate = Vue.computed(()=>{
+  const hasGep = !!(gep.value && (gep.value.ID || gep.value.id))
+  const hasUser = isRegistered.value
+    ? !!(ugyfel.value && (ugyfel.value.id || ugyfel.value.ID))
+    : (nameValid.value && emailValid.value)
+  return !(hasGep && hasUser) || saving.value
 })
 
-function gepItemTitle(it){ if(!it) return ''; return [it.gyarto, it.tipusnev, it.g_cikkszam].filter(Boolean).join(' — ') }
-
-async function onSearchUgyfel(val){
-  createState.ugyfelSearch = val
-  createState.ugyfelLoading = true
-  try{ const res = await request('/felhasznalok',{ method:'GET', body:{ q: val || '', limit:'20' }})
-    createState.ugyfelItems = Array.isArray(res)?res:[]
-  } catch(e){ console.warn('Ugyfel search failed', e) } finally { createState.ugyfelLoading=false }
-}
-async function onSearchGep(val){
-  createState.gepSearch = val
-  createState.gepLoading = true
-  try{ const res = await request('/gepek',{ method:'GET', body:{ q: val || '', limit:'20' }})
-    createState.gepItems = Array.isArray(res)?res:[]
-  } catch(e){ console.warn('Gep search failed', e) } finally { createState.gepLoading=false }
-}
-
 async function createWorkorder(){
-  if(!createState.ugyfel || !createState.gep){ errorMsg.value = 'Kérlek válassz ügyfelet és gépet.'; return }
+  if(disableCreate.value) return
+  errorMsg.value = ''
+  saving.value = true
   try{
-    errorMsg.value = ''
-    loading.value = true
     const payload = {
-      ugyfel_id: createState.ugyfel.id ?? createState.ugyfel.ID ?? createState.ugyfel.ugyfel_id,
-      gep_id: createState.gep.id ?? createState.gep.ID ?? createState.gep.gep_id,
-      statusz: 'új',
+      gep_id: gep.value?.ID ?? gep.value?.id,
+      statusz: 'uj'
     }
-    const res = await request('/munkalapok',{ method:'POST', body: payload })
-    const newId = res?.id ?? res?.ID ?? res?.munkalap_id
+    if(isRegistered.value){
+      payload.user_id = ugyfel.value?.id ?? ugyfel.value?.ID
+    } else {
+      payload.regisztralt = false
+      // Client-side guard: prevent invalid email from being sent
+      const trimmedName = (ugyfel_nev.value||'').trim()
+      const trimmedEmail = (ugyfel_email.value||'').trim()
+      if(!trimmedName){ setSnack('Név megadása kötelező', 'error'); saving.value=false; return }
+      if(!emailPattern.test(trimmedEmail)){ setSnack('Érvénytelen e-mail cím', 'error'); saving.value=false; return }
+      payload.ugyfel_nev = trimmedName
+      payload.ugyfel_email = trimmedEmail.toLowerCase()
+      payload.ugyfel_telefon = ugyfel_telefon.value || null
+    }
+    if(hibaleiras.value) payload.hibaleiras = hibaleiras.value
+    if(megjegyzes.value) payload.megjegyzes = megjegyzes.value
+
+    const created = await request('/munkalapok', { method: 'POST', body: payload })
+    const newId = created?.ID ?? created?.id
+    setSnack('Munkalap létrehozva')
     if(newId){ router.push(`/admin/munkalapok/${newId}`) }
-  } catch(e){ errorMsg.value = e?.message || 'Létrehozás sikertelen.' }
-  finally{ loading.value=false }
+    else { router.push('/admin/munkalapok') }
+  }catch(e){
+    console.error(e)
+    errorMsg.value = e?.message || 'Létrehozás sikertelen'
+    setSnack(errorMsg.value, 'error')
+  } finally {
+    saving.value = false
+  }
 }
 
-Vue.onMounted(()=>{ onSearchUgyfel(''); onSearchGep('') })
+function goBack(){ try{ if(window.history && window.history.length>1) router.back(); else router.push('/admin/munkalapok') } catch { router.push('/admin/munkalapok') } }
+
+// Prime lists on mount
+if(typeof window !== 'undefined'){
+  onSearchUgyfel('')
+  onSearchGep('')
+}
 </script>
 
-<template>
-  <v-container fluid class="pa-4">
-    <v-toolbar density="comfortable" color="white" elevation="0" class="mb-3">
-      <v-btn icon="mdi-arrow-left" variant="text" @click="$router.back()" />
-      <v-toolbar-title>Új munkalap</v-toolbar-title>
-      <v-spacer />
-      <v-btn :loading="loading" color="primary" @click="createWorkorder" prepend-icon="mdi-plus">Létrehozás</v-btn>
-    </v-toolbar>
-
-    <v-alert v-if="errorMsg" type="error" variant="tonal" class="mb-3">{{ errorMsg }}</v-alert>
-
-    <v-row>
-      <v-col cols="12" md="6" lg="5">
-        <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1">Alap adatok</v-card-title>
-          <v-divider />
-          <v-card-text>
-            <v-autocomplete
-              v-model="createState.ugyfel"
-              :items="createState.ugyfelItems"
-              :loading="createState.ugyfelLoading"
-              :search="createState.ugyfelSearch"
-              @update:search="onSearchUgyfel"
-              item-title="nev"
-              item-value="id"
-              label="Ügyfél kiválasztása"
-              return-object
-              clearable
-              variant="outlined"
-              density="comfortable"
-              class="mb-3"
-            />
-            <v-autocomplete
-              v-model="createState.gep"
-              :items="createState.gepItems"
-              :loading="createState.gepLoading"
-              :search="createState.gepSearch"
-              @update:search="onSearchGep"
-              :item-title="gepItemTitle"
-              item-value="id"
-              label="Gép kiválasztása"
-              return-object
-              clearable
-              variant="outlined"
-              density="comfortable"
-            />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
-</template>
-
+<style scoped>
+.create-btn{ font-weight: 800; letter-spacing: .2px; }
+</style>

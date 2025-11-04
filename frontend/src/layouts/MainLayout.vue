@@ -15,11 +15,10 @@ const logout = async () => {
 </script>
 
 <template>
-  <!-- App chrome -->
   <v-layout full-height>
-    <!-- Top Bar -->
+    <!-- FelsĹ‘ sĂˇv -->
     <v-app-bar app color="white" elevation="3">
-      <v-btn class="me-2 menu-btn" icon variant="text" @click="drawer = !drawer" aria-label="Menü">
+      <v-btn class="me-2 Menü-btn" icon variant="text" @click="drawer = !drawer" aria-label="Menü">
         <svg width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
           <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
         </svg>
@@ -28,7 +27,7 @@ const logout = async () => {
       <v-spacer />
       <v-btn
         v-if="user?.nev"
-        :to="{ path: '/profil' }"
+        :to="{ path: (user?.jogosultsag==='ugyfel' ? '/ugyfel' : (user?.jogosultsag==='szerelo' ? '/szerelo' : '/admin')) }"
         variant="flat"
         color="black"
         size="small"
@@ -44,7 +43,7 @@ const logout = async () => {
       </v-btn>
     </v-app-bar>
 
-    <!-- Side Navigation -->
+    <!-- Oldalsó Menü -->
     <v-navigation-drawer v-model="drawer" app color="white" elevation="2" width="240">
       <div class="px-4 py-4 d-flex align-center">
         <v-avatar color="primary" size="36" class="me-2">
@@ -56,7 +55,7 @@ const logout = async () => {
       <v-list density="comfortable" nav>
         <v-list-item v-if="user?.jogosultsag === 'admin'" title="Főoldal" prepend-icon="mdi-view-dashboard" @click="router.push('/admin')" />
         <v-list-item v-if="user?.jogosultsag === 'admin'" title="Felhasználókezelés" prepend-icon="mdi-account-multiple" @click="router.push('/admin/ugyfelek')" />
-        <v-list-item v-if="user?.jogosultsag === 'szerelo'" title="Ügyfelek" prepend-icon="mdi-account" @click="router.push('/admin/ugyfelek')" />
+
         <v-list-item v-if="user?.jogosultsag === 'admin'" title="Gépek nyilvántartása" prepend-icon="mdi-robot-mower" @click="router.push('/admin/gepek')" />
         <v-list-item v-if="user?.jogosultsag === 'szerelo'" title="Gépek" prepend-icon="mdi-robot-mower" @click="router.push('/admin/gepek')" />
         <v-list-item v-if="user?.jogosultsag === 'admin' || user?.jogosultsag === 'szerelo'" title="Munkalapok" prepend-icon="mdi-clipboard-text" @click="router.push('/admin/munkalapok')" />
@@ -66,7 +65,7 @@ const logout = async () => {
       </v-list>
     </v-navigation-drawer>
 
-    <!-- Main Content -->
+    <!-- Tartalom -->
     <v-main class="bg-grey-lighten-5">
       <v-container fluid class="pa-6">
         <router-view />
@@ -77,13 +76,16 @@ const logout = async () => {
 
 <style scoped>
 .v-app-bar { background: #fff; }
-.menu-btn svg { display: block; }
-.menu-btn svg path { fill: #111; }
+.Menü-btn svg { display: block; }
+.Menü-btn svg path { fill: #111; }
 .welcome-btn { font-weight: 600; }
 .welcome-btn--dark { background: #111 !important; color: #fff !important; }
 .welcome-btn--dark :deep(.v-btn__content),
 .welcome-btn--dark :deep(.v-icon) { color: #fff !important; }
 @media (max-width: 600px){ .welcome-btn { display:none !important; } }
 </style>
+
+
+
 
 

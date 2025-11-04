@@ -27,7 +27,7 @@ class AlkatreszController extends Controller
         }
 
         $query = DB::table('alkatreszek')
-            ->selectRaw("ID, a_cikkszam, {$nameExpr} as alaktresznev, nettoar, bruttoar");
+            ->selectRaw("ID, a_cikkszam, {$nameExpr} as alaktresznev, nettoar, bruttoar, keszlet");
 
         if ($q !== '') {
             $like = "%" . str_replace(['%', '_'], ['\\%', '\\_'], $q) . "%";
@@ -54,6 +54,7 @@ class AlkatreszController extends Controller
             'nettoar'        => 'sometimes|nullable|numeric|min:0',
             'bruttoar'       => 'sometimes|nullable|numeric|min:0',
             'afa_kulcs'      => 'sometimes|numeric|min:0|max:100',
+            'keszlet'        => 'sometimes|nullable|integer|min:0',
         ]);
 
         $name = $validated['alaktresznev']
@@ -78,11 +79,16 @@ class AlkatreszController extends Controller
             'nettoar'    => $netto,
             'bruttoar'   => $brutto,
         ];
+        if (array_key_exists('keszlet', $validated)) { $base['keszlet'] = (int)($validated['keszlet'] ?? 0); }
 
         $id = $this->insertWithNameFallback('alkatreszek', $base, $name);
 
+        // Build safe name expression again to avoid missing-column errors
+        $candidates = ['alkatresznev', 'alaktresznev', 'megnevezes'];
+        $existing = array_values(array_intersect($candidates, Schema::getColumnListing('alkatreszek')));
+        $nameExpr = !empty($existing) ? ('COALESCE(' . implode(', ', $existing) . ')') : "''";
         $row = DB::table('alkatreszek')
-            ->selectRaw('ID, a_cikkszam, COALESCE(alkatresznev, alaktresznev) as alaktresznev, nettoar, bruttoar')
+            ->selectRaw("ID, a_cikkszam, {$nameExpr} as alaktresznev, nettoar, bruttoar, keszlet")
             ->where('ID', $id)
             ->first();
 
@@ -99,6 +105,7 @@ class AlkatreszController extends Controller
             'nettoar'        => 'sometimes|nullable|numeric|min:0',
             'bruttoar'       => 'sometimes|nullable|numeric|min:0',
             'afa_kulcs'      => 'sometimes|numeric|min:0|max:100',
+            'keszlet'        => 'sometimes|nullable|integer|min:0',
         ]);
 
         $row = DB::table('alkatreszek')->where('ID', $id)->first();
@@ -132,11 +139,17 @@ class AlkatreszController extends Controller
         if ($brutto !== null) {
             $base['bruttoar'] = $brutto;
         }
+        if (array_key_exists('keszlet', $validated)) {
+            $base['keszlet'] = (int)($validated['keszlet'] ?? 0);
+        }
 
         $this->updateWithNameFallback('alkatreszek', (int)$id, $base, $name);
 
+        $candidates = ['alkatresznev', 'alaktresznev', 'megnevezes'];
+        $existing = array_values(array_intersect($candidates, Schema::getColumnListing('alkatreszek')));
+        $nameExpr = !empty($existing) ? ('COALESCE(' . implode(', ', $existing) . ')') : "''";
         $row = DB::table('alkatreszek')
-            ->selectRaw('ID, a_cikkszam, COALESCE(alkatresznev, alaktresznev) as alaktresznev, nettoar, bruttoar')
+            ->selectRaw("ID, a_cikkszam, {$nameExpr} as alaktresznev, nettoar, bruttoar, keszlet")
             ->where('ID', $id)
             ->first();
 
@@ -150,6 +163,25 @@ class AlkatreszController extends Controller
             return response()->json(['message' => 'Nem található.'], 404);
         }
         return response()->json(['message' => 'Sikeresen törölve.']);
+    }
+
+    public function updateKeszlet(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'keszlet' => 'required|integer|min:0',
+        ]);
+
+        $alkatresz = DB::table('alkatreszek')->where('ID', $id)->first();
+
+        if (!$alkatresz) {
+            return response()->json(['message' => 'Az alkatrész nem található.'], 404);
+        }
+
+        DB::table('alkatreszek')->where('ID', $id)->update(['keszlet' => $validated['keszlet']]);
+
+        $updatedAlkatresz = DB::table('alkatreszek')->where('ID', $id)->first();
+
+        return response()->json($updatedAlkatresz);
     }
 
     private function insertWithNameFallback(string $table, array $base, ?string $name): int

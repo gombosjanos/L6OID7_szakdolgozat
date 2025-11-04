@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container fluid class="pa-4">
     <v-row class="align-center mb-4" no-gutters>
       <v-col cols="12" md="6">
@@ -9,7 +9,7 @@
           v-model="search"
           variant="outlined"
           density="comfortable"
-          label="Keresés (Ügyfél, gép, azonosító)"
+          label="Keresés (Ügyfél, gép, Azonosító)"
           prepend-inner-icon="mdi-magnify"
           clearable
           class="mr-2"
@@ -42,7 +42,7 @@
     <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor" location="top right">
       {{ snackbarText }}
       <template #actions>
-        <v-btn variant="text" @click="snackbar = false">OK</v-btn>
+        <v-btn variant="text" @click="snackbar =false">OK</v-btn>
       </template>
     </v-snackbar>
 
@@ -54,19 +54,23 @@
           :loading="loadingList"
           item-key="id"
           density="comfortable"
-          class="elevation-0"
-          @click:row="onRowClick"
+          class="elevation-0 clickable-table"
+          @click:row="openDetail"
         >
-          <template #item.id="{ item }">{{ getId(item) }}</template>
+          <template #item.Azonosító="{ item }">
+            <div class="row-link">
+              <span>{{ item.munkalapsorsz || item.Azonosító || (fmtDate(item.Létrehozva||item.created_at).slice(0,4)+'-'+(item.ID||item.id)) }}</span>
+              <v-icon size="18" class="chev" icon="mdi-chevron-right" />
+            </div>
+          </template>
           <template #item.ugyfel="{ item }">{{ getUgyfelNev(item) }}</template>
           <template #item.gep="{ item }">{{ gepLabel(gepFromRow(item)) }}</template>
-          <template #item.letrehozva="{ item }">{{ fmtDate(item.letrehozva || item.created_at) }}</template>
+          <template #item.Létrehozva="{ item }">{{ fmtDate(item.Létrehozva || item.created_at) }}</template>
           <template #item.statusz="{ item }">
             <v-chip size="small" :color="statusColor(getStatus(item))" variant="flat">{{ displayStatus(getStatus(item)) }}</v-chip>
           </template>
           <template #item.actions="{ item }">
-            <v-btn size="small" variant="text" icon="mdi-open-in-new" @click.stop="openDetail(item)" />
-            <v-btn size="small" variant="text" color="error" icon="mdi-delete" :disabled="!isAdmin" @click.stop="deleteWorkorder(item)" />
+            <v-btn v-if="isAdmin" size="small" variant="text" color="error" icon="mdi-delete" @click.stop="deleteWorkorder(item)" />
           </template>
           <template #no-data>
             <div class="pa-6 text-medium-emphasis">Nincs megjeleníthető munkalap.</div>
@@ -78,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 async function request(path, { method = 'GET', body } = {}) {
@@ -92,12 +96,12 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 const headers = [
-  { title: 'Azonosító', value: 'id', sortable: true, width: 110 },
-  { title: 'Ügyfél', value: 'ugyfel', sortable: false },
-  { title: 'Gép', value: 'gep', sortable: false },
-  { title: 'Létrehozva', value: 'letrehozva', sortable: true, width: 180 },
+  { title: 'Azonosító', value: 'Azonosító', sortable: true, width: 140 },
+  { title: 'Ügyfél', value: 'ugyfel', sortable:false },
+  { title: 'Gép', value: 'gep', sortable:false },
+  { title: 'Létrehozva', value: 'Létrehozva', sortable: true, width: 180 },
   { title: 'Státusz', value: 'statusz', sortable: true, width: 160 },
-  { title: '', value: 'actions', align: 'end', sortable: false, width: 80 },
+  { title: '', value: 'actions', align: 'end', sortable:false, width: 80 },
 ]
 
 const workorders = ref([])
@@ -105,6 +109,7 @@ const loadingList = ref(false)
 const listError = ref('')
 const search = ref('')
 const limit = ref(50)
+const statusFilter = ref('')
 let debounceT
 
 const snackbar = ref(false)
@@ -112,7 +117,6 @@ const snackbarText = ref('')
 const snackbarColor = ref('success')
 function setSnack(text, color='success'){ snackbarText.value=text; snackbarColor.value=color; snackbar.value=true }
 
-const statusFilter = ref('')
 const statusFilterItems = computed(()=>[
   { title: 'Mind', value: '' },
   { title: 'Új', value: 'Új' },
@@ -126,53 +130,81 @@ const statusFilterItems = computed(()=>[
 ])
 
 const router = useRouter()
-const isAdmin = computed(()=>{ const role=(localStorage.getItem('jogosultsag')||localStorage.getItem('role')||'').toLowerCase(); return role==='admin' })
+const isClient = typeof window !== 'undefined'
+const isAdmin = computed(()=>{
+  if(!isClient) return false
+  const storage = window.localStorage
+  const role=(storage.getItem('jogosultsag')||storage.getItem('role')||'').toLowerCase()
+  return role==='admin'
+})
 
 function statusColor(s){
-  switch((s||'').toLowerCase()){
-    case 'Új': case 'uj': return 'grey'
-    case 'Folyamatban': return 'blue'
-    case 'Árajanlat_elküldve': case 'Árajánlat elküldve': case 'Árajánlat elküldve': case 'Árajánlat elküldve': return 'purple'
-    case 'Alkatrészre vár': return 'orange'
-    case 'Árajánlat elfogadva': return 'indigo'
-    case 'Javítás kész': return 'green'
-    case 'Átadva/Lezárva': return 'teal'
-    case 'Árajánlat elutasítva': return 'red'
+  const k=(s||'').toLowerCase()
+  switch(k){
+    case 'új': case 'uj': return 'grey'
+    case 'folyamatban': return 'blue'
+    case 'Árajánlat elküldve': case 'ajánlat elküldve': case 'ajánlat elküldve': case 'ajanlat_elkuldve': return 'purple'
+    case 'alkatrészre vár': case 'alkatreszre_var': return 'orange'
+    case 'Javítás kész': case 'javitas_kesz': return 'green'
+    case 'Árajánlat elfogadva': case 'ajánlat elfogadva': case 'ajanlat_elfogadva': return 'indigo'
+    case 'Átadva/Lezárva': case 'atadva': case 'lezarva': case 'atadva_lezarva': return 'teal'
+    case 'Árajánlat elutasítva': case 'ajánlat elutasítva': case 'ajanlat_elutasitva': return 'red'
     default: return 'grey'
   }
 }
 function displayStatus(s){
   const key=(s||'').toLowerCase()
-  const map={ 'uj':'Új','új':'Új','folyamatban':'Folyamatban','ajanlat_kesz':'Ajánlat kész','ajánlat elkészült':'Ajánlat kész','ajanlat elkészült':'Ajánlat kész','ajánlat kész':'Ajánlat kész','vár alkatrészre':'Vár alkatrészre','javítás alatt':'Javítás alatt','kész':'Kész','átadva':'Átadva','elutasítva':'Elutasítva' }
+  const map={
+    'új':'Új','uj':'Új',
+    'folyamatban':'Folyamatban',
+    'Árajánlat elküldve':'Árajánlat elküldve','ajánlat elküldve':'Árajánlat elküldve','ajanlat_elkuldve':'Árajánlat elküldve',
+    'alkatrészre vár':'Alkatrészre vár','alkatreszre_var':'Alkatrészre vár',
+    'Javítás kész':'Javítás kész','javitas_kesz':'Javítás kész',
+    'Árajánlat elutasítva':'Árajánlat elutasítva','ajánlat elutasítva':'Árajánlat elutasítva','ajanlat_elutasitva':'Árajánlat elutasítva',
+    'Átadva/Lezárva':'Átadva/Lezárva','atadva':'Átadva/Lezárva','lezarva':'Átadva/Lezárva','atadva_lezarva':'Átadva/Lezárva',
+    'Árajánlat elfogadva':'Árajánlat elfogadva','ajánlat elfogadva':'Árajánlat elfogadva','ajanlat_elfogadva':'Árajánlat elfogadva',
+  }
   return map[key] || s || '-'
 }
 function fmtDate(v){ try { return v ? new Date(v).toLocaleString('hu-HU') : '' } catch { return v || '' } }
 function gepLabel(g){ if(!g) return '-'; const parts=[g.gyarto,g.tipusnev,g.g_cikkszam].filter(Boolean); return parts.join(' - ') }
 function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
-function getId(row){ return row?.id ?? row?.ID ?? row?.azonosito ?? row?.munkalap_id ?? null }
+function getId(row){ return row?.id ?? row?.ID ?? row?.Azonosító ?? row?.munkalap_id ?? null }
 function getUgyfelNev(row){ return row?.ugyfel?.nev ?? row?.ugyfel_nev ?? row?.nev ?? row?.ugyfel_adatok?.nev ?? '-' }
 function getStatus(row){ return (row?.statusz ?? row?.status ?? row?.allapot ?? '').toString() }
 
 async function fetchList(){
-  loadingList.value = true; listError.value = ''
+  loadingList.value = true
+  listError.value = ''
   try{
     const data = await request('/munkalapok', { method: 'GET', body: { q: search.value, limit: String(limit.value) } })
     workorders.value = Array.isArray(data) ? data : []
-  } catch(e){ listError.value = e?.message || 'Lista betöltési hiba.' }
-  finally{ loadingList.value = false }
+  } catch(e){ 
+    console.error('Fetch error:', e)
+    listError.value = e?.message || 'Lista betöltési hiba.' 
+    workorders.value = []
+  }
+  finally{ loadingList.value =false }
 }
 
 function onRowClick(_, row){ const r=row?.item||row; const id=getId(r); if(!id) return; router.push(`/admin/munkalapok/${id}`) }
-function openDetail(item){ const id=getId(item); if(!id) return; router.push(`/admin/munkalapok/${id}`) }
+function openDetail(evtOrItem, maybeRow){
+  // Vuetify 3 emits (event, { item }) for click:row; support both shapes
+  const r = (maybeRow && (maybeRow.item || maybeRow)) || (evtOrItem?.item ? evtOrItem.item : evtOrItem)
+  const id = getId(r)
+  if(!id) return
+  router.push(`/admin/munkalapok/${id}`)
+}
 function startCreate(){ router.push('/admin/munkalapok/uj') }
 
 watch(search, ()=>{ if(debounceT) clearTimeout(debounceT); debounceT=setTimeout(fetchList, 250) })
 watch(limit, fetchList)
 
 const filteredWorkorders = computed(()=>{
+  const items = workorders.value || []
   const sf=(statusFilter.value||'').toLowerCase()
-  if(!sf) return workorders.value
-  return (workorders.value||[]).filter(w=>{
+  if(!sf) return items
+  return items.filter(w=>{
     const disp = displayStatus(getStatus(w))
     return (disp||'').toLowerCase()===sf
   })
@@ -184,16 +216,42 @@ async function deleteWorkorder(item){
   if(!confirm('Biztosan törli a munkalapot?')) return
   try{
     await request(`/munkalapok/${id}`, { method: 'DELETE' })
-    setSnack('Munkalap törölve')
+    setSnack('Munkalap Törölve')
     fetchList()
   }catch(e){ setSnack(e?.message || 'Törlés sikertelen', 'error') }
 }
 
-fetchList()
+// Initialize data on component mount
+onMounted(() => {
+  fetchList()
+})
+if(isClient){
+  fetchList()
+}
 </script>
 
 <style scoped>
 .table-scroll{ overflow-x: auto; }
 :deep(.v-btn:not(.v-btn--icon)) { text-align: center; }
 :deep(.v-btn:not(.v-btn--icon) .v-btn__content) { justify-content: center; width: 100%; }
+/* Make rows feel clickable */
+:deep(.clickable-table .v-table__wrapper tbody tr){
+  cursor: pointer;
+  transition: background-color .15s ease-in-out;
+}
+:deep(.clickable-table .v-table__wrapper tbody tr:hover){
+  background-color: rgba(46,125,50,.08); /* primary tint */
+}
+:deep(.clickable-table .v-table__wrapper tbody tr:active){
+  background-color: rgba(46,125,50,.14);
+}
+/* Chevron indicator on first column */
+:deep(.clickable-table .row-link){ display:flex; align-items:center; gap:6px; }
+:deep(.clickable-table .row-link .chev){ opacity:.2; transition: opacity .15s, transform .15s; }
+:deep(.clickable-table .v-table__wrapper tbody tr:hover .row-link .chev){ opacity:.6; transform: translateX(2px); }
 </style>
+
+
+
+
+

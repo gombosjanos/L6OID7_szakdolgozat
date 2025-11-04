@@ -1,4 +1,4 @@
-<script setup>
+Ôªø<script setup>
 import { ref, onMounted, computed } from 'vue'
 import { api } from '../api.js'
 
@@ -11,12 +11,12 @@ const load = async () => {
   error.value = ''
   loading.value = true
   try {
-    if (!user?.id && !user?.ID) throw new Error('Nincs bejelentkezett felhaszn·lÛ')
+    if (!user?.id && !user?.ID) throw new Error('Nincs bejelentkezett felhaszn√°l√≥')
     const userId = user.id ?? user.ID
     const { data } = await api.get('/munkalapok', { params: { user_id: userId } })
     munkalapok.value = Array.isArray(data) ? data : []
   } catch (e) {
-    error.value = e?.response?.data?.message || e.message || 'Nem siker¸lt betˆlteni a munkalapokat.'
+    error.value = e?.response?.data?.message || e.message || 'Nem siker√ºlt bet√∂lteni a munkalapokat.'
     console.debug('Load munkalapok error', e?.response?.data || e)
   } finally {
     loading.value = false
@@ -27,37 +27,44 @@ onMounted(load)
 
 const accept = async (row) => {
   try {
-    await api.put(`/munkalapok/${row.ID || row.id}`, { statusz: 'ajanlat_elfogadva' })
+    await api.post(`/munkalapok/${row.ID || row.id}/ajanlat/accept`)
     load()
   } catch (e) {
-    error.value = e?.response?.data?.message || 'Nem siker¸lt elfogadni az ·raj·nlatot.'
+    error.value = e?.response?.data?.message || 'Nem siker√ºlt elfogadni az √°raj√°nlatot.'
   }
 }
 
 const reject = async (row) => {
   try {
-    await api.put(`/munkalapok/${row.ID || row.id}`, { statusz: 'ajanlat_elutasitva' })
+    await api.post(`/munkalapok/${row.ID || row.id}/ajanlat/reject`)
     load()
   } catch (e) {
-    error.value = e?.response?.data?.message || 'Nem siker¸lt elutasÌtani az ·raj·nlatot.'
+    error.value = e?.response?.data?.message || 'Nem siker√ºlt elutas√≠tani az √°raj√°nlatot.'
   }
 }
 
 const headers = [
-  { title: 'AzonosÌtÛ', key: 'ID' },
-  { title: '¡llapot', key: 'statusz' },
-  { title: 'Hiba leÌr·s', key: 'hibaleiras' },
-  { title: 'LÈtrehozva', key: 'letrehozva' },
-  { title: 'M˚veletek', key: 'actions', sortable: false },
+  { title: 'Azonos√≠t√≥', key: 'azonosito' },
+  { title: '√Ållapot', key: 'statusz' },
+  { title: 'Hiba le√≠r√°s', key: 'hibaleiras' },
+  { title: 'L√©trehozva', key: 'letrehozva' },
+  { title: 'M≈±veletek', key: 'actions', sortable: false },
 ]
 
 const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
+function getId(row){ return row?.ID ?? row?.id }
+function openDetail(evtOrItem, maybeRow){
+  const r = (maybeRow && (maybeRow.item || maybeRow)) || (evtOrItem?.item ? evtOrItem.item : evtOrItem)
+  const id = getId(r)
+  if(!id) return
+  window.location.href = `/ugyfel/munkalapok/${id}`
+}
 </script>
 
 <template>
   <v-container class="py-4">
     <div class="text-h6 font-weight-bold mb-2">Munkalapok</div>
-    <div class="text-body-2 text-medium-emphasis mb-4">Itt kˆvetheted a javÌt·s ·llapot·t Ès dˆnthetsz az ·raj·nlatrÛl.</div>
+    <div class="text-body-2 text-medium-emphasis mb-4">Itt k√∂vetheted a jav√≠t√°s √°llapot√°t √©s d√∂nthetsz az √°raj√°nlatr√≥l.</div>
 
     <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
@@ -65,7 +72,8 @@ const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
 
     <template v-else>
       <v-card v-if="hasData" elevation="1">
-        <v-data-table :headers="headers" :items="munkalapok" item-key="ID">
+        <v-data-table :headers="headers" :items="munkalapok" item-key="ID" class="clickable-table" @click:row="openDetail">
+          <template #item.letrehozva="{ item }">{{ new Date(item.letrehozva || item.created_at).toLocaleString('hu-HU') }}</template>
           <template #item.statusz="{ item }">
             <v-chip
               :color="{
@@ -80,26 +88,28 @@ const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
               size="small"
             >
               {{ {
-                'uj': '⁄j',
+                'uj': '√öj',
                 'folyamatban': 'Folyamatban',
-                'ajanlat_kesz': 'Aj·nlat kÈsz',
-                'ajanlat_elfogadva': 'Aj·nlat elfogadva',
-                'ajanlat_elutasitva': 'Aj·nlat elutasÌtva',
-                'kesz': 'KÈsz',
+                'ajanlat_kesz': 'Aj√°nlat k√©sz',
+                'ajanlat_elfogadva': 'Aj√°nlat elfogadva',
+                'ajanlat_elutasitva': 'Aj√°nlat elutas√≠tva',
+                'kesz': 'K√©sz',
               }[item.statusz] || item.statusz }}
             </v-chip>
           </template>
           <template #item.actions="{ item }">
             <div v-if="item.statusz === 'ajanlat_elkuldve'">
               <v-btn size="small" color="success" variant="tonal" class="me-2" @click="accept(item)">Elfogadom</v-btn>
-              <v-btn size="small" color="error" variant="tonal" @click="reject(item)">ElutasÌtom</v-btn>
+              <v-btn size="small" color="error" variant="tonal" @click="reject(item)">Elutas√≠tom</v-btn>
             </div>
           </template>
         </v-data-table>
       </v-card>
       <v-card v-else elevation="1" class="pa-6 text-center text-medium-emphasis">
-        MÈg nincs munkalapod.
+        M√©g nincs munkalapod.
       </v-card>
     </template>
   </v-container>
 </template>
+
+

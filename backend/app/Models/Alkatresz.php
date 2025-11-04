@@ -11,7 +11,7 @@ class Alkatresz extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'gyarto', 'alkatresznev', 'a_cikkszam', 'nettoar', 'bruttoar'
+        'gyarto', 'alkatresznev', 'a_cikkszam', 'nettoar', 'bruttoar', 'keszlet'
     ];
 
     public function javitasok()

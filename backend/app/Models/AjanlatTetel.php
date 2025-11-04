@@ -10,7 +10,16 @@ class AjanlatTetel extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'ajanlat_id', 'megnevezes', 'mennyiseg', 'egyseg_ar', 'osszeg',
+        'ajanlat_id',
+        'tipus',
+        'alkatresz_id',
+        'megnevezes',
+        'mennyiseg',
+        'egyseg_ar',
+        'osszeg',
+        'netto_egyseg_ar',
+        'brutto_egyseg_ar',
+        'afa_kulcs',
     ];
 
     public function ajanlat()
@@ -18,4 +27,3 @@ class AjanlatTetel extends Model
         return $this->belongsTo(Ajanlat::class, 'ajanlat_id', 'id');
     }
 }
-

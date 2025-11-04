@@ -1,17 +1,25 @@
-<template>
-  <v-container fluid class="pa-4">
-      <v-toolbar density="comfortable" color="white" elevation="0" class="mb-3">
-        <v-btn icon="mdi-arrow-left" variant="text" @click="goBack" />
-        <v-toolbar-title>Munkalap #{{ id }}</v-toolbar-title>
-        <v-spacer />
-        <v-chip size="small" :color="statusColor(detail.statusz)" class="mr-2" variant="flat">{{ displayStatus(detail.statusz) }}</v-chip>
-        <v-btn color="primary" @click="saveAll" prepend-icon="mdi-content-save">Mentés</v-btn>
-      </v-toolbar>
+﻿<template>
+  <v-container fluid class="pa-4 has-bottom-bar">
+    <v-toolbar density="comfortable" color="white" elevation="0" class="mb-3 detail-toolbar">
+      <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
+      <v-toolbar-title>Munkalap #{{ displayId }}</v-toolbar-title>
+      <v-spacer />
+      <div class="d-flex align-center ga-2" style="margin-left:12px">
+        <v-chip v-if="isRegistered && hasOffer" size="small" :color="offerStatusColor(offerStatus)" variant="tonal">{{ displayOfferStatus(offerStatus) }}</v-chip>
+      </div>
+      <v-chip size="small" :color="statusColorX(statusModel)" class="mr-2" variant="flat">{{ displayStatusX(statusModel) }}</v-chip>
+    </v-toolbar>
 
-    <v-alert v-if="errorMsg" type="error" variant="tonal" class="mb-3">{{ errorMsg }}</v-alert>
+    <v-alert v-if="errorMsg" type="error" variant="tonal" class="mb-3 detail-toolbar">{{ errorMsg }}</v-alert>
+    <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor" location="top right">
+      {{ snackbarText }}
+      <template #actions>
+        <v-btn variant="text" @click="snackbar = false">OK</v-btn>
+      </template>
+    </v-snackbar>
 
     <v-row>
-      <v-col cols="12" lg="4">
+      <v-col cols="12" lg="4" class="left-col">
         <v-card class="mb-4">
           <v-card-title class="text-subtitle-1">Alap adatok</v-card-title>
           <v-divider />
@@ -19,7 +27,7 @@
             <div class="mb-2"><strong>Ügyfél:</strong> {{ getUgyfelNev(detail) }}</div>
             <div class="mb-2"><strong>Gép:</strong> {{ gepLabel(gepFromRow(detail)) }}</div>
             <div class="mb-2"><strong>Létrehozva:</strong> {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
-            <div class="mb-2"><strong>Azonosító:</strong> {{ id }}</div>
+            <div class="mb-2"><strong>Azonosító:</strong> {{ displayId }}</div>
           </v-card-text>
         </v-card>
 
@@ -27,7 +35,15 @@
           <v-card-title class="text-subtitle-1">Státusz</v-card-title>
           <v-divider />
           <v-card-text>
-            <v-select v-model="detail.statusz" :items="statusOptions" label="Státusz" variant="outlined" density="comfortable" />
+            <v-select
+              v-model="statusModel"
+              :items="statusItems"
+              item-title="title"
+              item-value="value"
+              label="Státusz"
+              variant="outlined"
+              density="comfortable"
+            />
           </v-card-text>
         </v-card>
 
@@ -36,7 +52,7 @@
           <v-divider />
           <v-card-text>
             <v-list density="compact">
-              <v-list-item v-for="n in naplo" :key="n.id || n.ID" :title="n.szoveg || n.megjegyzes" :subtitle="fmtDate(n.letrehozva || n.created_at)" />
+              <v-list-item v-for="n in naplo" :key="n.id || n.ID" :title="n.uzenet || n.szoveg || n.megjegyzes" :subtitle="fmtDate(n.letrehozva || n.created_at)" />
             </v-list>
             <v-textarea v-model="note" rows="2" auto-grow label="Megjegyzés hozzáadása" variant="outlined" density="comfortable" />
             <div class="d-flex justify-end mt-2">
@@ -47,10 +63,10 @@
       </v-col>
 
       <v-col cols="12" lg="8">
-        <v-card>
-            <v-card-title class="d-flex align-center">
-              <span class="text-subtitle-1">Árajánlat</span>
-              <v-spacer />
+        <v-card class="offer-card">
+          <v-card-title class="d-flex align-center">
+            <span class="text-subtitle-1">Árajánlat</span>
+            <v-spacer />
             <v-autocomplete
               v-model="pickerSelected"
               :items="pickerItems"
@@ -61,48 +77,79 @@
               item-title="label"
               item-value="value"
               return-object
+              @focus="onPickerSearch('')"
               label="Tétel hozzáadása"
               clear-on-select
               hide-details
               variant="outlined"
               density="comfortable"
               style="max-width: 420px"
+              :disabled="!canEditOffer"
             />
           </v-card-title>
-          <v-divider />
+
           <v-card-text>
-            <v-text-field v-model="offerUzenet" label="Üzenet az árajánlatban (opcionális)" variant="outlined" density="comfortable" class="mb-3" />
-            <v-table class="elevation-0">
-              <thead>
-                <tr>
-                  <th style="width: 28%">Megnevezés</th>
-                  <th class="text-right" style="width: 12%">Db</th>
-                  <th class="text-right" style="width: 20%">Nettó</th>
-                  <th class="text-right" style="width: 14%">ÁFA%</th>
-                  <th class="text-right" style="width: 20%">Bruttó</th>
-                  <th style="width: 6%"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(t, i) in tetelek" :key="i">
-                  <td><v-text-field v-model="t.megnevezes" hide-details variant="outlined" density="compact" class="name-input" /></td>
-                  <td><v-text-field v-model.number="t.db" type="number" min="1" step="1" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.db,4,8)" /></td>
-                  <td><v-text-field v-model.number="t.netto" type="number" step="0.01" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.netto,8,24)" /></td>
-                  <td><v-text-field v-model.number="t.afa_kulcs" type="number" step="0.1" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.afa_kulcs,5,10)" /></td>
-                  <td><v-text-field v-model.number="t.brutto" type="number" step="0.01" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.brutto,8,24)" /></td>
-                  <td class="text-right"><v-btn :title="'Törlés'" size="small" variant="tonal" color="error" @click="removeTetel(i)"><v-icon icon="mdi-delete" /></v-btn></td>
-                </tr>
-              </tbody>
-            </v-table>
+            <v-text-field v-model="offerUzenet" label="Üzenet az árajánlatban (opcionális)" variant="outlined" density="comfortable" class="mb-3 detail-toolbar" :disabled="!canEditOffer" />
+
+            <div class="offer-scroll">
+              <v-table density="compact">
+                <thead>
+                  <tr>
+                    <th style="width: 38%">Megnevezés</th>
+                    <th class="text-right" style="width: 12%">Db</th>
+                    <th class="text-right" style="width: 20%">Nettó</th>
+                    <th class="text-right" style="width: 10%">ÁFA%</th>
+                    <th class="text-right" style="width: 20%">Bruttó</th>
+                    <th style="width: 12%"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(t,i) in tetelek" :key="'t'+i">
+                    <td>
+                      <v-text-field v-model="t.megnevezes" hide-details variant="outlined" density="compact" class="name-input" :disabled="!canEditOffer || nameLocked(t)" />
+                      <div v-if="t.alkatresz_id" class="text-caption mt-1" :style="{color: shortageAtIndex(i) ? '#b00020' : '#666'}">
+                        Készlet: {{ stockFor(t.alkatresz_id) }} | Igény: {{ demandMap[t.alkatresz_id] || 0 }}
+                        <span v-if="shortageAtIndex(i)"> — Készlet kevés</span>
+                      </div>
+                    </td>
+                    <td>
+                      <v-text-field v-model.number="t.db" type="number" min="1" step="1" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.db,4,8)" :disabled="!canEditOffer" />
+                    </td>
+                    <td>
+                      <template v-if="canEditOffer">
+                        <v-text-field v-model.number="t.netto" type="number" step="0.01" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.netto,8,24)" />
+                      </template>
+                      <template v-else>
+                        <div class="num-text">{{ fmtCurrency(t.netto) }}</div>
+                      </template>
+                    </td>
+                    <td>
+                      <v-text-field v-model.number="t.afa_kulcs" type="number" step="1" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.afa_kulcs,3,6)" :disabled="!canEditOffer" />
+                    </td>
+                    <td>
+                      <template v-if="canEditOffer">
+                        <v-text-field v-model.number="t.brutto" type="number" step="0.01" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.brutto,8,24)" />
+                      </template>
+                      <template v-else>
+                        <div class="num-text">{{ fmtCurrency(t.brutto) }}</div>
+                      </template>
+                    </td>
+                    <td class="text-right">
+                      <v-btn size="small" variant="outlined" color="error" prepend-icon="mdi-delete" @click="removeTetel(i)" :disabled="!canEditOffer">Törlés</v-btn>
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
 
             <v-divider class="my-3" />
             <div class="d-flex justify-end ga-4">
               <div class="text-right">
-                <div class="text-caption">Összesen nettó</div>
+                <div class="text-caption">Összesen Nettó</div>
                 <div class="text-subtitle-2">{{ fmtCurrency(totalNetto) }}</div>
               </div>
               <div class="text-right">
-                <div class="text-caption">Összesen bruttó</div>
+                <div class="text-caption">Összesen Bruttó</div>
                 <div class="text-subtitle-2">{{ fmtCurrency(totalBrutto) }}</div>
               </div>
             </div>
@@ -111,19 +158,62 @@
       </v-col>
     </v-row>
 
-    <div class="detail-actions d-flex align-center justify-end ga-2 mt-4">
-      <v-btn color="error" variant="tonal" prepend-icon="mdi-delete" :disabled="!isAdmin" @click="deleteWorkorder">Törlés</v-btn>
-      <v-btn color="secondary" variant="tonal" prepend-icon="mdi-pencil" :disabled="!canEdit" @click="toggleEdit">Szerkesztés</v-btn>
-      <v-btn color="primary" variant="elevated" prepend-icon="mdi-file-document-edit" :disabled="!canOffer" @click="saveAll">Árajánlat mentése</v-btn>
+    <div class="detail-actions d-flex align-center justify-end ga-2">
+      <v-btn class="action-btn" color="secondary" variant="elevated" prepend-icon="mdi-content-save" @click="saveWorkorder" :disabled="savingWorkorder" :loading="savingWorkorder">Munkalap mentése</v-btn>
+      <v-btn class="action-btn" color="primary" variant="elevated" prepend-icon="mdi-content-save" @click="saveOffer" :disabled="savingOffer || !canEditOffer || hasShortage" :loading="savingOffer">Árajánlat mentése</v-btn>
+      <v-btn class="action-btn" color="grey" variant="elevated" prepend-icon="mdi-printer" @click="printOffer">Nyomtatás</v-btn>
+      <v-btn class="action-btn" color="success" variant="elevated" prepend-icon="mdi-send" @click="sendOffer" :disabled="sendingOffer || !canSendOffer" :loading="sendingOffer">Árajánlat küldése</v-btn>
+      <v-btn v-if="isAdmin" class="action-btn" color="error" variant="elevated" prepend-icon="mdi-delete" @click="deleteWorkorder">Törlés</v-btn>
+    </div>
+
+    <!-- Print-only invoice layout -->
+    <div class="print-invoice">
+      <div class="pi-header">
+        <div class="pi-title">Árajánlat</div>
+        <div class="pi-meta">
+          <div>Azonosító: {{ displayId }}</div>
+          <div>Ügyfél: {{ getUgyfelNev(detail) }}</div>
+          <div>Dátum: {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
+          <div>Státusz: {{ displayStatus(detail.statusz || detail.status || detail.allapot) }}</div>
+        </div>
+      </div>
+      <table class="pi-table">
+        <thead>
+          <tr>
+            <th>Megnevezés</th>
+            <th class="num">Db</th>
+            <th class="num">Nettó (Ft)</th>
+            <th class="num">ÁFA%</th>
+            <th class="num">Bruttó (Ft)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(t,i) in tetelek" :key="'p'+i">
+            <td>{{ t.megnevezes }}</td>
+            <td class="num">{{ t.db }}</td>
+            <td class="num">{{ Math.round(Number(t.netto)||0) }}</td>
+            <td class="num">{{ t.afa_kulcs ?? 27 }}</td>
+            <td class="num">{{ Math.round(Number(t.brutto)||0) }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="2" class="right">Összesen:</th>
+            <th class="num">{{ fmtCurrency(totalNetto) }}</th>
+            <th></th>
+            <th class="num">{{ fmtCurrency(totalBrutto) }}</th>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="pi-note" v-if="offerUzenet && offerUzenet.trim()">Megjegyzés: {{ offerUzenet }}</div>
     </div>
   </v-container>
 </template>
 
 <script setup>
 import * as Vue from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
-// Fetch helper with token
 async function request(path, { method = 'GET', body } = {}) {
   const url = `/api${path}`
   const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
@@ -137,6 +227,7 @@ async function request(path, { method = 'GET', body } = {}) {
 const route = useRoute()
 const router = useRouter()
 const id = Vue.computed(() => route.params.id)
+const displayId = Vue.computed(()=> (detail.value && (detail.value.azonosito || detail.value.identifier)) || id.value)
 
 const detail = Vue.ref({})
 const naplo = Vue.ref([])
@@ -144,60 +235,329 @@ const note = Vue.ref('')
 const tetelek = Vue.ref([])
 const offer = Vue.ref(null)
 const errorMsg = Vue.ref('')
-const editMode = Vue.ref(false)
+
+const snackbar = Vue.ref(false)
+const snackbarText = Vue.ref('')
+const snackbarColor = Vue.ref('success')
+function setSnack(text, color = 'success'){ snackbarText.value = text; snackbarColor.value = color; snackbar.value = true }
+
 const offerUzenet = Vue.ref('')
 
-const statusOptions = ['Új', 'Folyamatban', 'Ajánlat kész', 'Vár alkatrészre', 'Javítás alatt', 'Kész', 'Átadva', 'Elutasítva']
-
-function fmtDate(v){ try { return v ? new Date(v).toLocaleString('hu-HU') : '' } catch { return v || '' } }
-function fmtCurrency(v){ if (v==null||v==='') return ''; return new Intl.NumberFormat('hu-HU',{style:'currency',currency:'HUF',maximumFractionDigits:0}).format(Number(v)) }
-
-function statusColor(s){ switch((s||'').toLowerCase()){ case 'új': case 'uj': return 'grey'; case 'folyamatban': return 'blue'; case 'ajanlat_kesz': case 'ajánlat elkészült': case 'ajanlat elkészült': case 'ajánlat kész': return 'purple'; case 'vár alkatrészre': return 'orange'; case 'javítás alatt': return 'indigo'; case 'kész': return 'green'; case 'átadva': return 'teal'; case 'elutasítva': return 'red'; default: return 'grey' } }
-function displayStatus(s){ const key=(s||'').toLowerCase(); const map={ 'uj':'Új','új':'Új','folyamatban':'Folyamatban','ajanlat_kesz':'Ajánlat kész','ajánlat elkészült':'Ajánlat kész','ajanlat elkészült':'Ajánlat kész','ajánlat kész':'Ajánlat kész','vár alkatrészre':'Vár alkatrészre','javítás alatt':'Javítás alatt','kész':'Kész','átadva':'Átadva','elutasítva':'Elutasítva' }; return map[key] || s || '-' }
-
-function gepLabel(g){ if(!g) return '-'; const parts=[g.gyarto,g.tipusnev,g.g_cikkszam].filter(Boolean); return parts.join(' — ') }
-function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
-function getUgyfelNev(row){ return row?.ugyfel?.nev ?? row?.ugyfel_nev ?? row?.nev ?? row?.ugyfel_adatok?.nev ?? '-' }
-
-async function loadAll(){
-  errorMsg.value=''
-  try {
-    const d = await request(`/munkalapok/${id.value}`); detail.value = d || {}
-    const n = await request(`/munkalapok/${id.value}/naplo`); naplo.value = Array.isArray(n)?n:[]
-    const a = await request(`/munkalapok/${id.value}/ajanlat`); offer.value = a || null; applyAjanlat(a)
-  } catch(e){ errorMsg.value = e?.message || 'Betöltési hiba.' }
+// Status handling (normalized codes + labels)
+const statusItems = [
+  { title: 'Új', value: 'uj' },
+  { title: 'Folyamatban', value: 'folyamatban' },
+  { title: 'Árajánlat elküldve', value: 'ajanlat_elkuldve' },
+  { title: 'Alkatrészre vár', value: 'alkatreszre_var' },
+  { title: 'Javítás kész', value: 'javitas_kesz' },
+  { title: 'Árajánlat elutasítva', value: 'ajanlat_elutasitva' },
+  { title: 'Átadva/Lezárva', value: 'atadva_lezarva' },
+  { title: 'Árajánlat elfogadva', value: 'ajanlat_elfogadva' },
+]
+const originalStatus = Vue.ref('')
+function normalizeStatus(s){
+  const t=(s||'').toString().toLowerCase()
+  const n=t.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  if(n.includes('uj')) return 'uj'
+  if(n.includes('folyamatban')) return 'folyamatban'
+  if(n.includes('elkuldve')) return 'ajanlat_elkuldve'
+  if(n.includes('var')) return 'alkatreszre_var'
+  if(n.includes('kesz')) return 'javitas_kesz'
+  if(n.includes('elutasit')) return 'ajanlat_elutasitva'
+  if(n.includes('atadva') || n.includes('lezarva')) return 'atadva_lezarva'
+  if(n.includes('elfogad')) return 'ajanlat_elfogadva'
+  return t
+}
+const statusModel = Vue.computed({
+  get(){ return normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot) },
+  set(v){ detail.value.statusz = v }
+})
+function statusColorX(s){
+  switch(normalizeStatus(s)){
+    case 'uj': return 'grey'
+    case 'folyamatban': return 'blue'
+    case 'ajanlat_elkuldve': return 'purple'
+    case 'alkatreszre_var': return 'orange'
+    case 'javitas_kesz': return 'green'
+    case 'ajanlat_elfogadva': return 'indigo'
+    case 'atadva_lezarva': return 'teal'
+    case 'ajanlat_elutasitva': return 'red'
+    default: return 'grey'
+  }
+}
+function displayStatusX(s){
+  const key=normalizeStatus(s)
+  const map={
+    'uj':'Új',
+    'folyamatban':'Folyamatban',
+    'ajanlat_elkuldve':'Árajánlat elküldve',
+    'alkatreszre_var':'Alkatrészre vár',
+    'javitas_kesz':'Javítás kész',
+    'ajanlat_elutasitva':'Árajánlat elutasítva',
+    'atadva_lezarva':'Átadva/Lezárva',
+    'ajanlat_elfogadva':'Árajánlat elfogadva',
+  }
+  return map[key] || s || '-'
 }
 
-function applyAjanlat(a){ const rows=a?.tetelek||[]; tetelek.value = rows.map(r=>({ tipus:r.tipus||(r.alkatresz_id?'alkatresz':(r.megnevezes==='Munkadíj'?'munkadij':'egyedi')), alkatresz_id:r.alkatresz_id||null, megnevezes:r.megnevezes||r.alaktresznev||'', netto:Number(r.netto??r.nettoar??0), brutto:Number(r.brutto??r.bruttoar??0), afa_kulcs:Number(r.afa_kulcs??27) })) }
+const statusOptions = [
+  'Új',
+  'Folyamatban',
+  'Árajánlat elküldve',
+  'Alkatrészre vár',
+  'Javítás kész',
+  'Árajánlat elutasítva',
+  'Átadva/Lezárva',
+  'Árajánlat elfogadva',
+]
+function fmtDate(v){ try { return v ? new Date(v).toLocaleString('hu-HU') : '' } catch { return v || '' } }
+function fmtCurrency(v){ if (v==null||v==='') return ''; return new Intl.NumberFormat('hu-HU',{style:'currency',currency:'HUF',maximumFractionDigits:0}).format(Number(v)) }
+function statusColor(s){
+  const k=(s||'').toLowerCase()
+  switch(k){
+    case 'új': case 'uj': return 'grey'
+    case 'folyamatban': return 'blue'
+    case 'árajánlat elküldve': case 'ajanlat_elkuldve': return 'purple'
+    case 'alkatrészre vár': case 'alkatreszre_var': return 'orange'
+    case 'javítás kész': case 'javitas_kesz': return 'green'
+    case 'árajánlat elfogadva': case 'ajanlat_elfogadva': return 'indigo'
+    case 'átadva/lezárva': case 'atadva': case 'lezarva': case 'atadva_lezarva': return 'teal'
+    case 'árajánlat elutasítva': case 'ajanlat_elutasitva': return 'red'
+    default: return 'grey'
+  }
+}
+function displayStatus(s){
+  const key=(s||'').toLowerCase()
+  const map={
+    'új':'Új','uj':'Új',
+    'folyamatban':'Folyamatban',
+    'árajánlat elküldve':'Árajánlat elküldve','ajanlat_elkuldve':'Árajánlat elküldve',
+    'alkatrészre vár':'Alkatrészre vár','alkatreszre_var':'Alkatrészre vár',
+    'javítás kész':'Javítás kész','javitas_kesz':'Javítás kész',
+    'árajánlat elutasítva':'Árajánlat elutasítva','ajanlat_elutasitva':'Árajánlat elutasítva',
+    'átadva/lezárva':'Átadva/Lezárva','atadva':'Átadva/Lezárva','lezarva':'Átadva/Lezárva','atadva_lezarva':'Átadva/Lezárva',
+    'árajánlat elfogadva':'Árajánlat elfogadva','ajanlat_elfogadva':'Árajánlat elfogadva',
+  }
+  return map[key] || s || '-'
+}
+function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
+function gepLabel(gep){ if(!gep) return '-'; try{ const gyarto = gep.gyarto || gep.gep_gyarto || ''; const tipus = gep.tipusnev || gep.gep_tipus || ''; const cikkszam = gep.g_cikkszam || gep.cikkszam || gep.gep_cikkszam || ''; const head = [gyarto, tipus].filter(Boolean).join(' '); return [head, cikkszam].filter(Boolean).join(' • ') }catch{ return '-' } }
+function getUgyfelNev(row){ try{ return row?.ugyfel?.nev ?? row?.ugyfel_nev ?? row?.nev ?? row?.ugyfel_adatok?.nev ?? '-' }catch{ return '-' } }
+function parseNum(v){ if (typeof v === 'number') return isFinite(v)?v:0; if (v==null) return 0; const s=String(v).replace(/\s+/g,'').replace(',', '.'); const n=parseFloat(s); return isFinite(n)?n:0 }
+
+const partStockById = Vue.ref({})
+const partNameSet = new Set()
+async function preloadPartsIndex(){
+  try{
+    const res = await request('/alkatreszek', { method: 'GET', body: { q: '', limit: '1000' } })
+    const arr = Array.isArray(res) ? res : []
+    for(const p of arr){
+      const nm = p.alkatresznev ?? p.alaktresznev ?? p.nev ?? p.megnevezes
+      if(nm) partNameSet.add(norm(nm))
+      const pid = p.ID ?? p.id
+      if(pid!=null) partStockById.value[pid] = p.keszlet ?? 0
+    }
+  }catch{}
+}
+function norm(s){ try{ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (s||'').toString().toLowerCase() } }
+function isKnownPartName(name){ if(!name) return false; return partNameSet.has(norm(name)) }
+
+async function loadAll(){
+  try{
+    await preloadPartsIndex()
+    const d = await request(`/munkalapok/${id.value}`); detail.value = d || {}
+    const s = normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot)
+    originalStatus.value = s
+    statusModel.value = s
+    const n = await request(`/munkalapok/${id.value}/naplo`); naplo.value = Array.isArray(n)?n:[]
+    const a = await request(`/munkalapok/${id.value}/ajanlat`); offer.value = a || null; await applyAjanlat(a)
+  }catch(e){ errorMsg.value = e?.message || 'Betöltési hiba.' }
+}
+
+async function applyAjanlat(a){
+  const rows = a?.tetelek || []
+  tetelek.value = rows.map(r => {
+    const tNorm = norm(r?.tipus)
+    const name = r?.megnevezes || r?.alaktresznev || r?.alkatresznev || ''
+    const nameNorm = norm(name)
+    const isPart = tNorm.includes('alkatresz') || !!(r?.alkatresz_id || r?.a_cikkszam || r?.cikkszam || r?.alkatresznev || r?.alaktresznev) || isKnownPartName(name)
+    const isMunkadij = tNorm.includes('munkadij') || nameNorm.includes('munkadij')
+    const tipus = isPart ? 'alkatresz' : (isMunkadij ? 'munkadij' : 'egyedi')
+    const db = parseNum(r?.mennyiseg ?? r?.db ?? 1) || 1
+    const netto = parseNum(r?.netto_egyseg_ar ?? r?.netto ?? r?.nettoar ?? r?.netto_ar ?? r?.egyseg_ar ?? 0)
+    let brutto = parseNum(r?.brutto_egyseg_ar ?? r?.brutto ?? r?.bruttoar ?? r?.brutto_ar ?? 0)
+    if(!brutto){ const osszeg = parseNum(r?.osszeg ?? 0); if(osszeg && db){ brutto = osszeg / db } }
+    const afa = parseNum(r?.afa_kulcs ?? r?.afa ?? 27)
+    const pid = r?.alkatresz_id || null
+    const keszlet = pid ? (partStockById.value?.[pid] ?? 0) : 0
+    return { tipus, alkatresz_id: pid, megnevezes: name, db, netto, brutto, afa_kulcs: afa, keszlet }
+  })
+}
+
+function syncOfferStocks(){ try{ tetelek.value = (tetelek.value||[]).map(t=> t?.alkatresz_id ? ({...t, keszlet: (partStockById.value?.[t.alkatresz_id] ?? t.keszlet ?? 0) }) : t) }catch{} }
 
 const totalNetto = Vue.computed(()=>tetelek.value.reduce((s,t)=>s+((Number(t.netto)||0)*(Number(t.db)||1)),0))
 const totalBrutto = Vue.computed(()=>tetelek.value.reduce((s,t)=>s+((Number(t.brutto)||0)*(Number(t.db)||1)),0))
-function removeTetel(i){ tetelek.value.splice(i,1) }
+
+// Stock demand vs available
+const demandMap = Vue.computed(()=>{
+  const m={}
+  for(const t of (tetelek.value||[])){
+    const pid=t?.alkatresz_id; if(!pid) continue
+    const qty=Number(t?.db||0) || 0
+    m[pid]=(m[pid]||0)+qty
+  }
+  return m
+})
+function stockFor(pid){ return pid ? (partStockById.value?.[pid] ?? 0) : 0 }
+function shortageAtIndex(i){ const t=(tetelek.value||[])[i]; if(!t||!t.alkatresz_id) return false; const need=demandMap.value[t.alkatresz_id]||0; const have=stockFor(t.alkatresz_id); return need>have }
+const hasShortage = Vue.computed(()=>{ const items=tetelek.value||[]; for(let i=0;i<items.length;i++){ if(shortageAtIndex(i)) return true } return false })
+
+function removeTetel(i){ if(!canEditOffer.value) return; tetelek.value.splice(i,1) }
 
 async function addNote(){ if(!id.value || !note.value?.trim()) return; try{ await request(`/munkalapok/${id.value}/naplo`,{method:'POST',body:{szoveg:note.value}}); const n=await request(`/munkalapok/${id.value}/naplo`); naplo.value=Array.isArray(n)?n:[]; note.value='' }catch(e){ errorMsg.value=e?.message||'Napló frissítési hiba.' } }
 
-async function saveAll(){ if(!id.value) return; try{ await request(`/munkalapok/${id.value}`,{method:'PATCH',body:{statusz:detail.value.statusz}}); const base={ tipus:'ajanlat', uzenet: (offerUzenet.value && offerUzenet.value.trim()) ? offerUzenet.value : '-', tetelek:tetelek.value.map(t=>({tipus:t.tipus,alkatresz_id:t.alkatresz_id,megnevezes:t.megnevezes,netto:t.netto,brutto:t.brutto,afa_kulcs:t.afa_kulcs,mennyiseg:(t.db||1)})) }; const payload={ ...base, ajanlat: base }; await request(`/munkalapok/${id.value}/ajanlat`,{method:'POST',body:payload}); const a=await request(`/munkalapok/${id.value}/ajanlat`); offer.value=a||null }catch(e){ errorMsg.value=e?.message||'Mentési hiba.' } }
+const savingWorkorder = Vue.ref(false)
+const savingOffer = Vue.ref(false)
+const sendingOffer = Vue.ref(false)
+const workDirty = Vue.ref(false)
+const offerDirty = Vue.ref(false)
+const hydrating = Vue.ref(true)
 
-const isAdmin = Vue.computed(()=>{ const role=(localStorage.getItem('jogosultsag')||localStorage.getItem('role')||'').toLowerCase(); return role==='admin' })
+// Admin check (from stored user)
+const isAdmin = Vue.computed(()=>{
+  try{
+    const u = JSON.parse(localStorage.getItem('user')||'null')
+    const role = (u?.jogosultsag || localStorage.getItem('jogosultsag') || localStorage.getItem('role') || '').toString().toLowerCase()
+    return role==='admin'
+  }catch{ return false }
+})
+
+// Delete current workorder (admin only)
+async function deleteWorkorder(){
+  if(!isAdmin.value || !id.value) return
+  if(!confirm('Biztosan törli a munkalapot?')) return
+  try{
+    await request(`/munkalapok/${id.value}`, { method: 'DELETE' })
+    setSnack('Munkalap törölve', 'success')
+    router.push('/admin/munkalapok')
+  }catch(e){ errorMsg.value = e?.message || 'Törlés sikertelen.' }
+}
+
+function buildOfferPayload(){
+  return {
+    megjegyzes: (offerUzenet.value && offerUzenet.value.trim()) ? offerUzenet.value.trim() : null,
+    tetelek: (tetelek.value||[]).map(t=>({
+      id: t.id ?? undefined,
+      tipus: t.tipus,
+      alkatresz_id: t.alkatresz_id ?? null,
+      megnevezes: t.megnevezes,
+      mennyiseg: (t.db || 1),
+      netto_egyseg_ar: t.netto ?? 0,
+      brutto_egyseg_ar: t.brutto ?? 0,
+      afa_kulcs: t.afa_kulcs ?? 27,
+    }))
+  }
+}
+
+function validateOffer(){
+  if(!Array.isArray(tetelek.value)){ return { ok: false, msg:'Nincs tétel az árajánlatban.' } }
+  for(let i=0;i<tetelek.value.length;i++){
+    const t=tetelek.value[i]
+    if(!String(t?.megnevezes||'').trim()) return { ok: false, msg:`Hiányzó megnevezés a(z) ${i+1}. sorban.` }
+    const db=Number(t?.db ?? 0); if(!isFinite(db)||db<1) return { ok: false, msg:`Érvénytelen darabszám a(z) ${i+1}. sorban.` }
+    const netto=Number(t?.netto ?? 0), brutto=Number(t?.brutto ?? 0)
+    if(!isFinite(netto) || !isFinite(brutto)) return { ok: false, msg:`Érvénytelen ár a(z) ${i+1}. sorban.` }
+  }
+  return { ok:true }
+}
+
+async function saveOffer(){
+  if(!id.value) return;
+  try{
+    const valid = validateOffer(); if(!valid.ok){ setSnack(valid.msg || 'Érvénytelen árajánlat.', 'error'); return }
+    savingOffer.value=true;
+    await request(`/munkalapok/${id.value}/ajanlat`,{method:'POST',body:buildOfferPayload()});
+    const a=await request(`/munkalapok/${id.value}/ajanlat`); offer.value=a||null; offerDirty.value=false; setSnack('Árajánlat mentve')
+  }catch(e){ errorMsg.value=e?.message||'Mentési hiba (árajánlat).' }
+  finally{ savingOffer.value=false }
+}
+
+async function sendOffer(){
+  if(!id.value) return;
+  try{
+    if(!confirm('Biztosan elküldi az árajánlatot az ügyfélnek? A küldés után nem módosítható.')) return;
+    sendingOffer.value=true;
+    await saveOffer();
+    await request(`/munkalapok/${id.value}/ajanlat`,{method:'POST',body:{ statusz: 'elkuldve' }});
+    // Frissítsük a munkalap státuszt is, hogy az ügyfél listában is lássa
+    try { await request(`/munkalapok/${id.value}`, { method:'PATCH', body:{ statusz: 'ajanlat_elkuldve' } }); detail.value.statusz = 'ajanlat_elkuldve' } catch {}
+    const a=await request(`/munkalapok/${id.value}/ajanlat`); offer.value=a||null; setSnack('Árajánlat elküldve')
+  }catch(e){ errorMsg.value=e?.message||'Küldési hiba (árajánlat).' }
+  finally{ sendingOffer.value=false }
+}
+
 const hasOffer = Vue.computed(()=>!!(offer.value && ((offer.value.id)||(Array.isArray(offer.value.tetelek)&&offer.value.tetelek.length>0))))
-const offerSent = Vue.computed(()=>{ const o=offer.value||{}; return !!(o.elkuldve===true || o.statusz==='elkuldve' || o.elkuldve_at) })
-const canEdit = Vue.computed(()=>!hasOffer.value)
-const canOffer = Vue.computed(()=>!offerSent.value)
-function toggleEdit(){ editMode.value=!editMode.value }
-async function deleteWorkorder(){ if(!isAdmin.value||!id.value) return; if(!confirm('Biztosan törli a munkalapot?')) return; try{ await request(`/munkalapok/${id.value}`,{method:'DELETE'}); goBack() }catch(e){ errorMsg.value=e?.message||'Törlés sikertelen.' } }
+const offerSent = Vue.computed(()=>{ const o=offer.value||{}; const s=(o.statusz||'').toLowerCase(); return !!(o.elkuldve===true || o.elkuldve_at || s==='elkuldve') })
+const offerLocked = Vue.computed(()=>{ const o=offer.value||{}; const s=(o.statusz||'').toLowerCase(); return s==='elkuldve' || s==='elfogadva' || s==='elutasitva' || o.elkuldve===true || !!o.elkuldve_at })
+const canEditOffer = Vue.computed(()=>!offerLocked.value)
+const canSendOffer = Vue.computed(()=>!offerLocked.value && tetelek.value.length>0 && !hasShortage.value)
 
-function goBack(){ try{ router.back() } catch{ /* noop */ } }
+// Offer acceptance (only visible if registered)
+const isRegistered = Vue.computed(()=>{ const d=detail.value||{}; try{ return !!(d.user_id || d.ugyfel?.id || d.ugyfel_id) }catch{ return false } })
+const offerStatus = Vue.computed(()=> (offer.value?.statusz || '').toString().toLowerCase())
+function offerStatusColor(s){ switch((s||'').toLowerCase()){ case 'elkuldve': return 'orange'; case 'elfogadva': return 'green'; case 'elutasitva': return 'red'; default: return 'grey' } }
+function displayOfferStatus(s){ const k=(s||'').toLowerCase(); const map={ elkuldve:'Elfogadásra vár', elfogadva:'Elfogadva', elutasitva:'Elutasítva' }; return map[k]||'-' }
+const processingOffer = Vue.ref(false)
+async function setOfferStatus(code){ if(!id.value) return; try{ processingOffer.value=true; await request(`/munkalapok/${id.value}/ajanlat`,{method:'POST',body:{statusz:code}}); const a=await request(`/munkalapok/${id.value}/ajanlat`); offer.value=a||null; setSnack(displayOfferStatus(code)) }catch(e){ errorMsg.value=e?.message||'Árajánlat státusz frissítési hiba.' } finally{ processingOffer.value=false } }
+function acceptOffer(){ setOfferStatus('elfogadva') }
+function rejectOffer(){ setOfferStatus('elutasitva') }
 
-// Picker: default + dynamic parts
+function goBack(){ try{ if(window.history && window.history.length>1) router.back(); else router.push('/admin/munkalapok') } catch{} }
+function printOffer(){ try{ window.print() }catch{} }
+
+// Picker
 const pickerSelected = Vue.ref(null)
 const pickerSearch = Vue.ref('')
-const pickerItems = Vue.ref([{ label:'Munkadíj', value:'munkadij' }, { label:'Egyedi tétel…', value:'egyedi' }])
+const pickerItems = Vue.ref([
+  { label:'Munkadíj', value:'munkadij' },
+  { label:'Egyedi tétel', value:'egyedi' },
+])
 const pickerLoading = Vue.ref(false)
 
-async function onPickerSearch(val){ pickerSearch.value=val; try{ pickerLoading.value=true; const res=await request('/alkatreszek',{method:'GET',body:{q:val||'',limit:'20'}}); const partItems=(Array.isArray(res)?res:[]).map(p=>({ label:`${p.a_cikkszam||''} — ${(p.alaktresznev||p.alkatresznev||'')}`.trim(), value:{kind:'alkatresz',id:p.ID,name:(p.alaktresznev||p.alkatresznev),netto:p.nettoar,brutto:p.bruttoar,afa_kulcs:27} })); pickerItems.value=[{label:'Munkadíj',value:'munkadij'},{label:'Egyedi tétel…',value:'egyedi'},...partItems] } finally{ pickerLoading.value=false } }
-function onPickerSelect(val){ if(!val) return; const v = val.value ?? val; if(v==='munkadij'){ tetelek.value.push({tipus:'munkadij',megnevezes:'Munkadíj',netto:0,brutto:0,afa_kulcs:27}) } else if(v==='egyedi'){ tetelek.value.push({tipus:'egyedi',megnevezes:'',netto:0,brutto:0,afa_kulcs:27}) } else if(typeof v==='object' && v.kind==='alkatresz'){ tetelek.value.push({tipus:'alkatresz',alkatresz_id:v.id,megnevezes:v.name||'Alkatrész',netto:v.netto||0,brutto:v.brutto||0,afa_kulcs:v.afa_kulcs||27}) } pickerSelected.value=null }
-
-Vue.watch(pickerSelected,(val)=>{ if(!val) return; const v = val.value ?? val; if(v==='munkadij'){ const brutto=2500; const netto=Math.round((brutto/1.27)*100)/100; tetelek.value.push({tipus:'munkadij',megnevezes:'Munkadíj',db:1,netto,brutto,afa_kulcs:27}) } else if(v==='egyedi'){ tetelek.value.push({tipus:'egyedi',megnevezes:'',db:1,netto:0,brutto:0,afa_kulcs:27}) } else if(typeof v==='object' && v.kind==='alkatresz'){ tetelek.value.push({tipus:'alkatresz',alkatresz_id:v.id,megnevezes:v.name||'Alkatrész',db:1,netto:v.netto||0,brutto:v.brutto||0,afa_kulcs:v.afa_kulcs||27}) } pickerSelected.value=null })
+async function onPickerSearch(val){
+  pickerSearch.value = val
+  try{
+    pickerLoading.value = true
+    const res = await request('/alkatreszek', { method: 'GET', body: { q: val || '', limit: '20' } })
+    const partItems = (Array.isArray(res) ? res : []).map(p => {
+      const id = p.ID ?? p.id
+      const name = p.alkatresznev ?? p.alaktresznev ?? p.nev ?? p.megnevezes ?? 'Alkatrész'
+      const code = p.a_cikkszam ?? p.cikkszam ?? p.code ?? ''
+      const netto = p.netto_egyseg_ar ?? p.netto ?? 0
+      const brutto = p.brutto_egyseg_ar ?? p.brutto ?? 0
+      return { label: (code ? code + ' - ' : '') + name, value: { kind: 'alkatresz', id, name, netto, brutto, afa_kulcs: 27 } }
+    })
+    pickerItems.value = [
+      { label:'Munkadíj', value:'munkadij' },
+      { label:'Egyedi tétel', value:'egyedi' },
+      ...partItems
+    ]
+  } finally { pickerLoading.value = false }
+}
+function onPickerSelect(val){
+  if (!val || !canEditOffer.value) return
+  const v = val.value ?? val
+  if (v === 'munkadij') {
+    tetelek.value.push({ tipus: 'munkadij', megnevezes: 'Munkadíj', db: 1, netto: 0, brutto: 0, afa_kulcs: 27 })
+  } else if (v === 'egyedi') {
+    tetelek.value.push({ tipus: 'egyedi', megnevezes: '', db: 1, netto: 0, brutto: 0, afa_kulcs: 27 })
+  } else if (typeof v === 'object' && v.kind === 'alkatresz') {
+    tetelek.value.push({ tipus: 'alkatresz', alkatresz_id: v.id, megnevezes: (v.name || 'Alkatrész'), db: 1, netto: (v.netto || 0), brutto: (v.brutto || 0), afa_kulcs: v.afa_kulcs || 27 })
+  }
+  pickerSelected.value = null
+  try{ syncOfferStocks() }catch{}
+}
 
 function numStyle(val, minCh = 8, maxCh = 24){
   const len = String(val ?? '').length || 1
@@ -205,11 +565,75 @@ function numStyle(val, minCh = 8, maxCh = 24){
   return { '--w': ch + 'ch' }
 }
 
+function nameLocked(t){
+  if (offerLocked.value) return true
+  const typ = (t?.tipus || '').toString().toLowerCase()
+  if (typ && typ !== 'egyedi') return true
+  if (t?.alkatresz_id) return true
+  if (isKnownPartName(t?.megnevezes)) return true
+  return false
+}
+
+// Save basic workorder (status)
+async function saveWorkorder(){
+  if(!id.value) return
+  try{
+    savingWorkorder.value = true
+    const code = normalizeStatus(detail.value.statusz)
+    if (code === normalizeStatus(originalStatus.value)) { setSnack('Nincs változás'); return }
+    await request(`/munkalapok/${id.value}`, { method:'PATCH', body:{ statusz: code, status: code, allapot: code } })
+    workDirty.value = false
+    originalStatus.value = code
+    setSnack('Munkalap mentve')
+  }catch(e){
+    errorMsg.value = e?.message || 'Mentési hiba (munkalap).'
+  }finally{
+    savingWorkorder.value = false
+  }
+}
+
 Vue.onMounted(loadAll)
+Vue.watch(()=>detail.value.statusz, ()=>{ if(!hydrating.value) workDirty.value = normalizeStatus(detail.value.statusz) !== normalizeStatus(originalStatus.value) })
+Vue.watch(tetelek, ()=>{ if(!hydrating.value) offerDirty.value = true }, { deep: true })
+Vue.watch(()=>offerUzenet.value, ()=>{ if(!hydrating.value) offerDirty.value = true })
+onBeforeRouteLeave((to,from,next)=>{ if(workDirty.value||offerDirty.value){ if(confirm('Vannak nem mentett változások. Biztosan kilépsz?')) next(); else next(false) } else next() })
+if(typeof window !== 'undefined'){ window.addEventListener('beforeunload', (e)=>{ if(workDirty.value||offerDirty.value){ e.preventDefault(); e.returnValue=''; } }) }
 </script>
 
 <style scoped>
-.detail-actions{ position: sticky; bottom: 0; background: #fff; border-top: 1px solid #eee; padding: 8px 16px; }
+.detail-actions{ position: sticky; bottom: 0; left:0; right:0; z-index: 8; background:#fff; border-top:1px solid #eee; padding: 10px 12px; display:flex; gap:10px; align-items:center; justify-content:flex-end; flex-wrap:wrap; margin-top:16px; }
 .num-input:deep(input){ text-align: right; font-weight: 600; color: #111; width: var(--w, 12ch); }
 .name-input:deep(.v-field){ min-width: 260px; }
+:deep(.v-btn:not(.v-btn--icon)) { text-align: center; }
+:deep(.v-btn:not(.v-btn--icon) .v-btn__content) { justify-content: center; width: 100%; }
+.offer-scroll{ overflow-x: auto; }
+.offer-scroll .v-table{ min-width: 720px; }
+.num-text{ text-align:right; font-weight:600; color:#111; }
+@media (max-width: 600px){
+  .detail-toolbar{ flex-wrap: wrap; }
+  .detail-toolbar .v-toolbar-title{ flex:1 0 100%; }
+  .detail-actions{ position: fixed; box-shadow: 0 -6px 16px rgba(0,0,0,.08); padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+.has-bottom-bar{ padding-bottom: 84px; }
+.detail-actions .v-btn.action-btn{ min-width: 148px; font-weight:600; }
+@media (max-width: 380px){ .detail-actions .v-btn.action-btn{ flex-basis: 100%; } }
+
+/* Print invoice */
+.print-invoice{ display:none; font-family: Arial, "Segoe UI", "DejaVu Sans", sans-serif; color:#000; }
+.print-invoice .pi-title{ font-size:20px; font-weight:700; margin-bottom:6px; }
+.print-invoice .pi-meta{ font-size:12px; margin-bottom:10px; }
+.print-invoice .pi-table{ width:100%; border-collapse:collapse; font-size:12px; }
+.print-invoice .pi-table th, .print-invoice .pi-table td{ border:1px solid #333; padding:6px 8px; }
+.print-invoice .pi-table th{ background:#f3f3f3; text-align:left; }
+.print-invoice .num{ text-align:right; }
+.print-invoice .right{ text-align:right; }
+.print-invoice .pi-note{ margin-top:10px; font-size:12px; }
+
+@media print{
+  .detail-toolbar, .detail-actions, .v-alert, .v-snackbar{ display:none !important; }
+  .left-col{ display:none !important; }
+  .offer-card{ box-shadow:none !important; border:none !important; }
+  .has-bottom-bar{ padding-bottom:0 !important; }
+  .print-invoice{ display:block !important; }
+}
 </style>

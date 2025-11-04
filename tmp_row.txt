@@ -1,6 +1,0 @@
-function onRowClick(_, row){ const r=row?.item||row; const id=getId(r); if(!id) return; openDetail(r) }
-function openDetail(item){ current.value=item; detailOpen.value=true; loadDetail(getId(item)) }
-function closeDetail(){ detailOpen.value=false; current.value=null; detail.value={}; naplo.value=[]; tetelek.value=[]; offer.value=null; offerUzenet.value=''; editMode.value=false; detailError.value=''; note.value='' }
-function openDetail(item){ current.value=item; detailOpen.value=true; loadDetail(getId(item)) }
-function closeDetail(){ detailOpen.value=false; current.value=null; detail.value={}; naplo.value=[]; tetelek.value=[]; offer.value=null; offerUzenet.value=''; editMode.value=false; detailError.value=''; note.value='' }
-

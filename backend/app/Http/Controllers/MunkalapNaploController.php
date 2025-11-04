@@ -17,6 +17,12 @@ class MunkalapNaploController extends Controller
 
     public function store(Request $request, $munkalapId)
     {
+        // Backward-compat: accept {szoveg} and default tipus to 'jegyzet'
+        $merge = [];
+        if (!$request->filled('tipus')) { $merge['tipus'] = 'jegyzet'; }
+        if (!$request->filled('uzenet') && $request->filled('szoveg')) { $merge['uzenet'] = $request->input('szoveg'); }
+        if (!empty($merge)) { $request->merge($merge); }
+
         $data = $request->validate([
             'tipus' => 'required|string|max:30', // pl. statusz|jegyzet
             'uzenet' => 'required|string',
@@ -30,4 +36,3 @@ class MunkalapNaploController extends Controller
         return response()->json($rec, 201, [], JSON_UNESCAPED_UNICODE);
     }
 }
-

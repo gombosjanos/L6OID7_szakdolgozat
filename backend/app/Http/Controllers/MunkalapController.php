@@ -4,28 +4,52 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Munkalap;
+use App\Models\MunkalapNaplo;
+use App\Models\Felhasznalo;
+use Illuminate\Support\Facades\DB;
 
 class MunkalapController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * List workorders (optional filters: q, limit, user_id).
      */
     public function index(Request $request)
     {
-        $query = \App\Models\Munkalap::query();
+        $query = Munkalap::query()->with(['ugyfel', 'gep']);
+
         $auth = $request->user();
         if ($request->has('user_id')) {
             $query->where('user_id', $request->get('user_id'));
         }
-        // If logged-in user is 'ugyfel', restrict to own records
         if ($auth && $auth->jogosultsag === 'ugyfel') {
             $query->where('user_id', $auth->getKey());
         }
-        return response()->json($query->get());
+
+        if ($request->filled('q')) {
+            $q = $request->query('q');
+            $query->where(function ($w) use ($q) {
+                $w->where('ID', 'LIKE', "%{$q}%")
+                  ->orWhere('hibaleiras', 'LIKE', "%{$q}%")
+                  ->orWhere('megjegyzes', 'LIKE', "%{$q}%");
+            });
+        }
+
+        if ($request->filled('limit')) {
+            $limit = (int) $request->query('limit', 50);
+            $query->limit(max(1, min($limit, 200)));
+        }
+
+        $items = $query->orderByDesc('ID')->get();
+        // Backward-compat: also expose as 'azonosito'
+        foreach ($items as $it) {
+            $it->setAttribute('azonosito', $it->munkalapsorsz);
+        }
+        return response()->json($items, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create a new workorder.
      */
     public function store(Request $request)
     {
@@ -45,23 +69,22 @@ class MunkalapController extends Controller
         // Resolve customer: use user_id if given, else create/find by email
         if (empty($data['user_id'])) {
             if (!empty($data['ugyfel_email'])) {
-                $existing = \App\Models\Felhasznalo::where('email', $data['ugyfel_email'])->first();
+                $existing = Felhasznalo::where('email', $data['ugyfel_email'])->first();
                 if ($existing) {
                     $data['user_id'] = $existing->getKey();
                 } else {
-                    $created = \App\Models\Felhasznalo::create([
+                    $created = Felhasznalo::create([
                         'nev' => $data['ugyfel_nev'] ?? 'Ismeretlen',
                         'felhasznalonev' => $data['ugyfel_nev'] ?? null,
                         'email' => $data['ugyfel_email'],
                         'telefonszam' => $data['ugyfel_telefon'] ?? null,
                         'jogosultsag' => 'ugyfel',
-                        // random jelszó (nem használ a felületen, csak megfelel a sémának)
                         'password' => bcrypt(str()->random(12)),
                     ]);
                     $data['user_id'] = $created->getKey();
                 }
             } else {
-                return response()->json(['message' => 'Ügyfél kiválasztása vagy adatok megadása kötelező'], 422);
+                return response()->json(['message' => 'Ügyfél kiválasztása vagy adatok megadása kötelező'], 422, [], JSON_UNESCAPED_UNICODE);
             }
         }
 
@@ -69,30 +92,57 @@ class MunkalapController extends Controller
             'user_id' => $data['user_id'],
             'gep_id' => $data['gep_id'],
             'javitando_id' => $data['javitando_id'] ?? null,
-            'hibaleiras' => $data['hibaleiras'] ?? null,
-            'megjegyzes' => $data['megjegyzes'] ?? null,
+            // Some schemas mark these NOT NULL → store empty string if not provided
+            'hibaleiras' => array_key_exists('hibaleiras', $data) ? ($data['hibaleiras'] ?? '') : '',
+            'megjegyzes' => array_key_exists('megjegyzes', $data) ? ($data['megjegyzes'] ?? '') : '',
             'statusz' => $data['statusz'] ?? 'uj',
             'letrehozva' => now(),
         ];
 
-        $record = \App\Models\Munkalap::create($payload);
+        $record = DB::transaction(function () use ($payload) {
+            // Determine year from payload timestamp (or now)
+            $ts = $payload['letrehozva'] ?? now();
+            $yearInt = (int) date('Y', strtotime($ts));
+            // Lock rows for this year and compute max suffix
+            $maxSeq = DB::table('munkalapok')
+                ->whereYear('letrehozva', $yearInt)
+                ->whereNotNull('munkalapsorsz')
+                ->lockForUpdate()
+                ->selectRaw("MAX(CAST(SUBSTRING_INDEX(munkalapsorsz, '-', -1) AS UNSIGNED)) as m")
+                ->value('m');
+            $next = ((int)($maxSeq ?? 0)) + 1;
+            $sorsz = $yearInt . '-' . $next;
+
+            // Insert with the computed sequence to satisfy NOT NULL
+            $rec = Munkalap::create(array_merge($payload, ['munkalapsorsz' => $sorsz]));
+            return $rec;
+        });
+        // Backward-compat alias
+        $record->setAttribute('azonosito', $record->munkalapsorsz);
         return response()->json($record, 201, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
-     * Display the specified resource.
+     * Show a workorder with relations.
      */
     public function show(string $id)
     {
-        //
+        $rec = Munkalap::with(['ugyfel', 'gep'])->findOrFail($id);
+        // Authorization for customers: can only view own workorders
+        $auth = request()->user();
+        if ($auth && $auth->jogosultsag === 'ugyfel' && (int)$rec->user_id !== (int)$auth->getKey()) {
+            abort(403, 'Nincs jogosultság a munkalap megtekintéséhez');
+        }
+        $rec->setAttribute('azonosito', $rec->munkalapsorsz);
+        return response()->json($rec, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update a workorder (admin/szerelo only).
      */
     public function update(Request $request, string $id)
     {
-        $munkalap = \App\Models\Munkalap::findOrFail($id);
+        $munkalap = Munkalap::findOrFail($id);
         $auth = $request->user();
         if (!$auth || !in_array($auth->jogosultsag, ['admin','szerelo'], true)) {
             abort(403, 'Nincs jogosultság a módosításhoz');
@@ -102,31 +152,33 @@ class MunkalapController extends Controller
             'hibaleiras' => 'sometimes|string|nullable',
             'megjegyzes' => 'sometimes|string|nullable',
         ]);
+        // Avoid writing NULL to NOT NULL columns
+        if (array_key_exists('hibaleiras', $data) && $data['hibaleiras'] === null) { $data['hibaleiras'] = ''; }
+        if (array_key_exists('megjegyzes', $data) && $data['megjegyzes'] === null) { $data['megjegyzes'] = ''; }
         $statusWas = $munkalap->statusz;
         $munkalap->update($data);
-        // log status change
         if (isset($data['statusz']) && $data['statusz'] !== $statusWas) {
-            \App\Models\MunkalapNaplo::create([
+            MunkalapNaplo::create([
                 'munkalap_id' => $munkalap->ID,
                 'tipus' => 'statusz',
                 'uzenet' => "Állapot változott: {$statusWas} → {$data['statusz']}",
                 'letrehozva' => now(),
             ]);
         }
-        return response()->json(['message' => 'Frissítve', 'munkalap' => $munkalap]);
+        return response()->json($munkalap->fresh(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete a workorder (admin/szerelo only).
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $auth = $request->user();
         if (!$auth || !in_array($auth->jogosultsag, ['admin','szerelo'], true)) {
             abort(403, 'Nincs jogosultság a törléshez');
         }
-        $rec = \App\Models\Munkalap::findOrFail($id);
+        $rec = Munkalap::findOrFail($id);
         $rec->delete();
-        return response()->json(['message' => 'Törölve']);
+        return response()->json(['message' => 'Törölve'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

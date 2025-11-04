@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, onMounted, computed } from 'vue'
 import { api } from '../../api.js'
 
@@ -10,14 +10,24 @@ const dialog = ref(false)
 const editing = ref(null)
 const form = ref({ gyarto: '', tipusnev: '', g_cikkszam: '', gyartasiev: '' })
 
-const headers = [
+const isAdmin = computed(()=>{
+  try{
+    const u = JSON.parse(localStorage.getItem('user')||'null')
+    return (u?.jogosultsag||'').toString().toLowerCase()==='admin'
+  }catch{ return false }
+})
+
+const baseHeaders = [
   { title: 'ID', key: 'ID' },
   { title: 'Gyártó', key: 'gyarto' },
   { title: 'Típus', key: 'tipusnev' },
   { title: 'Cikkszám', key: 'g_cikkszam' },
   { title: 'Gyártási év', key: 'gyartasiev' },
-  { title: 'Műveletek', key: 'actions', sortable: false },
 ]
+const headers = computed(() => isAdmin.value
+  ? [...baseHeaders, { title: 'Műveletek', key: 'actions', sortable: false }]
+  : baseHeaders
+)
 
 const load = async (q = '') => {
   loading.value = true
@@ -28,7 +38,7 @@ const load = async (q = '') => {
   } catch (e) {
     error.value = e?.response?.data?.message || 'Nem sikerült betölteni a gépeket.'
   } finally {
-    loading.value = false
+    loading.value =false
   }
 }
 onMounted(() => load())
@@ -52,7 +62,7 @@ const filtered = computed(() => {
 
 const openAdd = () => { editing.value = null; form.value = { gyarto: '', tipusnev: '', g_cikkszam: '', gyartasiev: '' }; dialog.value = true }
 const openEdit = (row) => { editing.value = row; form.value = { gyarto: row.gyarto, tipusnev: row.tipusnev, g_cikkszam: row.g_cikkszam, gyartasiev: row.gyartasiev }; dialog.value = true }
-const close = () => { dialog.value = false }
+const close = () => { dialog.value =false }
 
 const save = async () => {
   try {
@@ -61,7 +71,7 @@ const save = async () => {
     } else {
       await api.post('/gepek', form.value)
     }
-    dialog.value = false
+    dialog.value =false
     load()
   } catch (e) {
     error.value = e?.response?.data?.message || 'Mentés sikertelen.'
@@ -87,13 +97,13 @@ const removeItem = async (row) => {
       <v-btn color="primary" @click="openAdd"><v-icon icon="mdi-plus"></v-icon> Új gép</v-btn>
     </div>
 
-    <v-text-field v-model="search" @input="onSearch" label="Keresés (cikkszám/gyártó/típus)" prepend-inner-icon="mdi-magnify" class="mb-3" />
+    <v-text-field v-model="search" @input="onSearch" label="Keresés (Cikkszám/Gyártó/Típus)" prepend-inner-icon="mdi-magnify" class="mb-3" />
     <v-alert v-if="error" type="error" variant="tonal" class="mb-3">{{ error }}</v-alert>
 
     <v-data-table :headers="headers" :items="filtered" :loading="loading" item-key="ID">
-      <template #item.actions="{ item }">
-        <v-btn size="x-small" variant="tonal" color="primary" class="me-2" @click="openEdit(item)">Szerkeszt</v-btn>
-        <v-btn size="x-small" variant="tonal" color="error" @click="removeItem(item)">Töröl</v-btn>
+      <template v-if="isAdmin" #item.actions="{ item }">
+        <v-btn v-if="isAdmin" size="x-small" variant="tonal" color="primary" class="me-2" @click="openEdit(item)">Szerkesztés</v-btn>
+        <v-btn v-if="isAdmin" size="x-small" variant="tonal" color="error" @click="removeItem(item)">Törlés</v-btn>
       </template>
     </v-data-table>
 
@@ -117,3 +127,11 @@ const removeItem = async (row) => {
     </v-dialog>
   </v-container>
 </template>
+
+
+
+
+
+
+
+

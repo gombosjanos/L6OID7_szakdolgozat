@@ -1,11 +1,12 @@
-<template>
+﻿<template>
+
   <v-container fluid class="pa-4">
     <v-row class="align-center mb-4" no-gutters>
       <v-col cols="12" md="6">
         <h2 class="text-h5 font-weight-medium">Alkatrészek</h2>
       </v-col>
       <v-col cols="12" md="6" class="d-flex justify-end">
-        <v-btn color="primary" @click="openCreate()" prepend-icon="mdi-plus">Új alkatrész</v-btn>
+        <v-btn v-if="isAdmin" color="primary" @click="openCreate()" prepend-icon="mdi-plus">Új alkatrész</v-btn>
       </v-col>
     </v-row>
 
@@ -44,23 +45,30 @@
       >
         <template #top>
           <v-alert v-if="errorMsg" type="error" variant="tonal" class="ma-3">{{ errorMsg }}</v-alert>
+          <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor" location="top right">
+            {{ snackbarText }}
+            <template #actions>
+              <v-btn variant="text" @click="snackbar=false">OK</v-btn>
+            </template>
+          </v-snackbar>
         </template>
+        <template #item.keszlet="{ item }">{{ item.keszlet ?? 0 }}</template>
         <template #item.nettoar="{ item }">{{ fmtCurrency(item.nettoar) }}</template>
         <template #item.bruttoar="{ item }">{{ fmtCurrency(item.bruttoar) }}</template>
         <template #item.actions="{ item }">
-          <v-btn icon="mdi-pencil" size="small" variant="text" @click="openEdit(item)" />
-          <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click="remove(item)" />
+          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-pencil" @click="openEdit(item)">Szerkesztés</v-btn>
+          <v-btn v-if="isAdmin" size="small" variant="text" color="error" prepend-icon="mdi-delete" @click="remove(item)">Törlés</v-btn>
         </template>
         <template #no-data>
           <div class="pa-6 text-medium-emphasis">
             <div>Nincs megjeleníthető adat.</div>
-            <div v-if="!loading && !errorMsg" class="mt-2">Próbáljon új alkatrészt felvenni a "Új alkatrész" gombbal.</div>
+            <div v-if="!loading && !errorMsg" class="mt-2">Próbáljon új alkatrészt felvenni az „Új alkatrész” gombbal.</div>
           </div>
         </template>
       </v-data-table>
     </v-card>
 
-    <v-dialog v-model="dialog" max-width="640">
+    <v-dialog v-model="dialog" max-width="680">
       <v-card>
         <v-card-title class="d-flex align-center">
           <span class="text-h6">{{ form.id ? 'Alkatrész szerkesztése' : 'Új alkatrész' }}</span>
@@ -69,19 +77,22 @@
         <v-card-text>
           <v-row>
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.a_cikkszam" label="Cikkszám" variant="outlined" density="comfortable" />
+              <v-text-field v-model="form.a_cikkszam" :disabled="isSzerelo" label="Cikkszám" variant="outlined" density="comfortable" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.alaktresznev" label="Megnevezés" variant="outlined" density="comfortable" />
+              <v-text-field v-model="form.alaktresznev" :disabled="isSzerelo" label="Megnevezés" variant="outlined" density="comfortable" />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field v-model.number="form.nettoar" type="number" step="0.01" label="Nettó ár" variant="outlined" density="comfortable" />
+            <v-col cols="12" md="3">
+              <v-text-field v-model.number="form.nettoar" :disabled="isSzerelo" type="number" step="0.01" label="Nettó ár" variant="outlined" density="comfortable" />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field v-model.number="form.bruttoar" type="number" step="0.01" label="Bruttó ár" variant="outlined" density="comfortable" />
+            <v-col cols="12" md="3">
+              <v-text-field v-model.number="form.bruttoar" :disabled="isSzerelo" type="number" step="0.01" label="Bruttó ár" variant="outlined" density="comfortable" />
             </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field v-model.number="form.afa_kulcs" type="number" step="0.1" label="ÁFA %" variant="outlined" density="comfortable" />
+            <v-col cols="12" md="3">
+              <v-text-field v-model.number="form.afa_kulcs" :disabled="isSzerelo" type="number" step="0.1" label="ĂFA %" variant="outlined" density="comfortable" />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field v-model.number="form.keszlet" type="number" min="0" step="1" label="Készlet" variant="outlined" density="comfortable" />
             </v-col>
           </v-row>
         </v-card-text>
@@ -97,13 +108,20 @@
 
 <script setup>
 import * as Vue from 'vue'
+// Role (script-only)
+const user = (() => { try { return JSON.parse(localStorage.getItem('user') || 'null') } catch { return null } })()
+const role = (user?.jogosultsag || '').toString().toLowerCase()
+const isAdmin = role === 'admin'
+const isSzerelo = role === 'szerelo'
+
 
 const headers = [
   { title: 'Cikkszám', value: 'a_cikkszam', sortable: true },
   { title: 'Megnevezés', value: 'alaktresznev', sortable: true },
+  { title: 'Készlet', value: 'keszlet', sortable: true, align: 'end', width: 110 },
   { title: 'Nettó egységár', value: 'nettoar', sortable: true, align: 'end' },
   { title: 'Bruttó egységár', value: 'bruttoar', sortable: true, align: 'end' },
-  { title: '', value: 'actions', sortable: false, align: 'end' },
+  { title: '', value: 'actions', sortable: false, align: 'end', width: 180 },
 ]
 
 const items = Vue.ref([])
@@ -113,8 +131,12 @@ const limit = Vue.ref(50)
 let searchDebounce = null
 
 const dialog = Vue.ref(false)
-const form = Vue.ref({ id: null, a_cikkszam: '', alaktresznev: '', nettoar: null, bruttoar: null, afa_kulcs: 27 })
+const form = Vue.ref({ id: null, a_cikkszam: '', alaktresznev: '', nettoar: null, bruttoar: null, afa_kulcs: 27, keszlet: 0 })
 const errorMsg = Vue.ref('')
+const snackbar = Vue.ref(false)
+const snackbarText = Vue.ref('')
+const snackbarColor = Vue.ref('success')
+function setSnack(text, color='success'){ snackbarText.value=text; snackbarColor.value=color; snackbar.value=true }
 
 function fmtCurrency(v) {
   if (v === null || v === undefined || v === '') return ''
@@ -125,12 +147,9 @@ async function request(path, { method = 'GET', body } = {}) {
   const url = `/api${path}`
   const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
   try {
-    const tk =
-      localStorage.getItem('auth_token') ||
-      localStorage.getItem('token') ||
-      localStorage.getItem('AUTH_TOKEN')
+    const tk = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN')
     if (tk) headers['Authorization'] = `Bearer ${tk}`
-  } catch (_) { /* ignore */ }
+  } catch {}
   const res = await fetch(url + (method === 'GET' && body ? `?${new URLSearchParams(body)}` : ''), {
     method,
     headers,
@@ -142,8 +161,7 @@ async function request(path, { method = 'GET', body } = {}) {
     throw new Error(`HTTP ${res.status}: ${txt}`)
   }
   const ct = res.headers.get('content-type') || ''
-  if (ct.includes('application/json')) return res.json()
-  return null
+  return ct.includes('application/json') ? res.json() : null
 }
 
 async function fetchParts() {
@@ -152,25 +170,15 @@ async function fetchParts() {
   try {
     const data = await request('/alkatreszek', { method: 'GET', body: { q: search.value, limit: String(limit.value) } })
     items.value = Array.isArray(data) ? data : []
-    // Helpful debug for dev console
-    console.debug('Alkatrészek betöltve:', items.value.length)
+  } catch(e) {
+    errorMsg.value = e?.message || 'Betöltési hiba'
   } finally {
     loading.value = false
   }
 }
 
-// Wrap request to capture errors into errorMsg for the UI
-async function safe(fn) {
-  try {
-    await fn()
-  } catch (e) {
-    console.error(e)
-    errorMsg.value = e?.message || 'Ismeretlen hiba történt.'
-  }
-}
-
 function openCreate() {
-  form.value = { id: null, a_cikkszam: '', alaktresznev: '', nettoar: null, bruttoar: null, afa_kulcs: 27 }
+  form.value = { id: null, a_cikkszam: '', alaktresznev: '', nettoar: null, bruttoar: null, afa_kulcs: 27, keszlet: 0 }
   dialog.value = true
 }
 
@@ -182,31 +190,44 @@ function openEdit(item) {
     nettoar: item.nettoar ?? null,
     bruttoar: item.bruttoar ?? null,
     afa_kulcs: 27,
+    keszlet: item.keszlet ?? 0,
   }
   dialog.value = true
 }
 
 async function save() {
-  const payload = {
-    a_cikkszam: form.value.a_cikkszam,
-    alaktresznev: form.value.alaktresznev,
-    nettoar: form.value.nettoar,
-    bruttoar: form.value.bruttoar,
-    afa_kulcs: form.value.afa_kulcs,
+  try{
+    if(isSzerelo){
+      if(!form.value.id){ setSnack("Nincs jogosultság új alkatrész felvételéhez",'error'); return }
+      const payload = { keszlet: Number(form.value.keszlet||0) }
+      await request(`/alkatreszek/${form.value.id}/keszlet`, { method: 'PATCH', body: payload })
+    } else {
+      const payload = {
+        a_cikkszam: (form.value.a_cikkszam||'').trim(),
+        alaktresznev: (form.value.alaktresznev||'').trim(),
+        nettoar: form.value.nettoar,
+        bruttoar: form.value.bruttoar,
+        afa_kulcs: form.value.afa_kulcs,
+        keszlet: form.value.keszlet,
+      }
+      if (!payload.a_cikkszam) { setSnack('Cikkszám kötelező','error'); return }
+      if (form.value.id) await request(`/alkatreszek/${form.value.id}`, { method: 'PUT', body: payload })
+      else await request('/alkatreszek', { method: 'POST', body: payload })
+    }
+    setSnack('Mentve')
+    dialog.value = false
+    await fetchParts()
+  }catch(e){
+    console.error(e)
+    errorMsg.value = e?.message || 'Mentés sikertelen'
+    setSnack('Mentés sikertelen', 'error')
   }
-  if (form.value.id) {
-    await request(`/alkatreszek/${form.value.id}`, { method: 'PUT', body: payload })
-  } else {
-    await request('/alkatreszek', { method: 'POST', body: payload })
-  }
-  dialog.value = false
-  await safe(fetchParts)
 }
 
 async function remove(item) {
   if (!confirm('Biztosan törli?')) return
   await request(`/alkatreszek/${item.ID}`, { method: 'DELETE' })
-  await safe(fetchParts)
+  await fetchParts()
 }
 
 Vue.watch(search, () => {
@@ -214,11 +235,22 @@ Vue.watch(search, () => {
   searchDebounce = setTimeout(fetchParts, 250)
 })
 
-Vue.watch(limit, () => safe(fetchParts))
+Vue.watch(limit, () => fetchParts())
 
-safe(fetchParts)
+fetchParts()
 </script>
 
 <style scoped>
 .text-h5 { color: #000; }
 </style>
+
+
+
+
+
+
+
+
+
+
+

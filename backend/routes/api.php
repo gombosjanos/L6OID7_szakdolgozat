@@ -32,10 +32,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['role:admin,szerelo'])->group(function () {
         Route::get('gepek', [GepController::class, 'index']);
         Route::get('gepek/{id}', [GepController::class, 'show']);
+        // Allow szerelő to create new machine
         Route::post('gepek', [GepController::class, 'store']);
-        Route::put('gepek/{id}', [GepController::class, 'update']);
     });
     Route::middleware(['role:admin'])->group(function () {
+        Route::put('gepek/{id}', [GepController::class, 'update']);
         Route::delete('gepek/{id}', [GepController::class, 'destroy']);
     });
 
@@ -43,19 +44,36 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware(['role:admin,szerelo'])->group(function () {
         Route::get('alkatreszek', [AlkatreszController::class, 'index']);
         Route::get('alkatreszek/{id}', [AlkatreszController::class, 'show']);
-        Route::post('alkatreszek', [AlkatreszController::class, 'store']);
-        Route::put('alkatreszek/{id}', [AlkatreszController::class, 'update']);
+        Route::patch('alkatreszek/{id}/keszlet', [AlkatreszController::class, 'updateKeszlet']);
     });
     Route::middleware(['role:admin'])->group(function () {
+        Route::post('alkatreszek', [AlkatreszController::class, 'store']);
+        Route::put('alkatreszek/{id}', [AlkatreszController::class, 'update']);
         Route::delete('alkatreszek/{id}', [AlkatreszController::class, 'destroy']);
     });
 
-    Route::middleware(['role:admin,szerelo'])->group(function () {
-        Route::apiResource('munkalapok', MunkalapController::class);
+    // Read endpoints (customers can view their own records)
+    Route::middleware(['role:admin,szerelo,ugyfel'])->group(function () {
+        Route::get('munkalapok', [MunkalapController::class, 'index']);
+        Route::get('munkalapok/{id}', [MunkalapController::class, 'show']);
         Route::get('munkalapok/{id}/naplo', [MunkalapNaploController::class, 'index']);
-        Route::post('munkalapok/{id}/naplo', [MunkalapNaploController::class, 'store']);
         Route::get('munkalapok/{id}/ajanlat', [AjanlatController::class, 'showByWorkorder']);
+    });
+    // Modify endpoints (admin and szerelő only)
+    Route::middleware(['role:admin,szerelo'])->group(function () {
+        Route::post('munkalapok', [MunkalapController::class, 'store']);
+        Route::patch('munkalapok/{id}', [MunkalapController::class, 'update']);
+        Route::post('munkalapok/{id}/naplo', [MunkalapNaploController::class, 'store']);
         Route::post('munkalapok/{id}/ajanlat', [AjanlatController::class, 'upsert']);
+    });
+    // Customer offer decisions
+    Route::middleware(['role:admin,szerelo,ugyfel'])->group(function () {
+        Route::post('munkalapok/{id}/ajanlat/accept', [AjanlatController::class, 'customerAccept']);
+        Route::post('munkalapok/{id}/ajanlat/reject', [AjanlatController::class, 'customerReject']);
+    });
+    // Workorder delete: admin only
+    Route::middleware(['role:admin'])->group(function () {
+        Route::delete('munkalapok/{id}', [MunkalapController::class, 'destroy']);
     });
 
     Route::apiResource('javitando_gepek', JavitandoGepController::class);
