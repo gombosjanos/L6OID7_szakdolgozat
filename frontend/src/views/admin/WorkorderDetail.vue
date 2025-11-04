@@ -345,6 +345,11 @@ function gepLabel(gep){ if(!gep) return '-'; try{ const gyarto = gep.gyarto || g
 function getUgyfelNev(row){ try{ return row?.ugyfel?.nev ?? row?.ugyfel_nev ?? row?.nev ?? row?.ugyfel_adatok?.nev ?? '-' }catch{ return '-' } }
 function parseNum(v){ if (typeof v === 'number') return isFinite(v)?v:0; if (v==null) return 0; const s=String(v).replace(/\s+/g,'').replace(',', '.'); const n=parseFloat(s); return isFinite(n)?n:0 }
 
+// Robust key/number helpers for mixed schemas
+function normKey(k){ try{ return (k||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (k||'').toString().toLowerCase() } }
+function toNum(v){ if (v==null) return 0; if (typeof v==='number') return isFinite(v)?v:0; const s=String(v).replace(/\s+/g,'').replace(/\./g,'').replace(',', '.'); const n=parseFloat(s); return isFinite(n)?n:0 }
+function pickVal(obj, candidates){ try{ const map={}; for(const k of Object.keys(obj||{})){ map[normKey(k)] = obj[k]; } for(const name of candidates){ const v = map[normKey(name)]; if (v!=null && v!=='') return v } }catch{} return undefined }
+
 const partStockById = Vue.ref({})
 const partNameSet = new Set()
 async function preloadPartsIndex(){
@@ -376,6 +381,7 @@ async function loadAll(){
 
 async function applyAjanlat(a){
   const rows = a?.tetelek || []
+  try{ offerUzenet.value = (a?.megjegyzes || '').toString() }catch{}
   tetelek.value = rows.map(r => {
     const tNorm = norm(r?.tipus)
     const name = r?.megnevezes || r?.alaktresznev || r?.alkatresznev || ''
@@ -532,11 +538,16 @@ async function onPickerSearch(val){
     const res = await request('/alkatreszek', { method: 'GET', body: { q: val || '', limit: '20' } })
     const partItems = (Array.isArray(res) ? res : []).map(p => {
       const id = p.ID ?? p.id
-      const name = p.alkatresznev ?? p.alaktresznev ?? p.nev ?? p.megnevezes ?? 'Alkatrész'
-      const code = p.a_cikkszam ?? p.cikkszam ?? p.code ?? ''
-      const netto = p.netto_egyseg_ar ?? p.netto ?? 0
-      const brutto = p.brutto_egyseg_ar ?? p.brutto ?? 0
-      return { label: (code ? code + ' - ' : '') + name, value: { kind: 'alkatresz', id, name, netto, brutto, afa_kulcs: 27 } }
+      const name = pickVal(p, ['alkatresznev','alaktresznev','nev','megnevezes']) || 'Alkatrész'
+      const code = pickVal(p, ['a_cikkszam','cikkszam','code']) || ''
+      const a = toNum(pickVal(p, ['afa_kulcs','áfa_kulcs','afa','áfa'])) || 27
+      const nRaw = pickVal(p, ['netto_egyseg_ar','nettó_egyseg_ar','nettoar','netto','nettó','egyseg_ar','egységár','netto_ar','ar_netto'])
+      const bRaw = pickVal(p, ['brutto_egyseg_ar','bruttó_egyseg_ar','bruttoar','brutto','bruttó','brutto_ar','ar_brutto'])
+      let netto = toNum(nRaw)
+      let brutto = toNum(bRaw)
+      if (!netto && brutto) netto = brutto / (1 + a/100)
+      if (!brutto && netto) brutto = netto * (1 + a/100)
+      return { label: (code ? code + ' - ' : '') + name, value: { kind: 'alkatresz', id, name, netto, brutto, afa_kulcs: a } }
     })
     pickerItems.value = [
       { label:'Munkadíj', value:'munkadij' },
@@ -545,7 +556,7 @@ async function onPickerSearch(val){
     ]
   } finally { pickerLoading.value = false }
 }
-function onPickerSelect(val){
+async function onPickerSelect(val){
   if (!val || !canEditOffer.value) return
   const v = val.value ?? val
   if (v === 'munkadij') {
@@ -553,7 +564,27 @@ function onPickerSelect(val){
   } else if (v === 'egyedi') {
     tetelek.value.push({ tipus: 'egyedi', megnevezes: '', db: 1, netto: 0, brutto: 0, afa_kulcs: 27 })
   } else if (typeof v === 'object' && v.kind === 'alkatresz') {
-    tetelek.value.push({ tipus: 'alkatresz', alkatresz_id: v.id, megnevezes: (v.name || 'Alkatrész'), db: 1, netto: (v.netto || 0), brutto: (v.brutto || 0), afa_kulcs: v.afa_kulcs || 27 })
+    let a = Number(v.afa_kulcs || 27)
+    let n = toNum(v.netto)
+    let b = toNum(v.brutto)
+    if (!n && b) n = b/(1+a/100)
+    if (!b && n) b = n*(1+a/100)
+    // Fallback: töltünk részletes adatokból, ha mindkettő 0
+    if (!n && !b && v.id){
+      try{
+        const det = await request(`/alkatreszek/${v.id}`, { method:'GET' })
+        const p = det || {}
+        const nRaw = pickVal(p, ['netto_egyseg_ar','nettó_egyseg_ar','netto','nettó','egyseg_ar','egységár','netto_ar','ar_netto'])
+        const bRaw = pickVal(p, ['brutto_egyseg_ar','bruttó_egyseg_ar','brutto','bruttó','brutto_ar','ar_brutto'])
+        const aRaw = pickVal(p, ['afa_kulcs','áfa_kulcs','afa','áfa'])
+        a = toNum(aRaw) || a
+        n = toNum(nRaw)
+        b = toNum(bRaw)
+        if (!n && b) n = b/(1+a/100)
+        if (!b && n) b = n*(1+a/100)
+      }catch{}
+    }
+    tetelek.value.push({ tipus: 'alkatresz', alkatresz_id: v.id, megnevezes: (v.name || 'Alkatrész'), db: 1, netto: n||0, brutto: b||0, afa_kulcs: a||27 })
   }
   pickerSelected.value = null
   try{ syncOfferStocks() }catch{}

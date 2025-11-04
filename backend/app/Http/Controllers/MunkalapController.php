@@ -84,7 +84,7 @@ class MunkalapController extends Controller
                     $data['user_id'] = $created->getKey();
                 }
             } else {
-                return response()->json(['message' => 'Ügyfél kiválasztása vagy adatok megadása kötelező'], 422, [], JSON_UNESCAPED_UNICODE);
+                return response()->json(['message' => 'ĂśgyfĂ©l kivĂˇlasztĂˇsa vagy adatok megadĂˇsa kĂ¶telezĹ‘'], 422, [], JSON_UNESCAPED_UNICODE);
             }
         }
 
@@ -92,7 +92,7 @@ class MunkalapController extends Controller
             'user_id' => $data['user_id'],
             'gep_id' => $data['gep_id'],
             'javitando_id' => $data['javitando_id'] ?? null,
-            // Some schemas mark these NOT NULL → store empty string if not provided
+            // Some schemas mark these NOT NULL â†’ store empty string if not provided
             'hibaleiras' => array_key_exists('hibaleiras', $data) ? ($data['hibaleiras'] ?? '') : '',
             'megjegyzes' => array_key_exists('megjegyzes', $data) ? ($data['megjegyzes'] ?? '') : '',
             'statusz' => $data['statusz'] ?? 'uj',
@@ -131,7 +131,7 @@ class MunkalapController extends Controller
         // Authorization for customers: can only view own workorders
         $auth = request()->user();
         if ($auth && $auth->jogosultsag === 'ugyfel' && (int)$rec->user_id !== (int)$auth->getKey()) {
-            abort(403, 'Nincs jogosultság a munkalap megtekintéséhez');
+            abort(403, 'Nincs jogosultsĂˇg a munkalap megtekintĂ©sĂ©hez');
         }
         $rec->setAttribute('azonosito', $rec->munkalapsorsz);
         return response()->json($rec, 200, [], JSON_UNESCAPED_UNICODE);
@@ -145,7 +145,7 @@ class MunkalapController extends Controller
         $munkalap = Munkalap::findOrFail($id);
         $auth = $request->user();
         if (!$auth || !in_array($auth->jogosultsag, ['admin','szerelo'], true)) {
-            abort(403, 'Nincs jogosultság a módosításhoz');
+            abort(403, 'Nincs jogosultsĂˇg a mĂłdosĂ­tĂˇshoz');
         }
         $data = $request->validate([
             'statusz' => 'sometimes|string|max:50',
@@ -161,7 +161,7 @@ class MunkalapController extends Controller
             MunkalapNaplo::create([
                 'munkalap_id' => $munkalap->ID,
                 'tipus' => 'statusz',
-                'uzenet' => "Állapot változott: {$statusWas} → {$data['statusz']}",
+                'uzenet' => "Ăllapot vĂˇltozott: {$statusWas} â†’ {$data['statusz']}",
                 'letrehozva' => now(),
             ]);
         }
@@ -175,10 +175,10 @@ class MunkalapController extends Controller
     {
         $auth = $request->user();
         if (!$auth || !in_array($auth->jogosultsag, ['admin','szerelo'], true)) {
-            abort(403, 'Nincs jogosultság a törléshez');
+            abort(403, 'Nincs jogosultsĂˇg a tĂ¶rlĂ©shez');
         }
         $rec = Munkalap::findOrFail($id);
         $rec->delete();
-        return response()->json(['message' => 'Törölve'], 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(['message' => 'TĂ¶rĂ¶lve'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

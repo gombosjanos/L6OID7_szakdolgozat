@@ -32,7 +32,7 @@ Artisan::command('parts:import {path : CSV file path} {--delimiter=; : CSV delim
         }
         $s = mb_strtolower($s);
         $map = [
-            'á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ö'=>'o','ő'=>'o','ú'=>'u','ü'=>'u','ű'=>'u',
+            'Ăˇ'=>'a','Ă©'=>'e','Ă­'=>'i','Ăł'=>'o','Ă¶'=>'o','Ĺ‘'=>'o','Ăş'=>'u','ĂĽ'=>'u','Ĺ±'=>'u',
         ];
         $s = strtr($s, $map);
         $s = preg_replace('/[^a-z0-9]+/','_', $s);

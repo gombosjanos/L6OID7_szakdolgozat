@@ -33,6 +33,13 @@
       >
         ⚙️ Beállítások
       </RouterLink>
+      <RouterLink
+        to="/profile"
+        class="block p-2 rounded hover:bg-blue-50 text-gray-700 font-medium"
+        active-class="bg-blue-100 text-blue-700"
+      >
+        👤 Profilom
+      </RouterLink>
     </nav>
   </aside>
 </template>

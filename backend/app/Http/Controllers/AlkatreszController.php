@@ -10,6 +10,29 @@ use Illuminate\Support\Facades\Schema;
 
 class AlkatreszController extends Controller
 {
+    public function show($id): JsonResponse
+    {
+        $table = 'alkatreszek';
+        // Safe name expression across variants
+        $candidates = ['alkatresznev', 'alaktresznev', 'megnevezes'];
+        $existing = array_values(array_intersect($candidates, Schema::getColumnListing($table)));
+        $nameExpr = !empty($existing) ? ('COALESCE(' . implode(', ', $existing) . ')') : "''";
+
+        // Select common price fields if they exist
+        $cols = Schema::getColumnListing($table);
+        $hasNetto = in_array('nettoar', $cols, true);
+        $hasBrutto = in_array('bruttoar', $cols, true);
+        $hasVat = in_array('afa_kulcs', $cols, true);
+
+        $select = "ID, a_cikkszam, {$nameExpr} as alaktresznev";
+        if ($hasNetto) { $select .= ", nettoar"; }
+        if ($hasBrutto) { $select .= ", bruttoar"; }
+        if ($hasVat) { $select .= ", afa_kulcs"; }
+
+        $row = DB::table($table)->selectRaw($select)->where('ID', $id)->first();
+        if (!$row) { return response()->json(['message' => 'Nem található.'], 404); }
+        return response()->json($row);
+    }
     public function index(Request $request): JsonResponse
     {
         $q = trim((string) $request->query('q', ''));
@@ -110,7 +133,7 @@ class AlkatreszController extends Controller
 
         $row = DB::table('alkatreszek')->where('ID', $id)->first();
         if (!$row) {
-            return response()->json(['message' => 'Nem található.'], 404);
+            return response()->json(['message' => 'Nem talĂˇlhatĂł.'], 404);
         }
 
         $name = $validated['alaktresznev']
@@ -160,9 +183,9 @@ class AlkatreszController extends Controller
     {
         $deleted = DB::table('alkatreszek')->where('ID', $id)->delete();
         if (!$deleted) {
-            return response()->json(['message' => 'Nem található.'], 404);
+            return response()->json(['message' => 'Nem talĂˇlhatĂł.'], 404);
         }
-        return response()->json(['message' => 'Sikeresen törölve.']);
+        return response()->json(['message' => 'Sikeresen tĂ¶rĂ¶lve.']);
     }
 
     public function updateKeszlet(Request $request, $id): JsonResponse
@@ -174,7 +197,7 @@ class AlkatreszController extends Controller
         $alkatresz = DB::table('alkatreszek')->where('ID', $id)->first();
 
         if (!$alkatresz) {
-            return response()->json(['message' => 'Az alkatrész nem található.'], 404);
+            return response()->json(['message' => 'Az alkatrĂ©sz nem talĂˇlhatĂł.'], 404);
         }
 
         DB::table('alkatreszek')->where('ID', $id)->update(['keszlet' => $validated['keszlet']]);
@@ -188,12 +211,12 @@ class AlkatreszController extends Controller
     {
         $payload1 = $base;
         if ($name !== null) {
-            $payload1['alkatresznev'] = $name; // elsődlegesen ezt próbáljuk
+            $payload1['alkatresznev'] = $name; // elsĹ‘dlegesen ezt prĂłbĂˇljuk
         }
         try {
             return (int) DB::table($table)->insertGetId($payload1);
         } catch (QueryException $e) {
-            // Ha oszlopnév gond, próbáljuk a másik változatot
+            // Ha oszlopnĂ©v gond, prĂłbĂˇljuk a mĂˇsik vĂˇltozatot
             $payload2 = $base;
             if ($name !== null) {
                 $payload2['alaktresznev'] = $name;
@@ -204,7 +227,7 @@ class AlkatreszController extends Controller
 
     private function updateWithNameFallback(string $table, int $id, array $base, ?string $name): void
     {
-        // Próbáljuk először az "alkatresznev" mezőt
+        // PrĂłbĂˇljuk elĹ‘szĂ¶r az "alkatresznev" mezĹ‘t
         $payload1 = $base;
         if ($name !== null) {
             $payload1['alkatresznev'] = $name;
@@ -212,7 +235,7 @@ class AlkatreszController extends Controller
         try {
             DB::table($table)->where('ID', $id)->update($payload1);
         } catch (QueryException $e) {
-            // Ha oszlopnév gond, próbáljuk az "alaktresznev" mezőt
+            // Ha oszlopnĂ©v gond, prĂłbĂˇljuk az "alaktresznev" mezĹ‘t
             $payload2 = $base;
             if ($name !== null) {
                 $payload2['alaktresznev'] = $name;

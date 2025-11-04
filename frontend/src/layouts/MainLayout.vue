@@ -27,7 +27,7 @@ const logout = async () => {
       <v-spacer />
       <v-btn
         v-if="user?.nev"
-        :to="{ path: (user?.jogosultsag==='ugyfel' ? '/ugyfel' : (user?.jogosultsag==='szerelo' ? '/szerelo' : '/admin')) }"
+        :to="{ path: '/profile' }"
         variant="flat"
         color="black"
         size="small"
@@ -55,13 +55,13 @@ const logout = async () => {
       <v-list density="comfortable" nav>
         <v-list-item v-if="user?.jogosultsag === 'admin'" title="Főoldal" prepend-icon="mdi-view-dashboard" @click="router.push('/admin')" />
         <v-list-item v-if="user?.jogosultsag === 'admin'" title="Felhasználókezelés" prepend-icon="mdi-account-multiple" @click="router.push('/admin/ugyfelek')" />
-
+        <v-list-item v-if="user?.jogosultsag === 'admin' || user?.jogosultsag === 'szerelo' || user?.jogosultsag === 'ugyfel'" title="Profilom" prepend-icon="mdi-view-dashboard" @click="router.push('/profile')" />
         <v-list-item v-if="user?.jogosultsag === 'admin'" title="Gépek nyilvántartása" prepend-icon="mdi-robot-mower" @click="router.push('/admin/gepek')" />
         <v-list-item v-if="user?.jogosultsag === 'szerelo'" title="Gépek" prepend-icon="mdi-robot-mower" @click="router.push('/admin/gepek')" />
         <v-list-item v-if="user?.jogosultsag === 'admin' || user?.jogosultsag === 'szerelo'" title="Munkalapok" prepend-icon="mdi-clipboard-text" @click="router.push('/admin/munkalapok')" />
         <v-list-item v-if="user?.jogosultsag === 'admin' || user?.jogosultsag === 'szerelo'" title="Alkatrészek" prepend-icon="mdi-cog" @click="router.push('/admin/alkatreszek')" />
-        <v-list-item v-if="user?.jogosultsag === 'ugyfel'" title="Ügyfél kezdőlap" prepend-icon="mdi-account" @click="router.push('/ugyfel')" />
-        <v-list-item v-if="user?.jogosultsag === 'szerelo'" title="Szerelő kezdőlap" prepend-icon="mdi-wrench" @click="router.push('/szerelo')" />
+        <v-list-item v-if="user?.jogosultsag === 'ugyfel'" title="Kezdőlap" prepend-icon="mdi-account" @click="router.push('/ugyfel')" />
+        <v-list-item v-if="user?.jogosultsag === 'szerelo'" title="Kezdőlap" prepend-icon="mdi-wrench" @click="router.push('/szerelo')" />
       </v-list>
     </v-navigation-drawer>
 

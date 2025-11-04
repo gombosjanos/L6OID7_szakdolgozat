@@ -11,6 +11,18 @@ const dialog = ref(false)
 const editing = ref(null)
 const form = ref({ nev: '', felhasznalonev: '', email: '', telefonszam: '', jogosultsag: 'ugyfel', password: '' })
 
+const roleLabels = {
+  ugyfel: 'Ügyfél',
+  szerelo: 'Szerelő',
+  admin: 'Admin',
+}
+
+const roleOptions = [
+  { title: roleLabels.ugyfel, value: 'ugyfel' },
+  { title: roleLabels.szerelo, value: 'szerelo' },
+  { title: roleLabels.admin, value: 'admin' },
+]
+
 const headers = [
   { title: 'ID', key: 'ID' },
   { title: 'Név', key: 'nev' },
@@ -25,8 +37,8 @@ const load = async (q = '') => {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await api.get('/felhasznalok', { params: { q, limit: 50 } })
-    items.value = (data || []).map(r => ({ ID: r.ID ?? r.id, ...r }))
+  const { data } = await api.get('/felhasznalok', { params: { q, limit: 50 } })
+  items.value = (data || []).map(r => ({ ID: r.ID ?? r.id, ...r }))
   } catch (e) {
     error.value = e?.response?.data?.message || 'Nem sikerült betölteni az ügyfeleket.'
   } finally {
@@ -53,16 +65,49 @@ const filtered = computed(() => {
   )
 })
 
-const openAdd = () => { editing.value = null; form.value = { nev: '', felhasznalonev: '', email: '', telefonszam: '', jogosultsag: 'ugyfel', password: '' }; dialog.value = true }
-const openEdit = (row) => { editing.value = row; form.value = { ...row, password: '' }; dialog.value = true }
+const openAdd = () => {
+  editing.value = null
+  form.value = { nev: '', felhasznalonev: '', email: '', telefonszam: '', jogosultsag: 'ugyfel', password: '' }
+  dialog.value = true
+}
+const openEdit = (row) => {
+  editing.value = row
+  form.value = {
+    nev: row.nev || '',
+    felhasznalonev: row.felhasznalonev || '',
+    email: row.email || '',
+    telefonszam: row.telefonszam || '',
+  jogosultsag: row.jogosultsag || 'ugyfel',
+    password: '',
+  }
+  dialog.value = true
+}
 const close = () => { dialog.value = false }
 
 const save = async () => {
   try {
+    const payload = {
+      nev: form.value.nev?.trim(),
+      email: form.value.email?.trim(),
+      jogosultsag: form.value.jogosultsag,
+    }
+
+    if (form.value.felhasznalonev?.trim()) {
+      payload.felhasznalonev = form.value.felhasznalonev.trim()
+    }
+
+    if (form.value.telefonszam?.trim()) {
+      payload.telefonszam = form.value.telefonszam.trim()
+    }
+
+    if (form.value.password?.trim()) {
+      payload.password = form.value.password
+    }
+
     if (editing.value) {
-      await api.put(`/felhasznalok/${editing.value.ID}`, form.value)
+      await api.put(`/felhasznalok/${editing.value.ID}`, payload)
     } else {
-      await api.post('/felhasznalok', form.value)
+      await api.post('/felhasznalok', payload)
     }
     dialog.value = false
     load()
@@ -94,6 +139,9 @@ const removeItem = async (row) => {
     <v-alert v-if="error" type="error" variant="tonal" class="mb-3">{{ error }}</v-alert>
 
     <v-data-table :headers="headers" :items="filtered" :loading="loading" item-key="ID">
+      <template #item.jogosultsag="{ item }">
+        {{ roleLabels[item.raw?.jogosultsag] ?? item.raw?.jogosultsag ?? '—' }}
+      </template>
       <template #item.actions="{ item }">
         <v-btn size="x-small" variant="tonal" color="primary" class="me-2" @click="openEdit(item)">Szerkeszt</v-btn>
         <v-btn size="x-small" variant="tonal" color="error" @click="removeItem(item)">Töröl</v-btn>
@@ -109,7 +157,16 @@ const removeItem = async (row) => {
             <v-col cols="12" sm="6"><v-text-field v-model="form.felhasznalonev" label="Felhasználónév" /></v-col>
             <v-col cols="12" sm="6"><v-text-field v-model="form.email" type="email" label="Email" required /></v-col>
             <v-col cols="12" sm="6"><v-text-field v-model="form.telefonszam" label="Telefonszám" /></v-col>
-            <v-col cols="12" sm="6"><v-select v-model="form.jogosultsag" :items="['ugyfel','szerelo','admin']" label="Jogosultság" /></v-col>
+            <v-col cols="12" sm="6">
+              <v-select
+                v-model="form.jogosultsag"
+                :items="roleOptions"
+                item-title="title"
+                item-value="value"
+                label="Jogosultság"
+              />
+              <div class="text-error text-caption mt-1">A jogosultság módosítása csak rendszergazda feladata.</div>
+            </v-col>
             <v-col cols="12" sm="6"><v-text-field v-model="form.password" type="password" label="Jelszó (opcionális)" /></v-col>
           </v-row>
         </v-card-text>

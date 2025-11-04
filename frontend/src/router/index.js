@@ -9,14 +9,17 @@ import AdminWorkorderDetail from '../views/admin/WorkorderDetail.vue'
 import AdminPartsView from '../views/admin/PartsView.vue'
 
 import RegisterView from '../views/RegisterView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
 import UgyfelView from '../views/UgyfelView.vue'
 import UgyfelWorkorderDetail from '../views/ugyfel/WorkorderDetail.vue'
 import SzereloView from '../views/SzereloView.vue'
 import AdminWorkorderCreate from '../views/admin/WorkorderCreate.vue'
+import ProfileView from '../views/ProfileView.vue'
 
 const routes = [
   { path: '/login', component: LoginView },
   { path: '/register', component: RegisterView },
+  { path: '/reset-password', component: ResetPasswordView },
   {
     path: '/',
     component: MainLayout,
@@ -30,7 +33,8 @@ const routes = [
       { path: 'admin/alkatreszek', component: AdminPartsView },
       { path: 'ugyfel', component: UgyfelView },
       { path: 'ugyfel/munkalapok/:id', name: 'UgyfelWorkorderDetail', component: UgyfelWorkorderDetail, props: true },
-      { path: 'szerelo', component: SzereloView }
+      { path: 'szerelo', component: SzereloView },
+      { path: 'profile', component: ProfileView }
     ]
   }
 ]
@@ -43,7 +47,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const user = JSON.parse(localStorage.getItem('user') || 'null')
-  const publicPages = ['/login', '/register']
+  const publicPages = ['/login', '/register', '/reset-password']
   const authRequired = !publicPages.includes(to.path)
 
   if (authRequired && !token) {

@@ -12,16 +12,49 @@ class AjanlatController extends Controller
 {
     public function showByWorkorder($munkalapId)
     {
-        $ajanlat = Ajanlat::with('tetelek')->where('munkalap_id', $munkalapId)->first();
-        if (!$ajanlat) {
-            $ajanlat = Ajanlat::create([
-                'munkalap_id' => $munkalapId,
-                'statusz' => 'tervezet',
-                'osszeg_brutto' => 0,
-                'letrehozva' => now(),
-            ]);
-            $ajanlat->setRelation('tetelek', collect());
+        // Ownership check for customers
+        $auth = request()->user();
+        if ($auth && $auth->jogosultsag === 'ugyfel') {
+            $ml = \App\Models\Munkalap::findOrFail($munkalapId);
+            if ((int)$ml->user_id !== (int)$auth->getKey()) {
+                abort(403, 'Nincs jogosultsĂˇg');
+            }
         }
+
+        $ajanlat = Ajanlat::where('munkalap_id', $munkalapId)->first();
+        if (!$ajanlat) {
+            // Fallback: header may use alternate FK name (e.g., MunkalapID)
+            $hdrTable = 'munkalap_ajanlat';
+            $header = null;
+            if (Schema::hasColumn($hdrTable, 'MunkalapID')) {
+                $header = DB::table($hdrTable)->where('MunkalapID', $munkalapId)->first();
+            } elseif (Schema::hasColumn($hdrTable, 'munkalapId')) {
+                $header = DB::table($hdrTable)->where('munkalapId', $munkalapId)->first();
+            }
+            if ($header) {
+                $aid = $header->ID ?? $header->id ?? null;
+                $fk = Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlat_id') ? 'ajanlat_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','AjanlatID') ? 'AjanlatID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlatId') ? 'ajanlatId' : 'ajanlat_id'));
+                $rows = $aid ? DB::table('munkalap_ajanlat_tetelek')->where($fk, $aid)->get() : collect();
+                return response()->json((object)[
+                    'ID' => $aid,
+                    'statusz' => $header->statusz ?? null,
+                    'megjegyzes' => $header->megjegyzes ?? null,
+                    'tetelek' => $rows,
+                ]);
+            }
+            // Nothing found: do not create placeholder here to avoid schema mismatch
+            return response()->json((object)['statusz'=>null,'megjegyzes'=>null,'tetelek'=>[]]);
+        }
+        // Robust tétel betöltés bármely PK esetén
+        $aid = $ajanlat->ID ?? $ajanlat->id ?? $ajanlat->getKey();
+        $fk = Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlat_id') ? 'ajanlat_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','AjanlatID') ? 'AjanlatID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlatId') ? 'ajanlatId' : 'ajanlat_id'));
+        $rows = DB::table('munkalap_ajanlat_tetelek')->where($fk, $aid)->get();
+        $isEmpty = ($rows instanceof \Illuminate\Support\Collection) ? $rows->isEmpty() : (empty($rows));
+        if ($isEmpty) {
+            $altFk = Schema::hasColumn('munkalap_ajanlat_tetelek','munkalap_id') ? 'munkalap_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','MunkalapID') ? 'MunkalapID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','munkalapId') ? 'munkalapId' : null));
+            if ($altFk) { $rows = DB::table('munkalap_ajanlat_tetelek')->where($altFk, $munkalapId)->get(); }
+        }
+        $ajanlat->setRelation('tetelek', $rows);
         return response()->json($ajanlat);
     }
 
@@ -60,7 +93,8 @@ class AjanlatController extends Controller
                 $hasBrutto = Schema::hasColumn('munkalap_ajanlat_tetelek', 'brutto_egyseg_ar');
                 $hasAfa = Schema::hasColumn('munkalap_ajanlat_tetelek', 'afa_kulcs');
 
-                $oldItems = AjanlatTetel::where('ajanlat_id', $ajanlat->id)->get();
+                $aid = $ajanlat->ID ?? $ajanlat->id ?? $ajanlat->getKey();
+                $oldItems = AjanlatTetel::where('ajanlat_id', $aid)->get();
                 $hadRows = $oldItems->count() > 0;
                 $oldParts = [];
                 if ($hasPart) {
@@ -98,7 +132,7 @@ class AjanlatController extends Controller
                 }
 
                 // Replace items
-                AjanlatTetel::where('ajanlat_id', $ajanlat->id)->delete();
+                AjanlatTetel::where('ajanlat_id', $aid)->delete();
                 $sumBrutto = 0;
                 foreach ($data['tetelek'] as $t) {
                     $vat = isset($t['afa_kulcs']) ? (float)$t['afa_kulcs'] : 27.0;
@@ -110,7 +144,7 @@ class AjanlatController extends Controller
                     $osszegBrutto = $menny * ($brutto ?? 0);
                     $sumBrutto += $osszegBrutto;
                     $payload = [
-                        'ajanlat_id' => $ajanlat->id,
+                        'ajanlat_id' => $aid,
                         'megnevezes' => $t['megnevezes'],
                         'mennyiseg' => $menny,
                         'egyseg_ar' => $netto ?? 0,
@@ -144,7 +178,17 @@ class AjanlatController extends Controller
                 }
             }
 
-            return Ajanlat::with('tetelek')->find($ajanlat->id);
+            $aid = $ajanlat->ID ?? $ajanlat->id ?? $ajanlat->getKey();
+            $fresh = Ajanlat::find($aid);
+            $fk = Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlat_id') ? 'ajanlat_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','AjanlatID') ? 'AjanlatID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlatId') ? 'ajanlatId' : 'ajanlat_id'));
+            $rows = DB::table('munkalap_ajanlat_tetelek')->where($fk, $aid)->get();
+            $isEmpty = ($rows instanceof \Illuminate\Support\Collection) ? $rows->isEmpty() : (empty($rows));
+            if ($isEmpty) {
+                $altFk = Schema::hasColumn('munkalap_ajanlat_tetelek','munkalap_id') ? 'munkalap_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','MunkalapID') ? 'MunkalapID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','munkalapId') ? 'munkalapId' : null));
+                if ($altFk) { $rows = DB::table('munkalap_ajanlat_tetelek')->where($altFk, $munkalapId)->get(); }
+            }
+            $fresh->setRelation('tetelek', $rows);
+            return $fresh;
         });
 
         return response()->json($result);
@@ -160,7 +204,7 @@ class AjanlatController extends Controller
         // Verify ownership if customer
         $munkalap = \App\Models\Munkalap::findOrFail($munkalapId);
         if ($auth->jogosultsag === 'ugyfel' && (int)$munkalap->user_id !== (int)$auth->getKey()) {
-            abort(403, 'Nincs jogosultság');
+            abort(403, 'Nincs jogosultsĂˇg');
         }
         $ajanlat = Ajanlat::firstOrCreate(['munkalap_id' => $munkalapId], [
             'statusz' => 'tervezet', 'osszeg_brutto' => 0, 'letrehozva' => now()
@@ -169,7 +213,7 @@ class AjanlatController extends Controller
         $ajanlat->save();
         // Update workorder status for visibility in client list
         try { $munkalap->statusz = 'ajanlat_elfogadva'; $munkalap->save(); } catch (\Throwable $e) {}
-        return response()->json(Ajanlat::with('tetelek')->find($ajanlat->id));
+        return response()->json(Ajanlat::with('tetelek')->find($ajanlat->getKey()));
     }
 
     /**
@@ -181,7 +225,7 @@ class AjanlatController extends Controller
         if (!$auth) abort(401);
         $munkalap = \App\Models\Munkalap::findOrFail($munkalapId);
         if ($auth->jogosultsag === 'ugyfel' && (int)$munkalap->user_id !== (int)$auth->getKey()) {
-            abort(403, 'Nincs jogosultság');
+            abort(403, 'Nincs jogosultsĂˇg');
         }
         $ajanlat = Ajanlat::firstOrCreate(['munkalap_id' => $munkalapId], [
             'statusz' => 'tervezet', 'osszeg_brutto' => 0, 'letrehozva' => now()
@@ -201,6 +245,8 @@ class AjanlatController extends Controller
         $ajanlat->save();
         // Update workorder status for visibility in client list
         try { $munkalap->statusz = 'ajanlat_elutasitva'; $munkalap->save(); } catch (\Throwable $e) {}
-        return response()->json(Ajanlat::with('tetelek')->find($ajanlat->id));
+        return response()->json(Ajanlat::with('tetelek')->find($ajanlat->getKey()));
     }
 }
+
+

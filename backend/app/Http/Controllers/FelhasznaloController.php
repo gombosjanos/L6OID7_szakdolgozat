@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Felhasznalo;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class FelhasznaloController extends Controller
 {
@@ -12,7 +13,7 @@ class FelhasznaloController extends Controller
         $q = $request->query('q');
         $limit = (int)($request->query('limit', 50));
         $query = Felhasznalo::query();
-        // szerelő csak ügyfeleket láthat
+        // szerelĹ‘ csak ĂĽgyfeleket lĂˇthat
         if ($request->user() && $request->user()->jogosultsag === 'szerelo') {
             $query->where('jogosultsag', 'ugyfel');
         }
@@ -35,12 +36,12 @@ class FelhasznaloController extends Controller
     public function store(Request $r)
     {
         $data = $r->validate([
-            'nev' => 'required|string|max:50',
+            'nev' => 'required|string|min:2|max:50',
             'felhasznalonev' => 'nullable|string|max:50|unique:felhasznalok,felhasznalonev',
-            'email' => 'required|email|unique:felhasznalok,email',
-            'telefonszam' => 'nullable|string|max:20',
+            'email' => 'required|email|max:100|unique:felhasznalok,email',
+            'telefonszam' => ['nullable','string','regex:/^\+?[0-9\s-]{6,20}$/'],
             'jogosultsag' => 'required|string|in:admin,ugyfel,szerelo',
-            'password' => 'nullable|string|min:6',
+            'password' => ['nullable','string','min:8','regex:/^(?=.*[A-Za-z])(?=.*\d).{8,}$/'],
         ]);
         if (!empty($data['password'])) {
             $data['password'] = bcrypt($data['password']);
@@ -57,12 +58,23 @@ class FelhasznaloController extends Controller
         $pk = $record->getKeyName();
         $pkVal = $record->getKey();
         $data = $r->validate([
-            'nev' => 'sometimes|string|max:50',
-            'felhasznalonev' => 'sometimes|nullable|string|max:50|unique:felhasznalok,felhasznalonev,'.$pkVal.','.$pk,
-            'email' => 'sometimes|email|unique:felhasznalok,email,'.$pkVal.','.$pk,
-            'telefonszam' => 'sometimes|nullable|string|max:20',
+            'nev' => 'sometimes|string|min:2|max:50',
+            'felhasznalonev' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('felhasznalok','felhasznalonev')->ignore($pkVal, $pk),
+            ],
+            'email' => [
+                'sometimes',
+                'email',
+                'max:100',
+                Rule::unique('felhasznalok','email')->ignore($pkVal, $pk),
+            ],
+            'telefonszam' => ['sometimes','nullable','string','regex:/^\+?[0-9\s-]{6,20}$/'],
             'jogosultsag' => 'sometimes|string|in:admin,ugyfel,szerelo',
-            'password' => 'sometimes|nullable|string|min:6',
+            'password' => ['sometimes','nullable','string','min:8','regex:/^(?=.*[A-Za-z])(?=.*\d).{8,}$/'],
         ]);
         if (array_key_exists('password', $data)) {
             if ($data['password']) {
@@ -78,6 +90,6 @@ class FelhasznaloController extends Controller
     public function destroy($id)
     {
         Felhasznalo::findOrFail($id)->delete();
-        return response()->json(['message' => 'Törölve'], 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(['message' => 'TĂ¶rĂ¶lve'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

@@ -1,78 +1,69 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api.js'
-import { useRouter } from 'vue-router'
 
-const formRef = ref(null)
+const route = useRoute()
 const router = useRouter()
 
-// Form state
-const nev = ref('')
-const email = ref('')
-const telefonszam = ref('')
+const formRef = ref(null)
+const token = ref(route.query.token || '')
+const email = ref(route.query.email || '')
 const password = ref('')
 const passwordConfirm = ref('')
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
+const loading = ref(false)
+const error = ref('')
+const success = ref('')
+
+watch(
+  () => route.query,
+  (query) => {
+    token.value = query.token || ''
+    email.value = query.email || ''
+  }
+)
 
 const rules = {
-  name: [
-    v => !!(v?.trim()) || 'A név megadása kötelező',
-    v => (v?.trim()?.length ?? 0) >= 2 || 'Legalább 2 karakter',
-    v => (v?.trim()?.length ?? 0) <= 50 || 'Legfeljebb 50 karakter'
-  ],
   email: [
-    v => !!(v?.trim()) || 'Az email megadása kötelező',
-    v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Érvényes email címet adj meg'
-  ],
-  phone: [
-    v => !v || /^\+?[0-9\s-]{6,20}$/.test(v) || 'Érvényes telefonszámot adj meg'
+    (v) => !!(v?.trim()) || 'Az email megadása kötelező',
+    (v) => /.+@.+\..+/.test(v) || 'Érvényes email címet adj meg'
   ],
   password: [
-    v => !!v || 'A jelszó megadása kötelező',
-    v => v.length >= 8 || 'Legalább 8 karakter',
-    v => (/[A-Za-z]/.test(v) && /\d/.test(v)) || 'Tartalmazzon betűt és számot'
+    (v) => !!v || 'A jelszó megadása kötelező',
+    (v) => (v?.length ?? 0) >= 8 || 'Legalább 8 karakter',
+    (v) => (/[A-Za-z]/.test(v) && /\d/.test(v)) || 'Tartalmazzon betűt és számot'
   ],
   confirm: [
-    v => v === password.value || 'A jelszavak nem egyeznek'
+    (v) => v === password.value || 'A jelszavak nem egyeznek'
   ]
 }
 
-const register = async () => {
+const submit = async () => {
   error.value = ''
   success.value = ''
   const result = await formRef.value?.validate?.()
-  if(!result?.valid) return
+  if (!result?.valid) return
+
+  if (!token.value) {
+    error.value = 'A helyreállító token hiányzik vagy lejárt. Kérj új jelszó-helyreállító emailt.'
+    return
+  }
+
   loading.value = true
   try {
-    const payload = {
-      nev: nev.value.trim(),
+    const { data } = await api.post('/password/reset', {
       email: email.value.trim(),
-      jelszo: password.value,
-      jelszo_confirmation: passwordConfirm.value,
-    }
-
-    const phone = telefonszam.value?.trim()
-    if (phone) {
-      payload.telefonszam = phone
-    }
-
-    await api.post('/register', payload)
-    success.value = 'Sikeres regisztráció! Most már bejelentkezhetsz.'
-    nev.value = ''
-    email.value = ''
-    telefonszam.value = ''
-    password.value = ''
-    passwordConfirm.value = ''
-    setTimeout(() => router.push('/login'), 1400)
+      token: token.value,
+      password: password.value,
+      password_confirmation: passwordConfirm.value
+    })
+    success.value = data?.message || 'A jelszó sikeresen frissült.'
+    setTimeout(() => router.push('/login'), 2000)
   } catch (e) {
     const res = e?.response
-    if (res?.status === 422 && (res.data?.errors || res.data?.message)) {
-      error.value = res.data?.errors ? Object.values(res.data.errors)[0][0] : res.data.message
-    } else {
-      error.value = res?.data?.message || res?.data?.error || 'Hiba történt a regisztráció során.'
-      console.debug('Register error', res?.data || e)
-    }
+    error.value = res?.data?.message || 'A jelszó visszaállítása nem sikerült. Kérjük, kérj új linket és próbáld meg ismét.'
   } finally {
     loading.value = false
   }
@@ -85,53 +76,35 @@ const register = async () => {
       <v-col cols="12" sm="10" md="9" lg="8" xl="7">
         <v-card class="auth-card overflow-hidden" elevation="10">
           <v-row class="ma-0" no-gutters>
-            <!-- Illustration / welcome panel on md+ -->
             <v-col cols="12" md="6" class="pa-0 d-none d-md-flex">
               <div class="illustration-panel">
                 <div class="panel-content">
-                  <div class="text-h5 font-weight-bold mb-2">Üdvözlünk!</div>
-                  <div class="text-body-2 opacity-80">Hozz létre fiókot, és kezdd el használni a szolgáltatásokat.</div>
+                  <div class="text-h5 font-weight-bold mb-2">Új jelszó beállítása</div>
+                  <div class="text-body-2 opacity-80">Add meg az új jelszavadat, majd jelentkezz be ismét a frissített adatokkal.</div>
                 </div>
               </div>
             </v-col>
 
-            <!-- Form side -->
             <v-col cols="12" md="6" class="pa-6 pa-md-8">
               <div class="text-center mb-6">
                 <v-avatar color="primary" size="56" class="mb-3">
-                  <v-icon icon="mdi-account-plus" color="white"></v-icon>
+                  <v-icon icon="mdi-lock-reset" color="white"></v-icon>
                 </v-avatar>
-                <div class="text-h5 font-weight-bold">Regisztráció</div>
+                <div class="text-h5 font-weight-bold">Jelszó visszaállítása</div>
                 <div class="text-body-2 text-medium-emphasis mt-1">
-                  Már van fiókod?
-                  <router-link to="/login">Jelentkezz be</router-link>
+                  Ha nem te kérted a jelszó módosítását, hagyd figyelmen kívül ezt a lépést.
                 </div>
               </div>
 
-              <v-form ref="formRef" @submit.prevent="register">
+              <v-form ref="formRef" @submit.prevent="submit">
                 <v-row>
-                  <v-col cols="12">
-                    <v-text-field
-                      v-model="nev"
-                      label="Név"
-                      prepend-inner-icon="mdi-account"
-                      variant="outlined"
-                      density="comfortable"
-                      :rules="rules.name"
-                      autocomplete="name"
-                      required
-                    />
-                  </v-col>
-
                   <v-col cols="12">
                     <v-text-field
                       v-model="email"
                       label="Email"
-                      prepend-inner-icon="mdi-email"
-                      variant="outlined"
-                      density="comfortable"
                       type="email"
                       :rules="rules.email"
+                      prepend-inner-icon="mdi-email"
                       autocomplete="email"
                       required
                     />
@@ -139,26 +112,12 @@ const register = async () => {
 
                   <v-col cols="12">
                     <v-text-field
-                      v-model="telefonszam"
-                      label="Telefonszám (nem kötelező)"
-                      prepend-inner-icon="mdi-phone"
-                      variant="outlined"
-                      density="comfortable"
-                      :rules="rules.phone"
-                      autocomplete="tel"
-                    />
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-text-field
                       v-model="password"
                       :type="showPassword ? 'text' : 'password'"
-                      label="Jelszó"
+                      label="Új jelszó"
                       prepend-inner-icon="mdi-lock"
                       :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                       @click:append-inner="showPassword = !showPassword"
-                      variant="outlined"
-                      density="comfortable"
                       :rules="rules.password"
                       autocomplete="new-password"
                       required
@@ -169,12 +128,10 @@ const register = async () => {
                     <v-text-field
                       v-model="passwordConfirm"
                       :type="showPasswordConfirm ? 'text' : 'password'"
-                      label="Jelszó megerősítése"
+                      label="Új jelszó megerősítése"
                       prepend-inner-icon="mdi-lock-check"
                       :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
                       @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
-                      variant="outlined"
-                      density="comfortable"
                       :rules="rules.confirm"
                       autocomplete="new-password"
                       required
@@ -183,7 +140,7 @@ const register = async () => {
 
                   <v-col cols="12">
                     <v-btn color="primary" type="submit" block size="large" :loading="loading">
-                      Regisztráció
+                      Jelszó frissítése
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -209,7 +166,7 @@ const register = async () => {
                 </v-alert>
 
                 <div class="text-caption text-medium-emphasis mt-4 text-center">
-                  Regisztrációval elfogadod a felhasználási feltételeket és az adatkezelési tájékoztatót.
+                  Vissza a <router-link to="/login">bejelentkezés</router-link> oldalra.
                 </div>
               </v-form>
             </v-col>
@@ -258,10 +215,17 @@ const register = async () => {
   max-width: 420px;
 }
 
-.opacity-80 { opacity: 0.8; }
+.opacity-80 {
+  opacity: 0.8;
+}
 
 @media (max-width: 600px) {
-  .auth-bg { padding: 12px; }
-  .auth-card { border-radius: 14px; }
+  .auth-bg {
+    padding: 12px;
+  }
+
+  .auth-card {
+    border-radius: 14px;
+  }
 }
 </style>

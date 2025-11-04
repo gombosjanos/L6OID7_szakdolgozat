@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Ajanlat extends Model
 {
     protected $table = 'munkalap_ajanlat';
+    protected $primaryKey = 'ID';
     public $timestamps = false;
 
     protected $fillable = [
@@ -15,7 +16,6 @@ class Ajanlat extends Model
 
     public function tetelek()
     {
-        return $this->hasMany(AjanlatTetel::class, 'ajanlat_id', 'id');
+        return $this->hasMany(AjanlatTetel::class, 'ajanlat_id', 'ID');
     }
 }
-

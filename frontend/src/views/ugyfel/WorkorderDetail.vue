@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-container fluid class="pa-4">
     <v-toolbar density="comfortable" color="white" elevation="0" class="mb-3">
       <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
@@ -12,7 +12,7 @@
     <v-row>
       <v-col cols="12" md="5">
         <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1">Alap adatok</v-card-title>
+          <v-card-title class="text-subtitle-1 font-weight-bold">Alap adatok</v-card-title>
           <v-divider />
           <v-card-text>
             <div class="mb-2"><strong>Azonosító:</strong> {{ displayId }}</div>
@@ -28,31 +28,35 @@
       <v-col cols="12" md="7">
         <v-card>
           <v-card-title class="d-flex align-center">
-            <span class="text-subtitle-1">Árajánlat</span>
+            <span class="text-subtitle-1 font-weight-bold">Árajánlat</span>
             <v-spacer />
-            <v-chip v-if="offer && offer.statusz" size="small" :color="offerStatusColor(offer.statusz)" variant="tonal">{{ displayOfferStatus(offer.statusz) }}</v-chip>
+            <v-chip v-if="offerStatusUI" size="small" :color="offerStatusColor(offerStatusUI)" variant="tonal">{{ displayOfferStatus(offerStatusUI) }}</v-chip>
           </v-card-title>
           <v-divider />
           <v-card-text>
-            <div v-if="!offer || !Array.isArray(offer.tetelek) || offer.tetelek.length===0" class="text-medium-emphasis">Még nincs elérhető árajánlat.</div>
+            <v-alert v-if="offerNote" type="warning" variant="elevated" class="mb-3">
+              <div class="text-subtitle-1 mb-2 font-weight-bold">Megjegyzés</div>
+              <div class="prewrap">{{ offerNote }}</div>
+            </v-alert>
+            <div v-if="offerRows.length===0" class="text-medium-emphasis">Még nincs elérhető árajánlat.</div>
             <template v-else>
               <v-table density="compact">
                 <thead>
                   <tr>
                     <th>Megnevezés</th>
                     <th class="text-right">Db</th>
-                    <th class="text-right">Nettó</th>
+                    <th class="text-right">Egységár (nettó)</th>
                     <th class="text-right">ÁFA%</th>
-                    <th class="text-right">Bruttó</th>
+                    <th class="text-right">Összesen (bruttó)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(t,i) in offer.tetelek" :key="i">
+                  <tr v-for="(t,i) in offerRows" :key="i">
                     <td>{{ t.megnevezes }}</td>
                     <td class="text-right">{{ t.mennyiseg }}</td>
-                    <td class="text-right">{{ fmtCurrency(t.netto_egyseg_ar) }}</td>
+                    <td class="text-right">{{ fmtCurrency(unitNetto(t)) }}</td>
                     <td class="text-right">{{ t.afa_kulcs ?? 27 }}</td>
-                    <td class="text-right">{{ fmtCurrency(lineBrutto(t)) }}</td>
+                    <td class="text-right">{{ fmtCurrency(lineTotalBrutto(t)) }}</td>
                   </tr>
                 </tbody>
                 <tfoot>
@@ -65,7 +69,7 @@
                 </tfoot>
               </v-table>
 
-              <div class="mt-3 d-flex align-center" v-if="offer.statusz === 'elkuldve'">
+              <div class="mt-3 d-flex align-center" v-if="canDecide">
                 <v-btn color="success" variant="tonal" prepend-icon="mdi-check" class="me-2" :loading="processing" :disabled="processing" @click="accept">Elfogadom</v-btn>
                 <v-btn color="error" variant="tonal" prepend-icon="mdi-close" :loading="processing" :disabled="processing" @click="reject">Elutasítom</v-btn>
               </div>
@@ -130,23 +134,71 @@ function displayStatus(s){
   const k=(s||'').toLowerCase()
   return map[k] || s || '-'
 }
+function normalizeStatus(s){ try{ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (s||'').toString().toLowerCase() } }
 
 function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
 function gepLabel(gep){ if(!gep) return '-'; try{ const gyarto = gep.gyarto || gep.gep_gyarto || ''; const tipus = gep.tipusnev || gep.gep_tipus || ''; const cikkszam = gep.g_cikkszam || gep.cikkszam || gep.gep_cikkszam || ''; const head = [gyarto, tipus].filter(Boolean).join(' '); return [head, cikkszam].filter(Boolean).join(' • ') }catch{ return '-' } }
 
-const totalNetto = Vue.computed(()=>{
-  const rows = offer.value?.tetelek || []
-  return rows.reduce((s,t)=> s + (Number(t.netto_egyseg_ar||0) * Number(t.mennyiseg||0)), 0)
+const offerRows = Vue.computed(()=>{
+  const raw = offer.value?.tetelek
+  if (Array.isArray(raw)) return raw
+  if (raw && typeof raw === 'object') return Object.values(raw)
+  return []
 })
-const totalBrutto = Vue.computed(()=>{
-  const rows = offer.value?.tetelek || []
-  return rows.reduce((s,t)=> s + lineBrutto(t), 0)
+
+// Helpers to robustly read numeric fields (handles accents/case and commas)
+function normKey(k){ try{ return (k||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (k||'').toString().toLowerCase() } }
+function toNum(v){ if (v==null) return 0; if (typeof v==='number') return isFinite(v)?v:0; const s=String(v).replace(/\s+/g,'').replace(/\./g,'').replace(',', '.'); const n=parseFloat(s); return isFinite(n)?n:0 }
+function pickVal(obj, candidates){ try{ const map={}; for(const k of Object.keys(obj||{})){ map[normKey(k)] = obj[k]; } for(const name of candidates){ const v = map[normKey(name)]; if (v!=null && v!=='') return v } }catch{} return undefined }
+function qtyOf(t){ const v = pickVal(t,['mennyiseg','mennyiség','db','darab']); const n = toNum(v); return n>0?n:0 }
+function vatOf(t){ const v = pickVal(t,['afa_kulcs','áfa_kulcs','afa','áfa']); const n = toNum(v); return n>0?n:27 }
+function unitNetto(t){
+  const n1 = pickVal(t,['netto_egyseg_ar','nettó_egyseg_ar','nettoegysegar','netto','nettó','egyseg_ar','egységár','egysegar'])
+  if (n1!=null && n1!=='') { const n=toNum(n1); if(n>0) return n }
+  const ub = pickVal(t,['brutto_egyseg_ar','bruttó_egyseg_ar','bruttoegysegar'])
+  if (ub!=null && ub!=='') { const a=vatOf(t); const b=toNum(ub); if (b>0) return b/(1+a/100) }
+  const qty = qtyOf(t); const sum = pickVal(t,['osszeg','összeg','osszeg_brutto','brutto_osszeg','brutto','bruttó']);
+  if (qty>0 && sum!=null && sum!=='') { const a=vatOf(t); const bruttoEgys = toNum(sum)/qty; return bruttoEgys/(1+a/100) }
+  return 0
+}
+function unitBrutto(t){
+  const ub = pickVal(t,['brutto_egyseg_ar','bruttó_egyseg_ar','bruttoegysegar'])
+  if (ub!=null && ub!=='') { const b=toNum(ub); if (b>0) return b }
+  const n = unitNetto(t); const a = vatOf(t); return n*(1+a/100)
+}
+const totalNetto = Vue.computed(()=> offerRows.value.reduce((s,t)=> s + unitNetto(t)*qtyOf(t), 0))
+const totalBrutto = Vue.computed(()=> offerRows.value.reduce((s,t)=> s + lineTotalBrutto(t), 0))
+function lineTotalBrutto(t){ return unitBrutto(t) * Number(t.mennyiseg||0) }
+
+function coarseStatus(s){
+  const n = normalizeStatus(s)
+  if (n.includes('elkuldve')) return 'elkuldve'
+  if (n.includes('elfogad')) return 'elfogadva'
+  if (n.includes('elutasit')) return 'elutasitva'
+  return ''
+}
+const offerStatusUI = Vue.computed(()=>{
+  const os = coarseStatus(offer.value?.statusz)
+  if (os) return os
+  return coarseStatus(detail.value?.statusz)
 })
-function lineBrutto(t){
-  const n = Number(t?.netto_egyseg_ar||0)
-  const a = Number(t?.afa_kulcs ?? 27)
-  const b = n * (1 + a/100)
-  return b * Number(t?.mennyiseg||0)
+const canDecide = Vue.computed(()=> offerStatusUI.value === 'elkuldve')
+
+const offerNote = Vue.computed(()=> (offer.value?.megjegyzes || '').toString().trim())
+
+function offerStatusColor(s){
+  const k=(s||'').toString().toLowerCase()
+  switch(k){
+    case 'elkuldve': return 'orange'
+    case 'elfogadva': return 'green'
+    case 'elutasitva': return 'red'
+    default: return 'grey'
+  }
+}
+function displayOfferStatus(s){
+  const k=(s||'').toString().toLowerCase()
+  const map={ elkuldve:'Elfogadásra vár', elfogadva:'Elfogadva', elutasitva:'Elutasítva' }
+  return map[k] || '-'
 }
 
 async function load(){
@@ -187,5 +239,6 @@ Vue.onMounted(load)
 
 <style scoped>
 .text-right{ text-align:right }
+.prewrap{ white-space: pre-wrap }
 </style>
 

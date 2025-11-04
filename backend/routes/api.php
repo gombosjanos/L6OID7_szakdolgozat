@@ -13,11 +13,14 @@ use App\Http\Controllers\AjanlatController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
+Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
 
-    // Read-only for szerelő on customers; full for admin
+    // Read-only for szerelĹ‘ on customers; full for admin
     Route::middleware(['role:admin,szerelo'])->group(function () {
         Route::get('felhasznalok', [FelhasznaloController::class, 'index']);
         Route::get('felhasznalok/{id}', [FelhasznaloController::class, 'show']);
@@ -28,11 +31,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('felhasznalok/{id}', [FelhasznaloController::class, 'destroy']);
     });
 
-    // Machines: admin+szerelő can list/create/update; delete only admin
+    // Machines: admin+szerelĹ‘ can list/create/update; delete only admin
     Route::middleware(['role:admin,szerelo'])->group(function () {
         Route::get('gepek', [GepController::class, 'index']);
         Route::get('gepek/{id}', [GepController::class, 'show']);
-        // Allow szerelő to create new machine
+        // Allow szerelĹ‘ to create new machine
         Route::post('gepek', [GepController::class, 'store']);
     });
     Route::middleware(['role:admin'])->group(function () {
@@ -40,7 +43,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('gepek/{id}', [GepController::class, 'destroy']);
     });
 
-    // Parts: admin+szerelő can list/create/update; delete only admin
+    // Parts: admin+szerelĹ‘ can list/create/update; delete only admin
     Route::middleware(['role:admin,szerelo'])->group(function () {
         Route::get('alkatreszek', [AlkatreszController::class, 'index']);
         Route::get('alkatreszek/{id}', [AlkatreszController::class, 'show']);
@@ -59,7 +62,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('munkalapok/{id}/naplo', [MunkalapNaploController::class, 'index']);
         Route::get('munkalapok/{id}/ajanlat', [AjanlatController::class, 'showByWorkorder']);
     });
-    // Modify endpoints (admin and szerelő only)
+    // Modify endpoints (admin and szerelĹ‘ only)
     Route::middleware(['role:admin,szerelo'])->group(function () {
         Route::post('munkalapok', [MunkalapController::class, 'store']);
         Route::patch('munkalapok/{id}', [MunkalapController::class, 'update']);

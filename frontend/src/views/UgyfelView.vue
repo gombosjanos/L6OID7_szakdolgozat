@@ -6,6 +6,7 @@ const user = JSON.parse(localStorage.getItem('user') || 'null')
 const loading = ref(false)
 const error = ref('')
 const munkalapok = ref([])
+const offers = ref({})
 
 const load = async () => {
   error.value = ''
@@ -15,6 +16,16 @@ const load = async () => {
     const userId = user.id ?? user.ID
     const { data } = await api.get('/munkalapok', { params: { user_id: userId } })
     munkalapok.value = Array.isArray(data) ? data : []
+    // Elő-töltjük az ajánlat státuszokat, hogy a listában is látszódjon
+    const ids = (munkalapok.value||[]).map(r=> r.ID || r.id).filter(Boolean)
+    for (const wId of ids) {
+      try {
+        const res = await api.get(`/munkalapok/${wId}/ajanlat`)
+        offers.value[wId] = res?.data || null
+      } catch {
+        offers.value[wId] = null
+      }
+    }
   } catch (e) {
     error.value = e?.response?.data?.message || e.message || 'Nem sikerült betölteni a munkalapokat.'
     console.debug('Load munkalapok error', e?.response?.data || e)
@@ -48,10 +59,30 @@ const headers = [
   { title: 'Állapot', key: 'statusz' },
   { title: 'Hiba leírás', key: 'hibaleiras' },
   { title: 'Létrehozva', key: 'letrehozva' },
-  { title: 'Műveletek', key: 'actions', sortable: false },
 ]
 
 const hasData = computed(() => (munkalapok.value?.length || 0) > 0)
+
+function normalizeStatus(s){
+  try{ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (s||'').toString().toLowerCase() }
+}
+function coarseStatus(s){
+  const n = normalizeStatus(s)
+  if (n.includes('elkuldve')) return 'elkuldve'
+  if (n.includes('elfogad')) return 'elfogadva'
+  if (n.includes('elutasit')) return 'elutasitva'
+  if (n.includes('ajanlat_elkuldve')) return 'elkuldve'
+  if (n.includes('ajanlat_elfogadva')) return 'elfogadva'
+  if (n.includes('ajanlat_elutasitva')) return 'elutasitva'
+  return ''
+}
+function canDecide(item){
+  const id = item?.ID || item?.id
+  const os = coarseStatus(offers.value?.[id]?.statusz)
+  if (os === 'elkuldve') return true
+  const ws = coarseStatus(item?.statusz)
+  return ws === 'elkuldve'
+}
 function getId(row){ return row?.ID ?? row?.id }
 function openDetail(evtOrItem, maybeRow){
   const r = (maybeRow && (maybeRow.item || maybeRow)) || (evtOrItem?.item ? evtOrItem.item : evtOrItem)
@@ -97,12 +128,6 @@ function openDetail(evtOrItem, maybeRow){
               }[item.statusz] || item.statusz }}
             </v-chip>
           </template>
-          <template #item.actions="{ item }">
-            <div v-if="item.statusz === 'ajanlat_elkuldve'">
-              <v-btn size="small" color="success" variant="tonal" class="me-2" @click="accept(item)">Elfogadom</v-btn>
-              <v-btn size="small" color="error" variant="tonal" @click="reject(item)">Elutasítom</v-btn>
-            </div>
-          </template>
         </v-data-table>
       </v-card>
       <v-card v-else elevation="1" class="pa-6 text-center text-medium-emphasis">
@@ -111,5 +136,12 @@ function openDetail(evtOrItem, maybeRow){
     </template>
   </v-container>
 </template>
+
+
+
+<style scoped>
+.clickable-table:deep(tbody tr){ cursor: pointer; }
+.clickable-table:deep(tbody tr:hover){ background-color: #f5f7fa; }
+</style>
 
 

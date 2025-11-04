@@ -60,6 +60,6 @@ class GepController extends Controller
     public function destroy(string $id)
     {
         Gep::findOrFail($id)->delete();
-        return response()->json(['message' => 'Törölve'], 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(['message' => 'TĂ¶rĂ¶lve'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

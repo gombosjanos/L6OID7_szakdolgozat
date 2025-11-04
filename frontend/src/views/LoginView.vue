@@ -10,9 +10,52 @@ const showPassword = ref(false)
 const loading = ref(false)
 const error = ref('')
 
+const forgotDialog = ref(false)
+const forgotFormRef = ref(null)
+const forgotEmail = ref('')
+const forgotLoading = ref(false)
+const forgotSuccess = ref('')
+const forgotError = ref('')
+
 const emailRequired = (v) => !!v || 'Az email megadása kötelező'
 const emailFormat = (v) => /.+@.+\..+/.test(v) || 'Érvényes email címet adj meg'
 const passwordRequired = (v) => !!v || 'A jelszó megadása kötelező'
+
+const openForgot = () => {
+  forgotEmail.value = email.value.trim()
+  forgotSuccess.value = ''
+  forgotError.value = ''
+  forgotFormRef.value?.resetValidation?.()
+  forgotDialog.value = true
+}
+
+const closeForgot = () => {
+  forgotDialog.value = false
+  forgotLoading.value = false
+}
+
+const requestReset = async () => {
+  forgotError.value = ''
+  forgotSuccess.value = ''
+  const result = await forgotFormRef.value?.validate?.()
+  if (!result?.valid) return
+  forgotLoading.value = true
+  const payload = { email: forgotEmail.value.trim() }
+  const fallbackMessage = 'Ha a megadott email cím szerepel a rendszerben, elküldtük a jelszó-helyreállító levelet.'
+  try {
+    const { data } = await api.post('/password/forgot', payload)
+    forgotSuccess.value = data?.message || fallbackMessage
+  } catch (e) {
+    const res = e?.response
+    if (res?.status === 429) {
+      forgotError.value = res?.data?.message || 'Túl sok próbálkozás történt. Kérjük, próbáld újra később.'
+    } else {
+      forgotSuccess.value = res?.data?.message || fallbackMessage
+    }
+  } finally {
+    forgotLoading.value = false
+  }
+}
 
 const login = async () => {
   error.value = ''
@@ -106,6 +149,11 @@ const login = async () => {
                       Bejelentkezés
                     </v-btn>
                   </v-col>
+                  <v-col cols="12" class="text-end">
+                    <v-btn variant="text" size="small" color="primary" @click="openForgot">
+                      Elfelejtetted a jelszavad?
+                    </v-btn>
+                  </v-col>
                 </v-row>
 
                 <v-alert v-if="error" type="error" variant="tonal" class="mt-4 text-center" density="comfortable">
@@ -117,6 +165,51 @@ const login = async () => {
         </v-card>
       </v-col>
     </v-row>
+
+    <v-dialog v-model="forgotDialog" max-width="520">
+      <v-card>
+        <v-card-title class="text-h6">Elfelejtett jelszó</v-card-title>
+        <v-card-text>
+          <div class="text-body-2 text-medium-emphasis mb-3">
+            Add meg az email címedet, és ha szerepel a rendszerben, néhány percen belül küldünk egy jelszó-helyreállító levelet.
+          </div>
+          <v-form ref="forgotFormRef" @submit.prevent="requestReset">
+            <v-text-field
+              v-model="forgotEmail"
+              label="Email"
+              type="email"
+              :rules="[emailRequired, emailFormat]"
+              prepend-inner-icon="mdi-email"
+              autocomplete="email"
+              required
+            />
+            <v-alert
+              v-if="forgotError"
+              type="error"
+              variant="tonal"
+              class="mt-3"
+              density="comfortable"
+            >
+              {{ forgotError }}
+            </v-alert>
+            <v-alert
+              v-if="forgotSuccess"
+              type="success"
+              variant="tonal"
+              class="mt-3"
+              density="comfortable"
+            >
+              {{ forgotSuccess }}
+            </v-alert>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="closeForgot">Mégse</v-btn>
+          <v-btn color="primary" :loading="forgotLoading" @click="requestReset">Küldés</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
