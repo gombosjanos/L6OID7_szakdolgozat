@@ -116,28 +116,60 @@ async function saveProfile(){
               <div class="text-error text-caption mt-1">A jogosultság módosítása csak rendszergazda feladata.</div>
               <v-text-field
                 v-if="editing"
+                class="password-field"
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
                 label="Új jelszó"
                 prepend-inner-icon="mdi-lock"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showPassword = !showPassword"
                 :rules="rules.password"
                 variant="outlined"
                 density="comfortable"
-              />
+              >
+                <template #append-inner>
+                  <v-btn
+                    class="password-toggle-btn"
+                    icon
+                    variant="text"
+                    size="small"
+                    @click="showPassword = !showPassword"
+                  >
+                    <v-icon
+                      class="password-toggle-icon"
+                      :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                      color="primary"
+                      size="small"
+                    />
+                  </v-btn>
+                </template>
+              </v-text-field>
               <v-text-field
                 v-if="editing"
+                class="password-field"
                 v-model="passwordConfirm"
                 :type="showPasswordConfirm ? 'text' : 'password'"
                 label="Jelszó megerősítése"
                 prepend-inner-icon="mdi-lock-check"
-                :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
                 :rules="rules.confirm"
                 variant="outlined"
                 density="comfortable"
-              />
+              >
+                <template #append-inner>
+                  <v-btn
+                    class="password-toggle-btn"
+                    icon
+                    variant="text"
+                    size="small"
+                    @click="showPasswordConfirm = !showPasswordConfirm"
+                  >
+                    <v-icon
+                      class="password-toggle-icon"
+                      :icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
+                      color="primary"
+                      size="small"
+                    />
+                  </v-btn>
+                </template>
+              </v-text-field>
             </div>
             <div class="d-flex justify-end ga-2 mt-4">
               <v-btn v-if="!editing" color="primary" variant="elevated" @click="startEdit">Szerkesztés</v-btn>
@@ -157,5 +189,23 @@ async function saveProfile(){
 
 <style scoped>
 .gap-2 > * + * { margin-top: 8px; }
+
+:deep(.password-field .v-field__append-inner) {
+  opacity: 1 !important;
+}
+
+:deep(.password-field .password-toggle-btn) {
+  opacity: 1 !important;
+  color: var(--v-theme-primary);
+}
+
+:deep(.password-field .password-toggle-btn .v-icon) {
+  opacity: 1 !important;
+  color: inherit;
+}
+
+:deep(.password-field .password-toggle-icon) {
+  opacity: 1 !important;
+}
 </style>
 

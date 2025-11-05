@@ -1,37 +1,43 @@
 ﻿<template>
 
   <v-container fluid class="pa-4">
-    <v-row class="align-center mb-4" no-gutters>
-      <v-col cols="12" md="6">
-        <h2 class="text-h5 font-weight-medium">Alkatrészek</h2>
-      </v-col>
-      <v-col cols="12" md="6" class="d-flex justify-end">
-        <v-btn v-if="isAdmin" color="primary" @click="openCreate()" prepend-icon="mdi-plus">Új alkatrész</v-btn>
-      </v-col>
-    </v-row>
+    <div class="top-bar mb-4">
+      <h2 class="text-h5 font-weight-medium">Alkatrészek</h2>
+      <div class="top-actions">
+        <v-btn
+          variant="outlined"
+          color="secondary"
+          class="refresh-btn"
+          @click="fetchParts"
+        >
+          Frissítés
+        </v-btn>
+        <v-btn
+          v-if="isAdmin"
+          color="primary"
+          class="add-btn"
+          @click="openCreate()"
+          prepend-icon="mdi-plus"
+        >
+          Új alkatrész
+        </v-btn>
+      </div>
+    </div>
 
     <v-row class="mb-3" no-gutters>
-      <v-col cols="12" md="6" class="pr-md-2">
-        <v-text-field
-          v-model="search"
-          variant="outlined"
-          density="comfortable"
-          label="Keresés (cikkszám vagy megnevezés)"
-          prepend-inner-icon="mdi-magnify"
-          clearable
-        />
-      </v-col>
-      <v-col cols="6" md="3" class="pr-md-2">
-        <v-select
-          v-model="limit"
-          :items="[25,50,100,200]"
-          variant="outlined"
-          density="comfortable"
-          label="Limit"
-        />
-      </v-col>
-      <v-col cols="6" md="3" class="d-flex align-center">
-        <v-btn variant="outlined" color="secondary" @click="fetchParts">Frissítés</v-btn>
+      <v-col cols="12">
+        <div class="search-action-bar">
+          <v-text-field
+            v-model="search"
+            variant="outlined"
+            density="comfortable"
+            label="Keresés (cikkszám vagy megnevezés)"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            class="search-input"
+          />
+          
+        </div>
       </v-col>
     </v-row>
 
@@ -242,6 +248,68 @@ fetchParts()
 
 <style scoped>
 .text-h5 { color: #000; }
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.search-input {
+  flex: 1 1 auto;
+}
+
+.refresh-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.add-btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 600px) {
+  .top-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .top-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .search-action-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .refresh-btn {
+    width: 100%;
+  }
+
+  .add-btn {
+    width: 100%;
+  }
+}
 </style>
 
 

@@ -6,6 +6,7 @@ import { api } from '../api.js'
 const router = useRouter()
 const drawer = ref(true)
 const user = JSON.parse(localStorage.getItem('user') || '{}')
+const firstName = (user?.nev || '').split(' ')[0] || user?.nev || ''
 
 const logout = async () => {
   try { await api.post('/logout') } catch {}
@@ -23,7 +24,7 @@ const logout = async () => {
           <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
         </svg>
       </v-btn>
-      <v-toolbar-title class="font-weight-bold text-black">Kertigép Szerviz</v-toolbar-title>
+      <v-toolbar-title class="font-weight-bold text-black app-title">Kertigép Szerviz</v-toolbar-title>
       <v-spacer />
       <v-btn
         v-if="user?.nev"
@@ -36,7 +37,7 @@ const logout = async () => {
         title="Profilom"
         aria-label="Profil megnyitása"
       >
-        Üdvözöljük: {{ user.nev }}
+        Üdv, {{ firstName }}
       </v-btn>
       <v-btn color="error" variant="flat" class="text-white" @click="logout">
         Kijelentkezés
@@ -78,11 +79,35 @@ const logout = async () => {
 .v-app-bar { background: #fff; }
 .Menü-btn svg { display: block; }
 .Menü-btn svg path { fill: #111; }
-.welcome-btn { font-weight: 600; }
+.app-title {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.welcome-btn { font-weight: 600; max-width: 220px; }
 .welcome-btn--dark { background: #111 !important; color: #fff !important; }
 .welcome-btn--dark :deep(.v-btn__content),
 .welcome-btn--dark :deep(.v-icon) { color: #fff !important; }
-@media (max-width: 600px){ .welcome-btn { display:none !important; } }
+
+@media (max-width: 960px) {
+  .app-title { max-width: 220px; font-size: 1.1rem; }
+}
+
+@media (max-width: 600px){
+  .app-title { max-width: 160px; font-size: 1rem; }
+  .welcome-btn {
+    display: inline-flex !important;
+    max-width: 150px;
+    padding-inline: 12px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .welcome-btn :deep(.v-icon) { display: none; }
+  .welcome-btn :deep(.v-btn__content) { gap: 6px; }
+}
 </style>
 
 

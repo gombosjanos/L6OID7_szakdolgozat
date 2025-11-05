@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { api } from '../api.js'
 import { useRouter } from 'vue-router'
 
@@ -14,6 +14,17 @@ const password = ref('')
 const passwordConfirm = ref('')
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
+
+const passwordToggleLabel = computed(() => (showPassword.value ? 'Rejt' : 'Mutat'))
+const passwordConfirmToggleLabel = computed(() => (showPasswordConfirm.value ? 'Rejt' : 'Mutat'))
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
+const togglePasswordConfirmVisibility = () => {
+  showPasswordConfirm.value = !showPasswordConfirm.value
+}
 
 const rules = {
   name: [
@@ -150,35 +161,55 @@ const register = async () => {
                   </v-col>
 
                   <v-col cols="12">
-                    <v-text-field
-                      v-model="password"
-                      :type="showPassword ? 'text' : 'password'"
-                      label="Jelszó"
-                      prepend-inner-icon="mdi-lock"
-                      :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                      @click:append-inner="showPassword = !showPassword"
-                      variant="outlined"
-                      density="comfortable"
-                      :rules="rules.password"
-                      autocomplete="new-password"
-                      required
-                    />
+                    <div class="password-input-wrapper">
+                      <v-text-field
+                        class="password-field"
+                        v-model="password"
+                        :type="showPassword ? 'text' : 'password'"
+                        label="Jelszó"
+                        prepend-inner-icon="mdi-lock"
+                        variant="outlined"
+                        density="comfortable"
+                        :rules="rules.password"
+                        autocomplete="new-password"
+                        required
+                      />
+                      <v-btn
+                        class="password-toggle-btn"
+                        variant="text"
+                        size="small"
+                        @click="togglePasswordVisibility"
+                        @mousedown.prevent
+                      >
+                        {{ passwordToggleLabel }}
+                      </v-btn>
+                    </div>
                   </v-col>
 
                   <v-col cols="12">
-                    <v-text-field
-                      v-model="passwordConfirm"
-                      :type="showPasswordConfirm ? 'text' : 'password'"
-                      label="Jelszó megerősítése"
-                      prepend-inner-icon="mdi-lock-check"
-                      :append-inner-icon="showPasswordConfirm ? 'mdi-eye-off' : 'mdi-eye'"
-                      @click:append-inner="showPasswordConfirm = !showPasswordConfirm"
-                      variant="outlined"
-                      density="comfortable"
-                      :rules="rules.confirm"
-                      autocomplete="new-password"
-                      required
-                    />
+                    <div class="password-input-wrapper">
+                      <v-text-field
+                        class="password-field"
+                        v-model="passwordConfirm"
+                        :type="showPasswordConfirm ? 'text' : 'password'"
+                        label="Jelszó megerősítése"
+                        prepend-inner-icon="mdi-lock-check"
+                        variant="outlined"
+                        density="comfortable"
+                        :rules="rules.confirm"
+                        autocomplete="new-password"
+                        required
+                      />
+                      <v-btn
+                        class="password-toggle-btn"
+                        variant="text"
+                        size="small"
+                        @click="togglePasswordConfirmVisibility"
+                        @mousedown.prevent
+                      >
+                        {{ passwordConfirmToggleLabel }}
+                      </v-btn>
+                    </div>
                   </v-col>
 
                   <v-col cols="12">
@@ -259,6 +290,36 @@ const register = async () => {
 }
 
 .opacity-80 { opacity: 0.8; }
+
+:deep(.password-field .v-field__input) {
+  padding-right: 80px;
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 35%;
+  right: 12px;
+  transform: translateY(-50%);
+  min-width: 48px;
+  height: 36px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1 !important;
+  color: var(--v-theme-primary);
+  font-weight: 600;
+  z-index: 2;
+}
+
+:deep(.password-toggle-btn .v-btn__overlay) {
+  display: none;
+}
 
 @media (max-width: 600px) {
   .auth-bg { padding: 12px; }

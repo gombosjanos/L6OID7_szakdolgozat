@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api.js'
 
@@ -20,6 +20,12 @@ const forgotError = ref('')
 const emailRequired = (v) => !!v || 'Az email megadása kötelező'
 const emailFormat = (v) => /.+@.+\..+/.test(v) || 'Érvényes email címet adj meg'
 const passwordRequired = (v) => !!v || 'A jelszó megadása kötelező'
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
+const passwordToggleLabel = computed(() => (showPassword.value ? 'Rejt' : 'Mutat'))
 
 const openForgot = () => {
   forgotEmail.value = email.value.trim()
@@ -131,17 +137,27 @@ const login = async () => {
                   </v-col>
 
                   <v-col cols="12">
-                    <v-text-field
-                      v-model="password"
-                      :type="showPassword ? 'text' : 'password'"
-                      label="Jelszó"
-                      prepend-inner-icon="mdi-lock"
-                      :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                      @click:append-inner="showPassword = !showPassword"
-                      :rules="[passwordRequired]"
-                      autocomplete="current-password"
-                      required
-                    />
+                    <div class="password-input-wrapper">
+                      <v-text-field
+                        class="password-field"
+                        v-model="password"
+                        :type="showPassword ? 'text' : 'password'"
+                        label="Jelszó"
+                        prepend-inner-icon="mdi-lock"
+                        :rules="[passwordRequired]"
+                        autocomplete="current-password"
+                        required
+                      />
+                      <v-btn
+                        class="password-toggle-btn"
+                        variant="text"
+                        size="small"
+                        @click="togglePasswordVisibility"
+                        @mousedown.prevent
+                      >
+                        {{ passwordToggleLabel }}
+                      </v-btn>
+                    </div>
                   </v-col>
 
                   <v-col cols="12">
@@ -243,6 +259,37 @@ const login = async () => {
 
 .panel-content { position: relative; color: white; text-align: center; padding: 48px 28px; max-width: 420px; }
 .opacity-80 { opacity: 0.8; }
+
+:deep(.password-field .v-field__input) {
+  padding-right: 80px;
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 35%;
+  right: 10px;
+  transform: translateY(-50%);
+  min-width: 48px;
+  opacity: 1 !important;
+  color: var(--v-theme-primary);
+  z-index: 2;
+  font-weight: 600;
+  height: 36px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.password-toggle-btn .v-icon) {
+  color: inherit;
+  opacity: 1 !important;
+}
 
 @media (max-width: 600px) {
   .auth-bg { padding: 12px; }
