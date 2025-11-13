@@ -14,7 +14,7 @@ class Munkalap extends Model
         'user_id', 'gep_id', 'javitando_id', 'hibaleiras', 'megjegyzes', 'statusz', 'letrehozva', 'munkalapsorsz'
     ];
 
-    public function ugyfel()
+    public function Ugyfel()
     {
         return $this->belongsTo(Felhasznalo::class, 'user_id', 'id');
     }
@@ -32,5 +32,10 @@ class Munkalap extends Model
     public function alkatreszek()
     {
         return $this->hasMany(AlkatreszJavitasra::class, 'munkalap_id', 'ID');
+    }
+
+    public function kepek()
+    {
+        return $this->hasMany(MunkalapKep::class, 'munkalap_id', 'ID')->orderByDesc('letrehozva');
     }
 }

@@ -8,6 +8,11 @@ export default defineConfig({
     vuetify({ autoImport: true })
   ],
   server: {
+    watch: {
+      // Windows file locking can cause EBUSY with native FS events; polling is more robust
+      usePolling: true,
+      interval: 200,
+    },
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',

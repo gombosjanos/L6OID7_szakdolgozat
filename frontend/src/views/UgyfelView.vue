@@ -88,7 +88,7 @@ function openDetail(evtOrItem, maybeRow){
   const r = (maybeRow && (maybeRow.item || maybeRow)) || (evtOrItem?.item ? evtOrItem.item : evtOrItem)
   const id = getId(r)
   if(!id) return
-  window.location.href = `/ugyfel/munkalapok/${id}`
+  window.location.href = `/Ugyfel/munkalapok/${id}`
 }
 </script>
 

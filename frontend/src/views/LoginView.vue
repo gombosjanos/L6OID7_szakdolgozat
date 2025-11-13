@@ -4,11 +4,16 @@ import { useRouter } from 'vue-router'
 import { api } from '../api.js'
 
 const router = useRouter()
-const email = ref('')
+const identifier = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
 const error = ref('')
+const twoFactorRequired = ref(false)
+const twoFactorMessage = ref('')
+const twoFactorCode = ref('')
+const twoFactorRecovery = ref('')
+const useRecoveryCode = ref(false)
 
 const forgotDialog = ref(false)
 const forgotFormRef = ref(null)
@@ -17,6 +22,9 @@ const forgotLoading = ref(false)
 const forgotSuccess = ref('')
 const forgotError = ref('')
 
+const identifierRules = [
+  v => !!(v?.trim()) || 'Az email vagy felhasználónév megadása kötelező'
+]
 const emailRequired = (v) => !!v || 'Az email megadása kötelező'
 const emailFormat = (v) => /.+@.+\..+/.test(v) || 'Érvényes email címet adj meg'
 const passwordRequired = (v) => !!v || 'A jelszó megadása kötelező'
@@ -27,8 +35,23 @@ const togglePasswordVisibility = () => {
 
 const passwordToggleLabel = computed(() => (showPassword.value ? 'Rejt' : 'Mutat'))
 
+const resetTwoFactorState = () => {
+  twoFactorRequired.value = false
+  twoFactorMessage.value = ''
+  twoFactorCode.value = ''
+  twoFactorRecovery.value = ''
+  useRecoveryCode.value = false
+}
+
+const switchTwoFactorMode = () => {
+  useRecoveryCode.value = !useRecoveryCode.value
+  twoFactorCode.value = ''
+  twoFactorRecovery.value = ''
+}
+
 const openForgot = () => {
-  forgotEmail.value = email.value.trim()
+  const maybeEmail = identifier.value.trim()
+  forgotEmail.value = maybeEmail.includes('@') ? maybeEmail : ''
   forgotSuccess.value = ''
   forgotError.value = ''
   forgotFormRef.value?.resetValidation?.()
@@ -67,25 +90,56 @@ const login = async () => {
   error.value = ''
   loading.value = true
   try {
-    const { data } = await api.post('/login', {
-      email: email.value,
+    const payload = {
+      azonosito: identifier.value.trim(),
       jelszo: password.value
-    })
+    }
+
+    if (twoFactorRequired.value) {
+      if (useRecoveryCode.value) {
+        if (!twoFactorRecovery.value.trim()) {
+          error.value = 'Add meg a helyreállító kódot.'
+          loading.value = false
+          return
+        }
+        payload.helyreallito_kod = twoFactorRecovery.value.trim()
+      } else {
+        if (!twoFactorCode.value.trim()) {
+          error.value = 'Add meg a hitelesítő alkalmazás kódját.'
+          loading.value = false
+          return
+        }
+        payload.ketfaktor_kod = twoFactorCode.value.trim()
+      }
+    }
+
+    const { data } = await api.post('/login', payload)
 
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
 
+    resetTwoFactorState()
+
     if (data.user.jogosultsag === 'admin') router.push('/admin')
     else if (data.user.jogosultsag === 'szerelo') router.push('/szerelo')
-    else router.push('/ugyfel')
+    else router.push('/Ugyfel')
   } catch (e) {
     const res = e?.response
-    if (res?.status === 422 && res.data?.errors) {
+    if (res?.status === 423) {
+      twoFactorRequired.value = true
+      twoFactorMessage.value = res?.data?.message || 'Add meg a kétlépcsős azonosító kódot.'
+      error.value = ''
+    } else if (res?.status === 422 && twoFactorRequired.value) {
+      error.value = res?.data?.message || 'Érvénytelen kétlépcsős kód.'
+    } else if (res?.status === 422 && res.data?.errors) {
       const firstKey = Object.keys(res.data.errors)[0]
       error.value = res.data.errors[firstKey][0]
     } else {
-      error.value = res?.data?.message || res?.data?.error || 'Hibás email vagy jelszó.'
+  error.value = res?.data?.message || res?.data?.error || 'Hibás email/felhasználónév vagy jelszó.'
       console.debug('Login error', res?.data || e)
+    }
+    if (res?.status !== 423 && res?.status !== 422) {
+      resetTwoFactorState()
     }
   } finally {
     loading.value = false
@@ -126,12 +180,12 @@ const login = async () => {
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
-                      v-model="email"
-                      label="Email"
-                      type="email"
-                      prepend-inner-icon="mdi-email"
-                      :rules="[emailRequired, emailFormat]"
-                      autocomplete="email"
+                      v-model="identifier"
+                      label="Email vagy felhasználónév"
+                      type="text"
+                      prepend-inner-icon="mdi-account"
+                      :rules="identifierRules"
+                      autocomplete="username"
                       required
                     />
                   </v-col>
@@ -159,6 +213,41 @@ const login = async () => {
                       </v-btn>
                     </div>
                   </v-col>
+
+                  <template v-if="twoFactorRequired">
+                    <v-col cols="12">
+                      <v-alert type="info" variant="tonal" density="comfortable">
+                        {{ twoFactorMessage || 'Add meg a kétlépcsős azonosító kódot.' }}
+                      </v-alert>
+                    </v-col>
+                    <v-col cols="12" v-if="!useRecoveryCode">
+                      <v-text-field
+                        v-model="twoFactorCode"
+                        label="Hitelesítő kód"
+                        prepend-inner-icon="mdi-shield-key"
+                        inputmode="numeric"
+                        maxlength="6"
+                        autocomplete="one-time-code"
+                        variant="outlined"
+                        density="comfortable"
+                      />
+                    </v-col>
+                    <v-col cols="12" v-else>
+                      <v-text-field
+                        v-model="twoFactorRecovery"
+                        label="Helyreállító kód"
+                        prepend-inner-icon="mdi-lifebuoy"
+                        autocomplete="off"
+                        variant="outlined"
+                        density="comfortable"
+                      />
+                    </v-col>
+                    <v-col cols="12" class="text-end">
+                      <v-btn variant="text" size="small" color="primary" @click="switchTwoFactorMode">
+                        {{ useRecoveryCode ? 'Hitelesítő kód használata' : 'Helyreállító kód használata' }}
+                      </v-btn>
+                    </v-col>
+                  </template>
 
                   <v-col cols="12">
                     <v-btn type="submit" color="primary" block size="large" :loading="loading">
@@ -290,6 +379,7 @@ const login = async () => {
   color: inherit;
   opacity: 1 !important;
 }
+
 
 @media (max-width: 600px) {
   .auth-bg { padding: 12px; }

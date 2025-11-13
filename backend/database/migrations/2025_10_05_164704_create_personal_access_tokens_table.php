@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Sanctum: személyes API hozzáférési tokenek táblája.
     /**
      * Run the migrations.
      */

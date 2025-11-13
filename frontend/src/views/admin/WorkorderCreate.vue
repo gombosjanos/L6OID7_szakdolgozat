@@ -17,48 +17,58 @@
     </v-snackbar>
 
     <v-row>
-      <!-- Ügyfél blokk -->
+      <!-- Ugyfel blokk -->
       <v-col cols="12" md="6" lg="4">
         <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1">Ügyfél</v-card-title>
+          <v-card-title class="text-subtitle-1">Ugyfel</v-card-title>
           <v-divider />
           <v-card-text>
             <div class="d-flex align-center justify-space-between mb-2">
-              <div class="text-caption text-medium-emphasis">Regisztrált ügyfél</div>
+              <div class="text-caption text-medium-emphasis">Regisztrált Ugyfel</div>
               <v-switch hide-details color="primary" v-model="isRegistered" inset></v-switch>
             </div>
 
             <!-- Regisztrált -->
             <div v-if="isRegistered">
               <v-autocomplete
-                v-model="ugyfel"
-                :items="ugyfelItems"
-                :loading="ugyfelLoading"
-                :search="ugyfelSearch"
+                v-model="Ugyfel"
+                :items="UgyfelItems"
+                :loading="UgyfelLoading"
+                :search="UgyfelSearch"
                 @update:search="onSearchUgyfel"
                 item-title="nev"
                 item-value="id"
                 return-object
-                label="Ügyfél kiválasztása"
+                label="Ugyfel kiválasztása"
                 variant="outlined"
                 density="comfortable"
                 clearable
                 @focus="onSearchUgyfel('')"
               />
 
-              <!-- kiválasztott ügyfél összegzés -->
-              <v-alert v-if="ugyfel" type="info" variant="tonal" class="mt-2">
-                <div><strong>{{ ugyfel.nev }}</strong></div>
-                <div class="text-medium-emphasis">{{ ugyfel.email || '-' }}</div>
-                <div class="text-medium-emphasis">{{ ugyfel.telefonszam || '-' }}</div>
+              <!-- kiválasztott Ugyfel összegzés -->
+              <v-alert v-if="Ugyfel" type="info" variant="tonal" class="mt-2">
+                <div><strong>{{ Ugyfel.nev }}</strong></div>
+                <div class="text-medium-emphasis">{{ Ugyfel.email || '-' }}</div>
+                <div class="text-medium-emphasis">{{ Ugyfel.telefonszam || '-' }}</div>
               </v-alert>
             </div>
 
             <!-- Nem regisztrált -->
             <div v-else>
-              <v-text-field v-model.trim="ugyfel_nev" :rules="nameRules" label="Név" variant="outlined" density="comfortable" />
-              <v-text-field v-model.trim="ugyfel_email" :rules="emailRules" label="E-mail" type="email" variant="outlined" density="comfortable" />
-              <v-text-field v-model.trim="ugyfel_telefon" label="Telefonszám" variant="outlined" density="comfortable" />
+              <v-text-field v-model.trim="Ugyfel_nev" :rules="nameRules" label="Név" variant="outlined" density="comfortable" />
+              <v-text-field v-model.trim="Ugyfel_email" :rules="emailRules" label="E-mail" type="email" variant="outlined" density="comfortable" />
+              <v-text-field
+                v-model.trim="Ugyfel_telefon"
+                :rules="phoneRules"
+                label="Telefonszám"
+                variant="outlined"
+                density="comfortable"
+                autocomplete="tel"
+                placeholder="+36205012465"
+                hint="Példa formátum: +36205012465"
+                persistent-hint
+              />
             </div>
           </v-card-text>
         </v-card>
@@ -136,6 +146,7 @@
 <script setup>
 import * as Vue from 'vue'
 import { useRouter } from 'vue-router'
+import { ensureEuropeanPhone } from '../../utils/phone.js'
 
 // Lightweight request helper (matches other views)
 async function request(path, { method = 'GET', body } = {}) {
@@ -159,13 +170,13 @@ function setSnack(text, color = 'success'){ snackbarText.value = text; snackbarC
 // State
 const isRegistered = Vue.ref(true)
 
-const ugyfel = Vue.ref(null)
-const ugyfelItems = Vue.ref([])
-const ugyfelSearch = Vue.ref('')
-const ugyfelLoading = Vue.ref(false)
-const ugyfel_nev = Vue.ref('')
-const ugyfel_email = Vue.ref('')
-const ugyfel_telefon = Vue.ref('')
+const Ugyfel = Vue.ref(null)
+const UgyfelItems = Vue.ref([])
+const UgyfelSearch = Vue.ref('')
+const UgyfelLoading = Vue.ref(false)
+const Ugyfel_nev = Vue.ref('')
+const Ugyfel_email = Vue.ref('')
+const Ugyfel_telefon = Vue.ref('')
 
 const gep = Vue.ref(null)
 const gepItems = Vue.ref([])
@@ -189,13 +200,13 @@ function gepItemTitle(item){ if(!item) return '-'; return [item.gyarto, item.tip
 // Search handlers (debounced)
 let tU = null
 async function onSearchUgyfel(q){
-  ugyfelSearch.value = q
+  UgyfelSearch.value = q
   if(tU) clearTimeout(tU)
   tU = setTimeout(async ()=>{
-    ugyfelLoading.value = true
-    try{ ugyfelItems.value = await request('/felhasznalok', { method: 'GET', body: { q: q || '', limit: '20' } }) }
+    UgyfelLoading.value = true
+    try{ UgyfelItems.value = await request('/felhasznalok', { method: 'GET', body: { q: q || '', limit: '20' } }) }
     catch(e){ console.error(e) }
-    finally{ ugyfelLoading.value = false }
+    finally{ UgyfelLoading.value = false }
   }, 200)
 }
 
@@ -230,17 +241,22 @@ async function addMachine(){
 
 // Simple validators
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const emailValid = Vue.computed(()=> isRegistered.value ? true : emailPattern.test((ugyfel_email.value||'').trim()))
-const nameValid = Vue.computed(()=> isRegistered.value ? true : !!(ugyfel_nev.value||'').trim())
+const emailValid = Vue.computed(()=> isRegistered.value ? true : emailPattern.test((Ugyfel_email.value||'').trim()))
+const nameValid = Vue.computed(()=> isRegistered.value ? true : !!(Ugyfel_nev.value||'').trim())
+const phoneValid = Vue.computed(()=> isRegistered.value ? true : !!ensureEuropeanPhone(Ugyfel_telefon.value))
 const nameRules = [ v => isRegistered.value || (!!(v||'').trim()) || 'Név megadása kötelező' ]
 const emailRules = [ v => isRegistered.value || (emailPattern.test((v||'').trim()) || 'Érvénytelen e-mail cím') ]
+const phoneRules = [
+  v => isRegistered.value || (!!(v||'').trim()) || 'Telefonszám megadása kötelező',
+  v => (isRegistered.value || ensureEuropeanPhone(v)) ? true : 'Érvényes magyar vagy európai telefonszámot adj meg (pl. +36205012465)'
+]
 
 // Create workorder
 const disableCreate = Vue.computed(()=>{
   const hasGep = !!(gep.value && (gep.value.ID || gep.value.id))
   const hasUser = isRegistered.value
-    ? !!(ugyfel.value && (ugyfel.value.id || ugyfel.value.ID))
-    : (nameValid.value && emailValid.value)
+    ? !!(Ugyfel.value && (Ugyfel.value.id || Ugyfel.value.ID))
+  : (nameValid.value && emailValid.value && phoneValid.value)
   return !(hasGep && hasUser) || saving.value
 })
 
@@ -254,17 +270,19 @@ async function createWorkorder(){
       statusz: 'uj'
     }
     if(isRegistered.value){
-      payload.user_id = ugyfel.value?.id ?? ugyfel.value?.ID
+      payload.user_id = Ugyfel.value?.id ?? Ugyfel.value?.ID
     } else {
       payload.regisztralt = false
       // Client-side guard: prevent invalid email from being sent
-      const trimmedName = (ugyfel_nev.value||'').trim()
-      const trimmedEmail = (ugyfel_email.value||'').trim()
+      const trimmedName = (Ugyfel_nev.value||'').trim()
+      const trimmedEmail = (Ugyfel_email.value||'').trim()
       if(!trimmedName){ setSnack('Név megadása kötelező', 'error'); saving.value=false; return }
       if(!emailPattern.test(trimmedEmail)){ setSnack('Érvénytelen e-mail cím', 'error'); saving.value=false; return }
-      payload.ugyfel_nev = trimmedName
-      payload.ugyfel_email = trimmedEmail.toLowerCase()
-      payload.ugyfel_telefon = ugyfel_telefon.value || null
+      const canonicalPhone = ensureEuropeanPhone(Ugyfel_telefon.value)
+  if(!canonicalPhone){ setSnack('Érvényes magyar vagy európai telefonszámot adj meg (pl. +36205012465).', 'error'); saving.value=false; return }
+      payload.Ugyfel_nev = trimmedName
+      payload.Ugyfel_email = trimmedEmail.toLowerCase()
+      payload.Ugyfel_telefon = canonicalPhone
     }
     if(hibaleiras.value) payload.hibaleiras = hibaleiras.value
     if(megjegyzes.value) payload.megjegyzes = megjegyzes.value

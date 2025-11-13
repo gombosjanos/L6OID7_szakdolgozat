@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Felhasználók táblája: belépéshez és jogosultságokhoz szükséges törzsadatok.
+     * Megjegyzés: a jelszó hash a Laravel konvenció szerint a "password" oszlopba kerül.
      */
     public function up(): void
     {
@@ -16,9 +17,10 @@ return new class extends Migration
             $table->string('nev', 50);
             $table->string('felhasznalonev', 50)->nullable();
             $table->string('email', 100)->unique();
-            $table->string('jelszo');
+            // A jelszó hash tárolása (Laravel konvenció szerint "password")
+            $table->string('password');
             $table->string('telefonszam', 20)->nullable();
-            $table->string('jogosultsag', 20)->default('ugyfel');
+            $table->string('jogosultsag', 20)->default('Ugyfel');
             // No timestamps as model sets public $timestamps = false
         });
     }
@@ -31,4 +33,3 @@ return new class extends Migration
         Schema::dropIfExists('felhasznalok');
     }
 };
-

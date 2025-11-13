@@ -11,7 +11,7 @@ import AdminPartsView from '../views/admin/PartsView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
 import UgyfelView from '../views/UgyfelView.vue'
-import UgyfelWorkorderDetail from '../views/ugyfel/WorkorderDetail.vue'
+import UgyfelWorkorderDetail from '../views/Ugyfel/WorkorderDetail.vue'
 import SzereloView from '../views/SzereloView.vue'
 import AdminWorkorderCreate from '../views/admin/WorkorderCreate.vue'
 import ProfileView from '../views/ProfileView.vue'
@@ -25,14 +25,14 @@ const routes = [
     component: MainLayout,
     children: [
       { path: 'admin', component: AdminView },
-      { path: 'admin/ugyfelek', component: AdminCustomersView },
+      { path: 'admin/Ugyfelek', component: AdminCustomersView },
       { path: 'admin/gepek', component: AdminMachinesView },
       { path: 'admin/munkalapok', component: AdminWorkordersView },
       { path: 'admin/munkalapok/uj', component: AdminWorkorderCreate },
       { path: 'admin/munkalapok/:id', name: 'AdminWorkorderDetail', component: AdminWorkorderDetail, props: true },
       { path: 'admin/alkatreszek', component: AdminPartsView },
-      { path: 'ugyfel', component: UgyfelView },
-      { path: 'ugyfel/munkalapok/:id', name: 'UgyfelWorkorderDetail', component: UgyfelWorkorderDetail, props: true },
+      { path: 'Ugyfel', component: UgyfelView },
+      { path: 'Ugyfel/munkalapok/:id', name: 'UgyfelWorkorderDetail', component: UgyfelWorkorderDetail, props: true },
       { path: 'szerelo', component: SzereloView },
       { path: 'profile', component: ProfileView }
     ]
@@ -67,7 +67,7 @@ router.beforeEach((to, from, next) => {
       )
       return allowed ? next() : next('/szerelo')
     }
-    return next('/ugyfel')
+    return next('/Ugyfel')
   }
 
   next()

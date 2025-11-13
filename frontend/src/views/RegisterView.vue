@@ -2,18 +2,23 @@
 import { ref, computed } from 'vue'
 import { api } from '../api.js'
 import { useRouter } from 'vue-router'
+import { ensureEuropeanPhone } from '../utils/phone.js'
 
 const formRef = ref(null)
 const router = useRouter()
 
 // Form state
 const nev = ref('')
+const felhasznalonev = ref('')
 const email = ref('')
 const telefonszam = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
+const loading = ref(false)
+const error = ref('')
+const success = ref('')
 
 const passwordToggleLabel = computed(() => (showPassword.value ? 'Rejt' : 'Mutat'))
 const passwordConfirmToggleLabel = computed(() => (showPasswordConfirm.value ? 'Rejt' : 'Mutat'))
@@ -32,12 +37,18 @@ const rules = {
     v => (v?.trim()?.length ?? 0) >= 2 || 'Legalább 2 karakter',
     v => (v?.trim()?.length ?? 0) <= 50 || 'Legfeljebb 50 karakter'
   ],
+  username: [
+    v => !!(v?.trim()) || 'A felhasználónév megadása kötelező',
+    v => (v?.trim()?.length ?? 0) >= 4 || 'Legalább 4 karakter',
+    v => /^[A-Za-z0-9._-]+$/.test(v || '') || 'Csak betű, szám, pont, kötőjel vagy aláhúzás engedélyezett'
+  ],
   email: [
     v => !!(v?.trim()) || 'Az email megadása kötelező',
     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Érvényes email címet adj meg'
   ],
   phone: [
-    v => !v || /^\+?[0-9\s-]{6,20}$/.test(v) || 'Érvényes telefonszámot adj meg'
+    v => !!(v?.trim()) || 'A telefonszám megadása kötelező',
+    v => ensureEuropeanPhone(v) ? true : 'Érvényes magyar vagy európai telefonszámot adj meg (pl. +36205012465)'
   ],
   password: [
     v => !!v || 'A jelszó megadása kötelező',
@@ -58,19 +69,25 @@ const register = async () => {
   try {
     const payload = {
       nev: nev.value.trim(),
+      felhasznalonev: felhasznalonev.value.trim(),
       email: email.value.trim(),
       jelszo: password.value,
       jelszo_confirmation: passwordConfirm.value,
     }
 
-    const phone = telefonszam.value?.trim()
-    if (phone) {
-      payload.telefonszam = phone
+    const phone = ensureEuropeanPhone(telefonszam.value)
+    if (!phone) {
+      error.value = 'Érvényes magyar vagy európai telefonszámot adj meg (pl. +36205012465).'
+      loading.value = false
+      return
     }
+
+    payload.telefonszam = phone
 
     await api.post('/register', payload)
     success.value = 'Sikeres regisztráció! Most már bejelentkezhetsz.'
     nev.value = ''
+    felhasznalonev.value = ''
     email.value = ''
     telefonszam.value = ''
     password.value = ''
@@ -136,6 +153,21 @@ const register = async () => {
 
                   <v-col cols="12">
                     <v-text-field
+                      v-model="felhasznalonev"
+                      label="Felhasználónév"
+                      prepend-inner-icon="mdi-account-circle"
+                      variant="outlined"
+                      density="comfortable"
+                      :rules="rules.username"
+                      autocomplete="username"
+                      hint="Engedélyezett: betű, szám, pont, kötőjel, aláhúzás"
+                      persistent-hint
+                      required
+                    />
+                  </v-col>
+
+                  <v-col cols="12">
+                    <v-text-field
                       v-model="email"
                       label="Email"
                       prepend-inner-icon="mdi-email"
@@ -151,12 +183,16 @@ const register = async () => {
                   <v-col cols="12">
                     <v-text-field
                       v-model="telefonszam"
-                      label="Telefonszám (nem kötelező)"
+                      label="Telefonszám"
                       prepend-inner-icon="mdi-phone"
                       variant="outlined"
                       density="comfortable"
                       :rules="rules.phone"
                       autocomplete="tel"
+                      placeholder="+36205012465"
+                      hint="Példa formátum: +36205012465"
+                      persistent-hint
+                      required
                     />
                   </v-col>
 

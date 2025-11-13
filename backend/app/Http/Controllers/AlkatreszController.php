@@ -133,7 +133,7 @@ class AlkatreszController extends Controller
 
         $row = DB::table('alkatreszek')->where('ID', $id)->first();
         if (!$row) {
-            return response()->json(['message' => 'Nem talĂˇlhatĂł.'], 404);
+            return response()->json(['message' => 'Nem található.'], 404);
         }
 
         $name = $validated['alaktresznev']
@@ -183,9 +183,9 @@ class AlkatreszController extends Controller
     {
         $deleted = DB::table('alkatreszek')->where('ID', $id)->delete();
         if (!$deleted) {
-            return response()->json(['message' => 'Nem talĂˇlhatĂł.'], 404);
+            return response()->json(['message' => 'Nem található.'], 404);
         }
-        return response()->json(['message' => 'Sikeresen tĂ¶rĂ¶lve.']);
+        return response()->json(['message' => 'Sikeresen törölve.']);
     }
 
     public function updateKeszlet(Request $request, $id): JsonResponse
@@ -197,7 +197,7 @@ class AlkatreszController extends Controller
         $alkatresz = DB::table('alkatreszek')->where('ID', $id)->first();
 
         if (!$alkatresz) {
-            return response()->json(['message' => 'Az alkatrĂ©sz nem talĂˇlhatĂł.'], 404);
+            return response()->json(['message' => 'Az alkatrész nem található.'], 404);
         }
 
         DB::table('alkatreszek')->where('ID', $id)->update(['keszlet' => $validated['keszlet']]);
@@ -211,12 +211,12 @@ class AlkatreszController extends Controller
     {
         $payload1 = $base;
         if ($name !== null) {
-            $payload1['alkatresznev'] = $name; // elsĹ‘dlegesen ezt prĂłbĂˇljuk
+            $payload1['alkatresznev'] = $name; // elsődlegesen ezt próbáljuk
         }
         try {
             return (int) DB::table($table)->insertGetId($payload1);
         } catch (QueryException $e) {
-            // Ha oszlopnĂ©v gond, prĂłbĂˇljuk a mĂˇsik vĂˇltozatot
+            // Ha oszlopnév gond, próbáljuk a másik változatot
             $payload2 = $base;
             if ($name !== null) {
                 $payload2['alaktresznev'] = $name;
@@ -227,7 +227,7 @@ class AlkatreszController extends Controller
 
     private function updateWithNameFallback(string $table, int $id, array $base, ?string $name): void
     {
-        // PrĂłbĂˇljuk elĹ‘szĂ¶r az "alkatresznev" mezĹ‘t
+        // Próbáljuk először az "alkatresznev" mezőt
         $payload1 = $base;
         if ($name !== null) {
             $payload1['alkatresznev'] = $name;
@@ -235,7 +235,7 @@ class AlkatreszController extends Controller
         try {
             DB::table($table)->where('ID', $id)->update($payload1);
         } catch (QueryException $e) {
-            // Ha oszlopnĂ©v gond, prĂłbĂˇljuk az "alaktresznev" mezĹ‘t
+            // Ha oszlopnév gond, próbáljuk az "alaktresznev" mezőt
             $payload2 = $base;
             if ($name !== null) {
                 $payload2['alaktresznev'] = $name;

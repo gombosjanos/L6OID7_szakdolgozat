@@ -35,4 +35,22 @@ class MunkalapNaploController extends Controller
         ]);
         return response()->json($rec, 201, [], JSON_UNESCAPED_UNICODE);
     }
+
+    public function update(Request $request, $munkalapId, $naploId)
+    {
+        $data = $request->validate([
+            'uzenet' => 'required|string',
+        ]);
+        $rec = MunkalapNaplo::where('munkalap_id', $munkalapId)->where('id', $naploId)->firstOrFail();
+        $rec->uzenet = $data['uzenet'];
+        $rec->save();
+        return response()->json($rec->fresh(), 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function destroy(Request $request, $munkalapId, $naploId)
+    {
+        $rec = MunkalapNaplo::where('munkalap_id', $munkalapId)->where('id', $naploId)->firstOrFail();
+        $rec->delete();
+        return response()->json(['message' => 'Törölve'], 200, [], JSON_UNESCAPED_UNICODE);
+    }
 }

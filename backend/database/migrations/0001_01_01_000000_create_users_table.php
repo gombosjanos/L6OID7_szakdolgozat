@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Keretrendszer általános táblái: users, password_reset_tokens, sessions
+    // Ezek a Laravel alapfunkcióihoz (bejelentkezés, jelszó visszaállítás, session kezelés) szükségesek.
     /**
      * Run the migrations.
      */

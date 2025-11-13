@@ -15,12 +15,46 @@
           <v-card-title class="text-subtitle-1 font-weight-bold">Alap adatok</v-card-title>
           <v-divider />
           <v-card-text>
-            <div class="mb-2"><strong>Azonosító:</strong> {{ displayId }}</div>
+            <div class="mb-2"><strong>Azonosí­tó:</strong> {{ displayId }}</div>
             <div class="mb-2"><strong>Gép:</strong> {{ gepLabel(gepFromRow(detail)) }}</div>
             <div class="mb-2"><strong>Létrehozva:</strong> {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
             <div class="mb-2"><strong>Állapot:</strong> {{ displayStatus(detail.statusz) }}</div>
             <div class="mb-2" v-if="detail.hibaleiras"><strong>Hiba leírás:</strong> {{ detail.hibaleiras }}</div>
             <div class="mb-2" v-if="detail.megjegyzes"><strong>Megjegyzés:</strong> {{ detail.megjegyzes }}</div>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="mb-4">
+          <v-card-title class="text-subtitle-1 font-weight-bold">Csatolt képek</v-card-title>
+          <v-divider />
+          <v-card-text>
+            <div v-if="!hasImages" class="text-medium-emphasis">Nem érkezett még kép ehhez a munkalaphoz.</div>
+            <v-row v-else class="ga-2">
+              <v-col v-for="img in images" :key="img._key" cols="12" sm="6">
+                <v-card variant="outlined" class="image-card">
+                  <v-img
+                    :src="thumbSrc(img)"
+                    :alt="img.eredeti_nev || 'Munkalap kép'"
+                    aspect-ratio="4/3"
+                    class="rounded cursor-pointer"
+                    :lazy-src="thumbPlaceholder"
+                    cover
+                  />
+                  <v-card-text class="py-2 px-3 image-meta">
+                    <div class="text-body-2 text-truncate" :title="img.eredeti_nev">{{ img.eredeti_nev || 'Feltöltött kép' }}</div>
+                    <div class="text-caption text-medium-emphasis">
+                      {{ fmtDate(img.letrehozva || img.created_at) }}
+                      <span v-if="img.meret"> â€˘ {{ formatFileSize(img.meret) }}</span>
+                    </div>
+                  </v-card-text>
+                  <v-card-actions class="py-2 px-3">
+                    <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-magnify-plus" @click="openImage(img)">
+                      Nagyítás
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
       </v-col>
@@ -71,7 +105,7 @@
 
               <div class="mt-3 d-flex align-center" v-if="canDecide">
                 <v-btn color="success" variant="tonal" prepend-icon="mdi-check" class="me-2" :loading="processing" :disabled="processing" @click="accept">Elfogadom</v-btn>
-                <v-btn color="error" variant="tonal" prepend-icon="mdi-close" :loading="processing" :disabled="processing" @click="reject">Elutasítom</v-btn>
+                <v-btn color="error" variant="tonal" prepend-icon="mdi-close" :loading="processing" :disabled="processing" @click="reject">ElutasĂ­tom</v-btn>
               </div>
             </template>
           </v-card-text>
@@ -79,7 +113,29 @@
       </v-col>
     </v-row>
   </v-container>
-  
+    <v-dialog v-model="lightboxOpen" max-width="98vw" scrim="rgba(0,0,0,0.8)">
+    <v-card class="pa-0 lb-card" color="black">
+  <button class="lb-close" @click="lightboxOpen=false" aria-label="Bezárás">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" role="img" aria-hidden="true">
+      <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+    </svg>
+  </button>
+  <div class="lb-counter">{{ (currentIndex+1) }} / {{ images.length }}</div>
+  <button class="lb-nav lb-left" @click="prevImage" :disabled="images.length<=1" aria-label="Előző">
+    <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" role="img" aria-hidden="true">
+      <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+    </svg>
+  </button>
+  <button class="lb-nav lb-right" @click="nextImage" :disabled="images.length<=1" aria-label="Következő">
+    <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" role="img" aria-hidden="true">
+      <path d="m8.59 16.59 4.58-4.59-4.58-4.59L10 6l6 6-6 6z"/>
+    </svg>
+  </button>
+  <div class="lb-body">
+    <img :src="lightboxUrl" alt="Kép" />
+  </div>
+</v-card>
+  </v-dialog>
   <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor" location="top right">{{ snackbarText }}</v-snackbar>
 </template>
 
@@ -96,6 +152,57 @@ const detail = Vue.ref({})
 const offer = Vue.ref(null)
 const errorMsg = Vue.ref('')
 const processing = Vue.ref(false)
+
+const images = Vue.ref([])
+const lightboxOpen = Vue.ref(false)
+const lightboxUrl = Vue.ref('')
+const currentIndex = Vue.ref(0)
+const imgUrlCache = Vue.ref({})
+const thumbPlaceholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="12"><rect width="100%" height="100%" fill="#f3f3f3"/></svg>'
+
+function thumbSrc(img){
+  if(!img) return thumbPlaceholder
+  return imgUrlCache.value[img.id] || thumbPlaceholder
+}
+
+async function getObjectUrl(img){
+  if(!img?.url || !img?.id) return ''
+  const cached = imgUrlCache.value[img.id]
+  if (cached) return cached
+  const headers = {}
+  try{ const tk = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN'); if(tk) headers['Authorization'] = `Bearer ${tk}` }catch{}
+  const res = await fetch(img.url, { method: 'GET', headers, credentials: 'include' })
+  if(!res.ok){ throw new Error(`HTTP ${res.status}`) }
+  const blob = await res.blob()
+  const objUrl = URL.createObjectURL(blob)
+  imgUrlCache.value = { ...imgUrlCache.value, [img.id]: objUrl }
+  return objUrl
+}
+
+async function openImage(img){
+  if(!img) return
+  try{
+    const idx = images.value.findIndex(i => (i.id ?? i.ID) === (img.id ?? img.ID))
+    currentIndex.value = idx >= 0 ? idx : 0
+    lightboxUrl.value = await getObjectUrl(img)
+    lightboxOpen.value = true
+  }catch(e){ snack('Kep megnyitasa nem sikerult.', 'error') }
+}
+
+Vue.watch(images, (list)=>{
+  try{ (Array.isArray(list)?list:[]).forEach(it => { getObjectUrl(it).catch(()=>{}) }) }catch{}
+}, { immediate: true })
+
+async function showAt(index){
+  if (images.value.length === 0) return
+  const len = images.value.length
+  const i = ((index % len) + len) % len
+  currentIndex.value = i
+  const img = images.value[i]
+  try{ lightboxUrl.value = await getObjectUrl(img) }catch(e){}
+}
+function prevImage(){ showAt(currentIndex.value - 1) }
+function nextImage(){ showAt(currentIndex.value + 1) }
 
 const snackbar = Vue.ref(false)
 const snackbarText = Vue.ref('')
@@ -122,14 +229,14 @@ function statusColor(s){
 }
 function displayStatus(s){
   const map={
-    'uj':'Új',
+    'uj':'új',
     'folyamatban':'Folyamatban',
     'ajanlat_elkuldve':'Árajánlat elküldve',
     'alkatreszre_var':'Alkatrészre vár',
-    'javitas_kesz':'Javítás kész',
+    'javitas_kesz':'JavĂ­tás kész',
     'atadva_lezarva':'Átadva/Lezárva',
     'ajanlat_elfogadva':'Árajánlat elfogadva',
-    'ajanlat_elutasitva':'Árajánlat elutasítva',
+    'ajanlat_elutasitva':'Árajánlat elutasĂ­tva',
   }
   const k=(s||'').toLowerCase()
   return map[k] || s || '-'
@@ -137,7 +244,59 @@ function displayStatus(s){
 function normalizeStatus(s){ try{ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (s||'').toString().toLowerCase() } }
 
 function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
-function gepLabel(gep){ if(!gep) return '-'; try{ const gyarto = gep.gyarto || gep.gep_gyarto || ''; const tipus = gep.tipusnev || gep.gep_tipus || ''; const cikkszam = gep.g_cikkszam || gep.cikkszam || gep.gep_cikkszam || ''; const head = [gyarto, tipus].filter(Boolean).join(' '); return [head, cikkszam].filter(Boolean).join(' • ') }catch{ return '-' } }
+function gepLabel(gep){ if(!gep) return '-'; try{ const gyarto = gep.gyarto || gep.gep_gyarto || ''; const tipus = gep.tipusnev || gep.gep_tipus || ''; const cikkszam = gep.g_cikkszam || gep.cikkszam || gep.gep_cikkszam || ''; const head = [gyarto, tipus].filter(Boolean).join(' '); return [head, cikkszam].filter(Boolean).join(' â€˘ ') }catch{ return '-' } }
+
+function normalizeImageEntry(entry, index = 0){
+  if(!entry) return null
+  const id = entry.id ?? entry.ID ?? entry.kep_id ?? index
+  const relative = entry.fajlnev || entry.path || ''
+  const url = entry.url || (relative ? `/storage/${relative.replace(/^\/+/, '')}` : '')
+  return {
+    ...entry,
+    id,
+    url,
+    _key: id ?? `${relative || 'kep'}-${index}-${entry.letrehozva ?? Date.now()}`,
+  }
+}
+
+function normalizeImages(list){
+  return (Array.isArray(list) ? list : [])
+    .map((entry, idx) => normalizeImageEntry(entry, idx))
+    .filter(Boolean)
+}
+
+const hasImages = Vue.computed(()=> images.value.length > 0)
+
+function formatFileSize(size){
+  const bytes = Number(size)
+  if(!bytes || Number.isNaN(bytes)) return ''
+  const units = ['B','KB','MB','GB']
+  let value = bytes
+  let unitIndex = 0
+  while(value >= 1024 && unitIndex < units.length - 1){
+    value /= 1024
+    unitIndex += 1
+  }
+  const formatted = unitIndex === 0 ? Math.round(value) : value.toFixed(1)
+  return `${formatted} ${units[unitIndex]}`
+}
+
+async function oldOpenImage(img){
+  if(!img?.url) return
+  try{
+    const headers = {}
+    try{ const tk = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN'); if(tk) headers['Authorization'] = `Bearer ${tk}` }catch{}
+    const res = await fetch(img.url, { method: 'GET', headers, credentials: 'include' })
+    if(!res.ok){ throw new Error(`HTTP ${res.status}`) }
+    const blob = await res.blob()
+    const objUrl = URL.createObjectURL(blob)
+    const w = window.open(objUrl, '_blank')
+    setTimeout(()=> URL.revokeObjectURL(objUrl), 60000)
+    if(!w){ snack('A kép megnyitása blokkolva lett a böngésző által.', 'warning') }
+  }catch(e){
+    snack('Kép megnyitása nem sikerült.', 'error')
+  }
+}
 
 const offerRows = Vue.computed(()=>{
   const raw = offer.value?.tetelek
@@ -197,7 +356,7 @@ function offerStatusColor(s){
 }
 function displayOfferStatus(s){
   const k=(s||'').toString().toLowerCase()
-  const map={ elkuldve:'Elfogadásra vár', elfogadva:'Elfogadva', elutasitva:'Elutasítva' }
+  const map={ elkuldve:'Elfogadásra vár', elfogadva:'Elfogadva', elutasitva:'ElutasĂ­tva' }
   return map[k] || '-'
 }
 
@@ -206,8 +365,13 @@ async function load(){
     errorMsg.value = ''
     const d = await api.get(`/munkalapok/${id.value}`)
     detail.value = d?.data || {}
+    images.value = normalizeImages(detail.value?.kepek); try{ const first = images.value.slice(0,8); for (const it of first){ /* fire-and-forget */ getObjectUrl(it).catch(()=>{}) } }catch{}
     const a = await api.get(`/munkalapok/${id.value}/ajanlat`)
     offer.value = a?.data || null
+    try {
+      const img = await api.get(`/munkalapok/${id.value}/kepek`)
+      images.value = normalizeImages(img?.data); try{ const first = images.value.slice(0,8); for (const it of first){ getObjectUrl(it).catch(()=>{}) } }catch{}
+    } catch {}
   }catch(e){
     errorMsg.value = e?.response?.data?.message || e?.message || 'Betöltési hiba.'
   }
@@ -226,13 +390,13 @@ async function reject(){
   try{
     processing.value = true
     await api.post(`/munkalapok/${id.value}/ajanlat/reject`)
-    snack('Árajánlat elutasítva','warning')
+    snack('Árajánlat elutasí­tva','warning')
     await load()
   }catch(e){ errorMsg.value = e?.response?.data?.message || 'Elutasítás nem sikerült.' }
   finally{ processing.value=false }
 }
 
-function goBack(){ try{ if(window.history && window.history.length>1) router.back(); else router.push('/ugyfel') } catch{} }
+function goBack(){ try{ if(window.history && window.history.length>1) router.back(); else router.push('/Ugyfel') } catch{} }
 
 Vue.onMounted(load)
 </script>
@@ -240,5 +404,49 @@ Vue.onMounted(load)
 <style scoped>
 .text-right{ text-align:right }
 .prewrap{ white-space: pre-wrap }
+.image-card{ overflow:hidden; border-radius:12px; }
+.image-card .v-img{ background:#f5f5f5; }
+.image-card .image-meta{ background:rgba(0,0,0,0.02); }
+.image-card .text-truncate{ max-width:100%; }
 </style>
+
+
+
+
+
+
+<style>
+.image-card .v-card-actions{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.cursor-pointer{ cursor:pointer; }
+</style>
+
+
+
+
+<style>
+.lightbox-card{ position: relative; background:#000; }
+.lightbox-card .lightbox-btn{ color:#fff !important; background:rgba(255,255,255,.16) !important; backdrop-filter: blur(2px); }
+.lightbox-card .v-card-actions{ color:#fff; }
+.lightbox-card .v-card-actions:first-of-type{ position:absolute; top:0; left:0; right:0; background: linear-gradient(to bottom, rgba(0,0,0,.75), rgba(0,0,0,0)); z-index:2; }
+.lightbox-card .v-card-actions:last-of-type{ position:absolute; bottom:0; left:0; right:0; background: linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,0)); z-index:2; }
+.lightbox-card .lightbox-body{ max-height:80vh; height:80vh; background:#000; }
+.lightbox-card .lightbox-body img{ max-width:100%; max-height:80vh; object-fit:contain; }
+.lightbox-card .lightbox-counter{ color:#fff; font-weight:600; }
+</style>
+
+<style scoped>
+/* Lightbox overlay controls with inline SVG icons (visible on dark bg) */
+.lb-card{ position:relative; background:#000; }
+.lb-body{ height:80vh; max-height:80vh; display:flex; align-items:center; justify-content:center; background:#000; }
+.lb-body img{ max-width:100%; max-height:80vh; object-fit:contain; }
+.lb-close{ position:absolute; top:10px; right:10px; width:40px; height:40px; border:none; border-radius:10px; background:rgba(0,0,0,.55); color:#fff; display:grid; place-items:center; cursor:pointer; z-index:3; }
+.lb-close:hover{ background:rgba(0,0,0,.75); }
+.lb-counter{ position:absolute; top:14px; left:14px; z-index:3; color:#fff; font-weight:600; padding:2px 8px; border-radius:8px; background:rgba(0,0,0,.4); backdrop-filter: blur(2px); }
+.lb-nav{ position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:56px; height:56px; border:none; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; display:grid; place-items:center; cursor:pointer; }
+.lb-nav:hover{ background:rgba(0,0,0,.75); }
+.lb-left{ left:14px; }
+.lb-right{ right:14px; }
+.lb-nav[disabled]{ opacity:.35; cursor:default; }
+</style>
+
 

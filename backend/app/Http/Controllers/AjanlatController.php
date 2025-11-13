@@ -14,7 +14,7 @@ class AjanlatController extends Controller
     {
         // Ownership check for customers
         $auth = request()->user();
-        if ($auth && $auth->jogosultsag === 'ugyfel') {
+        if ($auth && $auth->jogosultsag === 'Ugyfel') {
             $ml = \App\Models\Munkalap::findOrFail($munkalapId);
             if ((int)$ml->user_id !== (int)$auth->getKey()) {
                 abort(403, 'Nincs jogosultsĂˇg');
@@ -35,6 +35,14 @@ class AjanlatController extends Controller
                 $aid = $header->ID ?? $header->id ?? null;
                 $fk = Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlat_id') ? 'ajanlat_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','AjanlatID') ? 'AjanlatID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlatId') ? 'ajanlatId' : 'ajanlat_id'));
                 $rows = $aid ? DB::table('munkalap_ajanlat_tetelek')->where($fk, $aid)->get() : collect();
+                if ($rows instanceof \Illuminate\Support\Collection) {
+                    $rows = $rows->map(function ($r) {
+                        if (empty($r->tipus) && (!empty($r->alkatresz_id) || !empty($r->AlkatreszID) || !empty($r->alkatreszId))) {
+                            $r->tipus = 'alkatresz';
+                        }
+                        return $r;
+                    });
+                }
                 return response()->json((object)[
                     'ID' => $aid,
                     'statusz' => $header->statusz ?? null,
@@ -45,7 +53,7 @@ class AjanlatController extends Controller
             // Nothing found: do not create placeholder here to avoid schema mismatch
             return response()->json((object)['statusz'=>null,'megjegyzes'=>null,'tetelek'=>[]]);
         }
-        // Robust tétel betöltés bármely PK esetén
+        // Robust tĂ©tel betĂ¶ltĂ©s bĂˇrmely PK esetĂ©n
         $aid = $ajanlat->ID ?? $ajanlat->id ?? $ajanlat->getKey();
         $fk = Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlat_id') ? 'ajanlat_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','AjanlatID') ? 'AjanlatID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlatId') ? 'ajanlatId' : 'ajanlat_id'));
         $rows = DB::table('munkalap_ajanlat_tetelek')->where($fk, $aid)->get();
@@ -53,6 +61,14 @@ class AjanlatController extends Controller
         if ($isEmpty) {
             $altFk = Schema::hasColumn('munkalap_ajanlat_tetelek','munkalap_id') ? 'munkalap_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','MunkalapID') ? 'MunkalapID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','munkalapId') ? 'munkalapId' : null));
             if ($altFk) { $rows = DB::table('munkalap_ajanlat_tetelek')->where($altFk, $munkalapId)->get(); }
+        }
+        if ($rows instanceof \Illuminate\Support\Collection) {
+            $rows = $rows->map(function ($r) {
+                if (empty($r->tipus) && (!empty($r->alkatresz_id) || !empty($r->AlkatreszID) || !empty($r->alkatreszId))) {
+                    $r->tipus = 'alkatresz';
+                }
+                return $r;
+            });
         }
         $ajanlat->setRelation('tetelek', $rows);
         return response()->json($ajanlat);
@@ -182,15 +198,38 @@ class AjanlatController extends Controller
             $fresh = Ajanlat::find($aid);
             $fk = Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlat_id') ? 'ajanlat_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','AjanlatID') ? 'AjanlatID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlatId') ? 'ajanlatId' : 'ajanlat_id'));
             $rows = DB::table('munkalap_ajanlat_tetelek')->where($fk, $aid)->get();
+            if ($rows instanceof \Illuminate\Support\Collection) {
+                $rows = $rows->map(function ($r) {
+                    if (empty($r->tipus) && (!empty($r->alkatresz_id) || !empty($r->AlkatreszID) || !empty($r->alkatreszId))) {
+                        $r->tipus = 'alkatresz';
+                    }
+                    return $r;
+                });
+            }
             $isEmpty = ($rows instanceof \Illuminate\Support\Collection) ? $rows->isEmpty() : (empty($rows));
             if ($isEmpty) {
                 $altFk = Schema::hasColumn('munkalap_ajanlat_tetelek','munkalap_id') ? 'munkalap_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','MunkalapID') ? 'MunkalapID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','munkalapId') ? 'munkalapId' : null));
                 if ($altFk) { $rows = DB::table('munkalap_ajanlat_tetelek')->where($altFk, $munkalapId)->get(); }
+                if ($rows instanceof \Illuminate\Support\Collection) {
+                    $rows = $rows->map(function ($r) {
+                        if (empty($r->tipus) && (!empty($r->alkatresz_id) || !empty($r->AlkatreszID) || !empty($r->alkatreszId))) {
+                            $r->tipus = 'alkatresz';
+                        }
+                        return $r;
+                    });
+                }
             }
             $fresh->setRelation('tetelek', $rows);
             return $fresh;
         });
 
+        // Notify user (best-effort)
+        try {
+            $ml = \App\Models\Munkalap::with('Ugyfel')->find($munkalapId);
+            if ($ml && $ml->Ugyfel) {
+                $ml->Ugyfel->notify(new OfferUpdated($ml->ID, $data['statusz'] ?? null));
+            }
+        } catch (\Throwable $e) {}
         return response()->json($result);
     }
 
@@ -203,7 +242,7 @@ class AjanlatController extends Controller
         if (!$auth) abort(401);
         // Verify ownership if customer
         $munkalap = \App\Models\Munkalap::findOrFail($munkalapId);
-        if ($auth->jogosultsag === 'ugyfel' && (int)$munkalap->user_id !== (int)$auth->getKey()) {
+        if ($auth->jogosultsag === 'Ugyfel' && (int)$munkalap->user_id !== (int)$auth->getKey()) {
             abort(403, 'Nincs jogosultsĂˇg');
         }
         $ajanlat = Ajanlat::firstOrCreate(['munkalap_id' => $munkalapId], [
@@ -224,7 +263,7 @@ class AjanlatController extends Controller
         $auth = $request->user();
         if (!$auth) abort(401);
         $munkalap = \App\Models\Munkalap::findOrFail($munkalapId);
-        if ($auth->jogosultsag === 'ugyfel' && (int)$munkalap->user_id !== (int)$auth->getKey()) {
+        if ($auth->jogosultsag === 'Ugyfel' && (int)$munkalap->user_id !== (int)$auth->getKey()) {
             abort(403, 'Nincs jogosultsĂˇg');
         }
         $ajanlat = Ajanlat::firstOrCreate(['munkalap_id' => $munkalapId], [
@@ -248,5 +287,3 @@ class AjanlatController extends Controller
         return response()->json(Ajanlat::with('tetelek')->find($ajanlat->getKey()));
     }
 }
-
-

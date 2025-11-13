@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    // Ajánlattételek bővítése: típus, alkatrész hivatkozás, nettó/bruttó egységár és ÁFA kulcs.
     public function up(): void
     {
         Schema::table('munkalap_ajanlat_tetelek', function (Blueprint $table) {
@@ -33,4 +34,3 @@ return new class extends Migration {
         });
     }
 };
-

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Queue/Jobs táblák: aszinkron feladatokhoz és azok futásának nyilvántartásához.
     /**
      * Run the migrations.
      */

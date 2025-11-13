@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { api } from '../../api.js'
+import { ensureEuropeanPhone } from '../../utils/phone.js'
 
 const items = ref([])
 const search = ref('')
@@ -9,16 +10,17 @@ const error = ref('')
 
 const dialog = ref(false)
 const editing = ref(null)
-const form = ref({ nev: '', felhasznalonev: '', email: '', telefonszam: '', jogosultsag: 'ugyfel', password: '' })
+const form = ref({ nev: '', felhasznalonev: '', email: '', telefonszam: '', jogosultsag: 'Ugyfel', password: '' })
+const usernamePattern = /^[A-Za-z0-9._-]+$/
 
 const roleLabels = {
-  ugyfel: 'Ügyfél',
+  Ugyfel: 'Ugyfel',
   szerelo: 'Szerelő',
   admin: 'Admin',
 }
 
 const roleOptions = [
-  { title: roleLabels.ugyfel, value: 'ugyfel' },
+  { title: roleLabels.Ugyfel, value: 'Ugyfel' },
   { title: roleLabels.szerelo, value: 'szerelo' },
   { title: roleLabels.admin, value: 'admin' },
 ]
@@ -37,8 +39,8 @@ const load = async (q = '') => {
   loading.value = true
   error.value = ''
   try {
-  const { data } = await api.get('/felhasznalok', { params: { q, limit: 50 } })
-  items.value = (data || []).map(r => ({ ID: r.ID ?? r.id, ...r }))
+    const { data } = await api.get('/felhasznalok', { params: { q, limit: 50 } })
+    items.value = (data || []).map(r => ({ ID: r.ID ?? r.id, ...r }))
   } catch (e) {
     error.value = e?.response?.data?.message || 'Nem sikerült betölteni az ügyfeleket.'
   } finally {
@@ -67,7 +69,7 @@ const filtered = computed(() => {
 
 const openAdd = () => {
   editing.value = null
-  form.value = { nev: '', felhasznalonev: '', email: '', telefonszam: '', jogosultsag: 'ugyfel', password: '' }
+  form.value = { nev: '', felhasznalonev: '', email: '', telefonszam: '', jogosultsag: 'Ugyfel', password: '' }
   dialog.value = true
 }
 const openEdit = (row) => {
@@ -77,7 +79,7 @@ const openEdit = (row) => {
     felhasznalonev: row.felhasznalonev || '',
     email: row.email || '',
     telefonszam: row.telefonszam || '',
-  jogosultsag: row.jogosultsag || 'ugyfel',
+    jogosultsag: row.jogosultsag || 'Ugyfel',
     password: '',
   }
   dialog.value = true
@@ -85,20 +87,44 @@ const openEdit = (row) => {
 const close = () => { dialog.value = false }
 
 const save = async () => {
+  error.value = ''
   try {
+    const trimmedName = form.value.nev?.trim() || ''
+    const trimmedUsername = form.value.felhasznalonev?.trim() || ''
+    const trimmedEmail = form.value.email?.trim() || ''
+
+    if (!trimmedName || trimmedName.length < 2) {
+      error.value = 'A név megadása kötelező, legalább 2 karakterrel.'
+      return
+    }
+
+    if (!trimmedUsername) {
+      error.value = 'A felhasználónév megadása kötelező.'
+      return
+    }
+    if (trimmedUsername.length < 4) {
+      error.value = 'A felhasználónév legalább 4 karakter legyen.'
+      return
+    }
+    if (!usernamePattern.test(trimmedUsername)) {
+      error.value = 'A felhasználónév csak betűt, számot, pontot, kötőjelet vagy aláhúzást tartalmazhat.'
+      return
+    }
+
     const payload = {
-      nev: form.value.nev?.trim(),
-      email: form.value.email?.trim(),
+      nev: trimmedName,
+      felhasznalonev: trimmedUsername,
+      email: trimmedEmail,
       jogosultsag: form.value.jogosultsag,
     }
 
-    if (form.value.felhasznalonev?.trim()) {
-      payload.felhasznalonev = form.value.felhasznalonev.trim()
+    const phone = ensureEuropeanPhone(form.value.telefonszam)
+    if (!phone) {
+      error.value = 'Érvényes magyar vagy európai telefonszámot adj meg (pl. +36205012465).'
+      return
     }
 
-    if (form.value.telefonszam?.trim()) {
-      payload.telefonszam = form.value.telefonszam.trim()
-    }
+    payload.telefonszam = phone
 
     if (form.value.password?.trim()) {
       payload.password = form.value.password
@@ -132,7 +158,7 @@ const removeItem = async (row) => {
     <div class="d-flex align-center mb-3">
       <div class="text-h6 font-weight-bold">Ügyfelek</div>
       <v-spacer />
-      <v-btn color="primary" @click="openAdd"><v-icon icon="mdi-plus"></v-icon> Új ügyfél</v-btn>
+      <v-btn color="primary" @click="openAdd"><v-icon icon="mdi-plus"></v-icon> Új Ugyfel</v-btn>
     </div>
 
     <v-text-field v-model="search" @input="onSearch" label="Keresés (név/email/felhasználónév)" prepend-inner-icon="mdi-magnify" class="mb-3" />
@@ -150,13 +176,31 @@ const removeItem = async (row) => {
 
     <v-dialog v-model="dialog" max-width="600">
       <v-card>
-        <v-card-title class="text-h6">{{ editing ? 'Ügyfél szerkesztése' : 'Új ügyfél' }}</v-card-title>
+        <v-card-title class="text-h6">{{ editing ? 'Ugyfel szerkesztése' : 'Új Ugyfel' }}</v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="12" sm="6"><v-text-field v-model="form.nev" label="Név" required /></v-col>
-            <v-col cols="12" sm="6"><v-text-field v-model="form.felhasznalonev" label="Felhasználónév" /></v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="form.felhasznalonev"
+                label="Felhasználónév"
+                required
+                hint="Engedélyezett: betű, szám, pont, kötőjel, aláhúzás"
+                persistent-hint
+              />
+            </v-col>
             <v-col cols="12" sm="6"><v-text-field v-model="form.email" type="email" label="Email" required /></v-col>
-            <v-col cols="12" sm="6"><v-text-field v-model="form.telefonszam" label="Telefonszám" /></v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="form.telefonszam"
+                label="Telefonszám"
+                required
+                autocomplete="tel"
+                placeholder="+36205012465"
+                hint="Példa formátum: +36205012465"
+                persistent-hint
+              />
+            </v-col>
             <v-col cols="12" sm="6">
               <v-select
                 v-model="form.jogosultsag"

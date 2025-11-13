@@ -9,7 +9,7 @@
           v-model="search"
           variant="outlined"
           density="comfortable"
-          label="Keresés (Ügyfél, gép, Azonosító)"
+          label="Keresés (Ugyfel, gép, Azonosító)"
           prepend-inner-icon="mdi-magnify"
           clearable
           class="mr-2"
@@ -63,7 +63,7 @@
               <v-icon size="18" class="chev" icon="mdi-chevron-right" />
             </div>
           </template>
-          <template #item.ugyfel="{ item }">{{ getUgyfelNev(item) }}</template>
+          <template #item.Ugyfel="{ item }">{{ getUgyfelNev(item) }}</template>
           <template #item.gep="{ item }">{{ gepLabel(gepFromRow(item)) }}</template>
           <template #item.Létrehozva="{ item }">{{ fmtDate(item.Létrehozva || item.created_at) }}</template>
           <template #item.statusz="{ item }">
@@ -97,7 +97,7 @@ async function request(path, { method = 'GET', body } = {}) {
 
 const headers = [
   { title: 'Azonosító', value: 'Azonosító', sortable: true, width: 140 },
-  { title: 'Ügyfél', value: 'ugyfel', sortable:false },
+  { title: 'Ugyfel', value: 'Ugyfel', sortable:false },
   { title: 'Gép', value: 'gep', sortable:false },
   { title: 'Létrehozva', value: 'Létrehozva', sortable: true, width: 180 },
   { title: 'Státusz', value: 'statusz', sortable: true, width: 160 },
@@ -170,7 +170,7 @@ function fmtDate(v){ try { return v ? new Date(v).toLocaleString('hu-HU') : '' }
 function gepLabel(g){ if(!g) return '-'; const parts=[g.gyarto,g.tipusnev,g.g_cikkszam].filter(Boolean); return parts.join(' - ') }
 function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
 function getId(row){ return row?.id ?? row?.ID ?? row?.Azonosító ?? row?.munkalap_id ?? null }
-function getUgyfelNev(row){ return row?.ugyfel?.nev ?? row?.ugyfel_nev ?? row?.nev ?? row?.ugyfel_adatok?.nev ?? '-' }
+function getUgyfelNev(row){ return row?.Ugyfel?.nev ?? row?.Ugyfel_nev ?? row?.nev ?? row?.Ugyfel_adatok?.nev ?? '-' }
 function getStatus(row){ return (row?.statusz ?? row?.status ?? row?.allapot ?? '').toString() }
 
 async function fetchList(){

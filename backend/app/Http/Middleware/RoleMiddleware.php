@@ -15,7 +15,7 @@ class RoleMiddleware
             abort(401, 'Nincs bejelentkezve');
         }
         if (!empty($roles) && !in_array($user->jogosultsag, $roles, true)) {
-            abort(403, 'Nincs jogosultsĂˇg');
+            abort(403, 'Nincs jogosultság');
         }
         return $next($request);
     }
