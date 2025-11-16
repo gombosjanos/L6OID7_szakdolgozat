@@ -41,7 +41,6 @@ class MunkalapKep extends Model
         if (!$this->id || !$this->munkalap_id) {
             return null;
         }
-        // Return API route so the frontend dev server proxy (/api -> backend) can handle it
         return route('munkalapkepek.show', ['id' => $this->munkalap_id, 'kep' => $this->id], false);
     }
 }

@@ -17,17 +17,12 @@ return new class extends Migration
             $table->string('nev', 50);
             $table->string('felhasznalonev', 50)->nullable();
             $table->string('email', 100)->unique();
-            // A jelszó hash tárolása (Laravel konvenció szerint "password")
+            // A jelszó hash tárolása
             $table->string('password');
             $table->string('telefonszam', 20)->nullable();
             $table->string('jogosultsag', 20)->default('Ugyfel');
-            // No timestamps as model sets public $timestamps = false
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('felhasznalok');

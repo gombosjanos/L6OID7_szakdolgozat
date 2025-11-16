@@ -123,7 +123,7 @@
       </v-col>
     </v-row>
 
-    <!-- Dialog: Új gép felvétele -->
+    <!-- Új gép felvétele -->
     <v-dialog v-model="addMachineDialog" max-width="560">
       <v-card>
         <v-card-title class="text-subtitle-1">Új gép hozzáadása</v-card-title>
@@ -148,7 +148,6 @@ import * as Vue from 'vue'
 import { useRouter } from 'vue-router'
 import { ensureEuropeanPhone } from '../../utils/phone.js'
 
-// Lightweight request helper (matches other views)
 async function request(path, { method = 'GET', body } = {}) {
   const url = `/api${path}`
   const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' }
@@ -161,13 +160,11 @@ async function request(path, { method = 'GET', body } = {}) {
 
 const router = useRouter()
 
-// Snackbar
 const snackbar = Vue.ref(false)
 const snackbarText = Vue.ref('')
 const snackbarColor = Vue.ref('success')
 function setSnack(text, color = 'success'){ snackbarText.value = text; snackbarColor.value = color; snackbar.value = true }
 
-// State
 const isRegistered = Vue.ref(true)
 
 const Ugyfel = Vue.ref(null)
@@ -188,16 +185,13 @@ const megjegyzes = Vue.ref('')
 const saving = Vue.ref(false)
 const errorMsg = Vue.ref('')
 
-// New machine dialog
 const addMachineDialog = Vue.ref(false)
 const addingMachine = Vue.ref(false)
 const newMachine = Vue.reactive({ gyarto: '', tipusnev: '', g_cikkszam: '', gyartasiev: '' })
 const canAddMachine = Vue.computed(()=> !!(newMachine.gyarto && newMachine.tipusnev && newMachine.g_cikkszam && String(newMachine.gyartasiev).length >= 4))
 
-// Helpers
 function gepItemTitle(item){ if(!item) return '-'; return [item.gyarto, item.tipusnev, item.g_cikkszam].filter(Boolean).join(' — ') }
 
-// Search handlers (debounced)
 let tU = null
 async function onSearchUgyfel(q){
   UgyfelSearch.value = q
@@ -222,16 +216,13 @@ async function onSearchGep(q){
   }, 200)
 }
 
-// Add machine from dialog
 async function addMachine(){
   if(!canAddMachine.value) return
   addingMachine.value = true
   try{
-    // Ensure year is a 4-digit number
     const payload = { ...newMachine, gyartasiev: Number(String(newMachine.gyartasiev).slice(0,4)) || 0 }
     const rec = await request('/gepek', { method: 'POST', body: payload })
-    gep.value = rec
-    // Reset dialog state
+    gep.value = Reflect
     Object.assign(newMachine, { gyarto: '', tipusnev: '', g_cikkszam: '', gyartasiev: '' })
     addMachineDialog.value = false
     setSnack('Gép hozzáadva')
@@ -239,7 +230,6 @@ async function addMachine(){
   finally{ addingMachine.value = false }
 }
 
-// Simple validators
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const emailValid = Vue.computed(()=> isRegistered.value ? true : emailPattern.test((Ugyfel_email.value||'').trim()))
 const nameValid = Vue.computed(()=> isRegistered.value ? true : !!(Ugyfel_nev.value||'').trim())
@@ -251,7 +241,6 @@ const phoneRules = [
   v => (isRegistered.value || ensureEuropeanPhone(v)) ? true : 'Érvényes magyar vagy európai telefonszámot adj meg (pl. +36205012465)'
 ]
 
-// Create workorder
 const disableCreate = Vue.computed(()=>{
   const hasGep = !!(gep.value && (gep.value.ID || gep.value.id))
   const hasUser = isRegistered.value
@@ -273,7 +262,6 @@ async function createWorkorder(){
       payload.user_id = Ugyfel.value?.id ?? Ugyfel.value?.ID
     } else {
       payload.regisztralt = false
-      // Client-side guard: prevent invalid email from being sent
       const trimmedName = (Ugyfel_nev.value||'').trim()
       const trimmedEmail = (Ugyfel_email.value||'').trim()
       if(!trimmedName){ setSnack('Név megadása kötelező', 'error'); saving.value=false; return }
@@ -303,7 +291,6 @@ async function createWorkorder(){
 
 function goBack(){ try{ if(window.history && window.history.length>1) router.back(); else router.push('/admin/munkalapok') } catch { router.push('/admin/munkalapok') } }
 
-// Prime lists on mount
 if(typeof window !== 'undefined'){
   onSearchUgyfel('')
   onSearchGep('')

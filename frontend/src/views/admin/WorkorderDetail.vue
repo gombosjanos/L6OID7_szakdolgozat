@@ -488,15 +488,12 @@ Vue.onMounted(()=>{ loadAll() })
 .menu-dark{ background:#616161 !important; color:#fff !important; }
 .menu-dark :is(.v-list-item-title,.v-list-item){ color:#fff !important; }
 .menu-dark .v-list-item:hover{ background: rgba(255,255,255,0.08) !important; }
-/* Offer table scrolling + column widths */
 .offer-scroll{ overflow-x: auto; }
 .offer-scroll .v-table__wrapper{ overflow-x: auto; }
 .offer-scroll table{ min-width: 1120px; }
-/* Inputs width inside cells */
 .name-input{ min-width: 380px; }
 .num-input{ min-width: 110px; }
 .num-input input{ text-align: right; }
-/* Stacked rows + inline labels next to inputs */
 .stack-col{ display:flex; flex-direction:column; gap:6px; }
 .stack-row{ display:flex; align-items:center; gap:8px; }
 .stack-label{ width: 54px; text-align:right; font-size:12px; color: rgba(0,0,0,0.6); text-transform: lowercase; }

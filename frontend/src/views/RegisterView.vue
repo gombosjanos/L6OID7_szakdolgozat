@@ -7,7 +7,6 @@ import { ensureEuropeanPhone } from '../utils/phone.js'
 const formRef = ref(null)
 const router = useRouter()
 
-// Form state
 const nev = ref('')
 const felhasznalonev = ref('')
 const email = ref('')
@@ -113,7 +112,6 @@ const register = async () => {
       <v-col cols="12" sm="10" md="9" lg="8" xl="7">
         <v-card class="auth-card overflow-hidden" elevation="10">
           <v-row class="ma-0" no-gutters>
-            <!-- Illustration / welcome panel on md+ -->
             <v-col cols="12" md="6" class="pa-0 d-none d-md-flex">
               <div class="illustration-panel">
                 <div class="panel-content">
@@ -123,7 +121,6 @@ const register = async () => {
               </div>
             </v-col>
 
-            <!-- Form side -->
             <v-col cols="12" md="6" class="pa-6 pa-md-8">
               <div class="text-center mb-6">
                 <v-avatar color="primary" size="56" class="mb-3">

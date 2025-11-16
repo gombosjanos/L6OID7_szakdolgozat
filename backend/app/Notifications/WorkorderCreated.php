@@ -22,7 +22,7 @@ class WorkorderCreated extends Notification
     {
         $id = $this->munkalap->ID;
         return (new MailMessage)
-            ->subject('Új munkalap létrehozva')
+            ->subject('Új javítás felvétele')
             ->greeting('Tisztelt Ügyfelünk!')
             ->line("Új munkalap készült azonosítóval: #{$id}.")
             ->line('Állapot: ' . ($this->munkalap->statusz ?? 'uj'))

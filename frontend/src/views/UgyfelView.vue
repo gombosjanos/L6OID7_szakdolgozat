@@ -16,7 +16,7 @@ const load = async () => {
     const userId = user.id ?? user.ID
     const { data } = await api.get('/munkalapok', { params: { user_id: userId } })
     munkalapok.value = Array.isArray(data) ? data : []
-    // Elő-töltjük az ajánlat státuszokat, hogy a listában is látszódjon
+    // Ajánlatok előtöltése a listás megjelenítás miatt
     const ids = (munkalapok.value||[]).map(r=> r.ID || r.id).filter(Boolean)
     for (const wId of ids) {
       try {

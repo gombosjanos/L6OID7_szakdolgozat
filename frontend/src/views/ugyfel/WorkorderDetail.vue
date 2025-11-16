@@ -305,7 +305,6 @@ const offerRows = Vue.computed(()=>{
   return []
 })
 
-// Helpers to robustly read numeric fields (handles accents/case and commas)
 function normKey(k){ try{ return (k||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (k||'').toString().toLowerCase() } }
 function toNum(v){ if (v==null) return 0; if (typeof v==='number') return isFinite(v)?v:0; const s=String(v).replace(/\s+/g,'').replace(/\./g,'').replace(',', '.'); const n=parseFloat(s); return isFinite(n)?n:0 }
 function pickVal(obj, candidates){ try{ const map={}; for(const k of Object.keys(obj||{})){ map[normKey(k)] = obj[k]; } for(const name of candidates){ const v = map[normKey(name)]; if (v!=null && v!=='') return v } }catch{} return undefined }
@@ -435,7 +434,6 @@ Vue.onMounted(load)
 </style>
 
 <style scoped>
-/* Lightbox overlay controls with inline SVG icons (visible on dark bg) */
 .lb-card{ position:relative; background:#000; }
 .lb-body{ height:80vh; max-height:80vh; display:flex; align-items:center; justify-content:center; background:#000; }
 .lb-body img{ max-width:100%; max-height:80vh; object-fit:contain; }

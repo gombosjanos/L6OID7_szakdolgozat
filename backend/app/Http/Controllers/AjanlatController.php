@@ -12,18 +12,17 @@ class AjanlatController extends Controller
 {
     public function showByWorkorder($munkalapId)
     {
-        // Ownership check for customers
+        // Van-e ügyfélnek jogosultsága?
         $auth = request()->user();
         if ($auth && $auth->jogosultsag === 'Ugyfel') {
             $ml = \App\Models\Munkalap::findOrFail($munkalapId);
             if ((int)$ml->user_id !== (int)$auth->getKey()) {
-                abort(403, 'Nincs jogosultsĂˇg');
+                abort(403, 'Nincs jogosultság');
             }
         }
 
         $ajanlat = Ajanlat::where('munkalap_id', $munkalapId)->first();
         if (!$ajanlat) {
-            // Fallback: header may use alternate FK name (e.g., MunkalapID)
             $hdrTable = 'munkalap_ajanlat';
             $header = null;
             if (Schema::hasColumn($hdrTable, 'MunkalapID')) {
@@ -49,11 +48,10 @@ class AjanlatController extends Controller
                     'megjegyzes' => $header->megjegyzes ?? null,
                     'tetelek' => $rows,
                 ]);
-            }
-            // Nothing found: do not create placeholder here to avoid schema mismatch
+            }    
             return response()->json((object)['statusz'=>null,'megjegyzes'=>null,'tetelek'=>[]]);
         }
-        // Robust tĂ©tel betĂ¶ltĂ©s bĂˇrmely PK esetĂ©n
+        // Tételek betöltése
         $aid = $ajanlat->ID ?? $ajanlat->id ?? $ajanlat->getKey();
         $fk = Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlat_id') ? 'ajanlat_id' : (Schema::hasColumn('munkalap_ajanlat_tetelek','AjanlatID') ? 'AjanlatID' : (Schema::hasColumn('munkalap_ajanlat_tetelek','ajanlatId') ? 'ajanlatId' : 'ajanlat_id'));
         $rows = DB::table('munkalap_ajanlat_tetelek')->where($fk, $aid)->get();
@@ -101,7 +99,7 @@ class AjanlatController extends Controller
             if (isset($data['statusz'])) $ajanlat->statusz = $data['statusz'];
             $ajanlat->save();
 
-            // Compute stock delta if items are provided
+            // Készletkezelés tételekre
             if (isset($data['tetelek'])) {
                 $hasTipus = Schema::hasColumn('munkalap_ajanlat_tetelek', 'tipus');
                 $hasPart = Schema::hasColumn('munkalap_ajanlat_tetelek', 'alkatresz_id');
@@ -128,7 +126,7 @@ class AjanlatController extends Controller
                         $newParts[$pid] = ($newParts[$pid] ?? 0) + (float)$t['mennyiseg'];
                     }
                 }
-                // Apply stock reservation
+                // Foglalás készletből
                 if ($hasPart) {
                     $allIds = array_unique(array_merge(array_keys($oldParts), array_keys($newParts)));
                     foreach ($allIds as $pid) {
@@ -138,8 +136,7 @@ class AjanlatController extends Controller
                         if ($delta > 0) DB::table('alkatreszek')->where('ID', $pid)->decrement('keszlet', $delta);
                         elseif ($delta < 0) DB::table('alkatreszek')->where('ID', $pid)->increment('keszlet', -$delta);
                     }
-                } else {
-                    // Fallback: if table lacks tracking cols, only reserve once when creating first time
+                } else {            
                     if (!$hadRows && !empty($newParts)) {
                         foreach ($newParts as $pid => $qty) {
                             DB::table('alkatreszek')->where('ID', $pid)->decrement('keszlet', $qty);
@@ -147,7 +144,6 @@ class AjanlatController extends Controller
                     }
                 }
 
-                // Replace items
                 AjanlatTetel::where('ajanlat_id', $aid)->delete();
                 $sumBrutto = 0;
                 foreach ($data['tetelek'] as $t) {
@@ -177,7 +173,7 @@ class AjanlatController extends Controller
                 $ajanlat->save();
             }
 
-            // Handle rejection restock when only status changes
+            // Készletváltoztatás státusz módosítás esetén
             if (isset($data['statusz'])) {
                 $newStatus = $data['statusz'];
                 if ($oldStatus !== 'elutasitva' && $newStatus === 'elutasitva') {
@@ -223,7 +219,7 @@ class AjanlatController extends Controller
             return $fresh;
         });
 
-        // Notify user (best-effort)
+        // Ügyfél értesítése
         try {
             $ml = \App\Models\Munkalap::with('Ugyfel')->find($munkalapId);
             if ($ml && $ml->Ugyfel) {
@@ -234,29 +230,28 @@ class AjanlatController extends Controller
     }
 
     /**
-     * Customer accepts an offer for their own workorder.
+     * Ügyfél által árajánlat jóváhagyva
      */
     public function customerAccept(Request $request, $munkalapId)
     {
         $auth = $request->user();
         if (!$auth) abort(401);
-        // Verify ownership if customer
         $munkalap = \App\Models\Munkalap::findOrFail($munkalapId);
         if ($auth->jogosultsag === 'Ugyfel' && (int)$munkalap->user_id !== (int)$auth->getKey()) {
-            abort(403, 'Nincs jogosultsĂˇg');
+            abort(403, 'Nincs jogosultság');
         }
         $ajanlat = Ajanlat::firstOrCreate(['munkalap_id' => $munkalapId], [
             'statusz' => 'tervezet', 'osszeg_brutto' => 0, 'letrehozva' => now()
         ]);
         $ajanlat->statusz = 'elfogadva';
         $ajanlat->save();
-        // Update workorder status for visibility in client list
+        // Munkalap státusz frissítése
         try { $munkalap->statusz = 'ajanlat_elfogadva'; $munkalap->save(); } catch (\Throwable $e) {}
         return response()->json(Ajanlat::with('tetelek')->find($ajanlat->getKey()));
     }
 
     /**
-     * Customer rejects an offer for their own workorder (restock parts).
+     * Ügyfél eutasítja az árajánlatot
      */
     public function customerReject(Request $request, $munkalapId)
     {
@@ -269,7 +264,7 @@ class AjanlatController extends Controller
         $ajanlat = Ajanlat::firstOrCreate(['munkalap_id' => $munkalapId], [
             'statusz' => 'tervezet', 'osszeg_brutto' => 0, 'letrehozva' => now()
         ]);
-        // Restock any reserved parts when rejecting
+        // Újra készletbe vételezés tételekre
         $hasPart = \Illuminate\Support\Facades\Schema::hasColumn('munkalap_ajanlat_tetelek', 'alkatresz_id');
         if ($hasPart) {
             $rows = AjanlatTetel::where('ajanlat_id', $ajanlat->id)->get();
@@ -282,7 +277,7 @@ class AjanlatController extends Controller
         }
         $ajanlat->statusz = 'elutasitva';
         $ajanlat->save();
-        // Update workorder status for visibility in client list
+        // Munkalap státusz frissítése
         try { $munkalap->statusz = 'ajanlat_elutasitva'; $munkalap->save(); } catch (\Throwable $e) {}
         return response()->json(Ajanlat::with('tetelek')->find($ajanlat->getKey()));
     }

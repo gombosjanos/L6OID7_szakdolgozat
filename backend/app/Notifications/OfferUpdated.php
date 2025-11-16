@@ -19,11 +19,11 @@ class OfferUpdated extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $subject = $this->status ? 'Árajánlat státusz frissült' : 'Árajánlat frissült';
+        $subject = $this->status ? 'Árajánlat státusz frissítés' : 'Árajánlat frissült';
         $msg = (new MailMessage)
             ->subject($subject)
             ->greeting('Tisztelt Ügyfelünk!')
-            ->line('Árajánlat frissült a következő munkalaphoz: #' . $this->workorderId);
+            ->line('Az árajánlat frissült a következő munkalaphoz: #' . $this->workorderId);
         if ($this->status) {
             $msg->line('Új státusz: ' . $this->status);
         }

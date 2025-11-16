@@ -13,7 +13,7 @@ trait HandlesPhoneNumbers
 
         if (!$normalized || !$this->isEuropeanPhoneNumber($normalized)) {
             throw ValidationException::withMessages([
-                'telefonszam' => 'Érvényes magyar vagy európai telefonszámot adj meg (pl. +36205012465).',
+                'telefonszam' => 'Érvényes magyar vagy európai telefonszámot adj meg (pl. +36201234567).',
             ]);
         }
 

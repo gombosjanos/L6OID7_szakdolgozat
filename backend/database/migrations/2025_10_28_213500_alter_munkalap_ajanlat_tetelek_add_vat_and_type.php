@@ -27,10 +27,5 @@ return new class extends Migration {
         });
     }
 
-    public function down(): void
-    {
-        Schema::table('munkalap_ajanlat_tetelek', function (Blueprint $table) {
-            // Optional: keep columns on rollback to avoid data loss
-        });
-    }
+    
 };

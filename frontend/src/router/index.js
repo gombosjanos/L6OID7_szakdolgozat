@@ -11,7 +11,7 @@ import AdminPartsView from '../views/admin/PartsView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
 import UgyfelView from '../views/UgyfelView.vue'
-import UgyfelWorkorderDetail from '../views/Ugyfel/WorkorderDetail.vue'
+import UgyfelWorkorderDetail from '../views/UgyfelWorkorderDetail.vue'
 import SzereloView from '../views/SzereloView.vue'
 import AdminWorkorderCreate from '../views/admin/WorkorderCreate.vue'
 import ProfileView from '../views/ProfileView.vue'
@@ -54,8 +54,6 @@ router.beforeEach((to, from, next) => {
     next('/login')
     return
   }
-
-  // Role-based guard with szerelő allowlist under /admin
   if (to.path.startsWith('/admin')) {
     const role = user?.jogosultsag
     if (role === 'admin') return next()

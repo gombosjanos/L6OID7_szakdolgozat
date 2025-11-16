@@ -4,7 +4,6 @@ import router from './router'
 
 // Vuetify importok
 import 'vuetify/styles'
-// Use built-in SVG MDI icons instead of font import
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
@@ -24,7 +23,6 @@ const vuetify = createVuetify({
     themes: {
       light: {
         colors: {
-          // Lawn mower workshop inspired palette
           primary: '#2E7D32',
           secondary: '#1B5E20',
           success: '#43A047',

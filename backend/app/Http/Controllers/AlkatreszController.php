@@ -12,13 +12,11 @@ class AlkatreszController extends Controller
 {
     public function show($id): JsonResponse
     {
-        $table = 'alkatreszek';
-        // Safe name expression across variants
+        $table = 'alkatreszek';        
         $candidates = ['alkatresznev', 'alaktresznev', 'megnevezes'];
         $existing = array_values(array_intersect($candidates, Schema::getColumnListing($table)));
         $nameExpr = !empty($existing) ? ('COALESCE(' . implode(', ', $existing) . ')') : "''";
 
-        // Select common price fields if they exist
         $cols = Schema::getColumnListing($table);
         $hasNetto = in_array('nettoar', $cols, true);
         $hasBrutto = in_array('bruttoar', $cols, true);
@@ -41,10 +39,9 @@ class AlkatreszController extends Controller
             $limit = 50;
         }
 
-        // Build a safe COALESCE only over existing columns
         $candidates = ['alkatresznev', 'alaktresznev', 'megnevezes'];
         $existing = array_values(array_intersect($candidates, Schema::getColumnListing('alkatreszek')));
-        $nameExpr = "''"; // default empty string if none exists
+        $nameExpr = "''";
         if (!empty($existing)) {
             $nameExpr = 'COALESCE(' . implode(', ', $existing) . ')';
         }
@@ -106,7 +103,6 @@ class AlkatreszController extends Controller
 
         $id = $this->insertWithNameFallback('alkatreszek', $base, $name);
 
-        // Build safe name expression again to avoid missing-column errors
         $candidates = ['alkatresznev', 'alaktresznev', 'megnevezes'];
         $existing = array_values(array_intersect($candidates, Schema::getColumnListing('alkatreszek')));
         $nameExpr = !empty($existing) ? ('COALESCE(' . implode(', ', $existing) . ')') : "''";
@@ -145,7 +141,6 @@ class AlkatreszController extends Controller
         $netto = array_key_exists('nettoar', $validated) ? (float)$validated['nettoar'] : null;
         $brutto = array_key_exists('bruttoar', $validated) ? (float)$validated['bruttoar'] : null;
 
-        // Derive missing value only if one provided
         if ($netto !== null && $brutto === null) {
             $brutto = round($netto * (1 + $vat / 100), 2);
         } elseif ($brutto !== null && $netto === null) {
@@ -211,12 +206,11 @@ class AlkatreszController extends Controller
     {
         $payload1 = $base;
         if ($name !== null) {
-            $payload1['alkatresznev'] = $name; // elsődlegesen ezt próbáljuk
+            $payload1['alkatresznev'] = $name;
         }
         try {
             return (int) DB::table($table)->insertGetId($payload1);
         } catch (QueryException $e) {
-            // Ha oszlopnév gond, próbáljuk a másik változatot
             $payload2 = $base;
             if ($name !== null) {
                 $payload2['alaktresznev'] = $name;
@@ -227,7 +221,6 @@ class AlkatreszController extends Controller
 
     private function updateWithNameFallback(string $table, int $id, array $base, ?string $name): void
     {
-        // Próbáljuk először az "alkatresznev" mezőt
         $payload1 = $base;
         if ($name !== null) {
             $payload1['alkatresznev'] = $name;
@@ -235,7 +228,6 @@ class AlkatreszController extends Controller
         try {
             DB::table($table)->where('ID', $id)->update($payload1);
         } catch (QueryException $e) {
-            // Ha oszlopnév gond, próbáljuk az "alaktresznev" mezőt
             $payload2 = $base;
             if ($name !== null) {
                 $payload2['alaktresznev'] = $name;

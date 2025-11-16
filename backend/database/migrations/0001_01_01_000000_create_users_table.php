@@ -8,9 +8,7 @@ return new class extends Migration
 {
     // Keretrendszer általános táblái: users, password_reset_tokens, sessions
     // Ezek a Laravel alapfunkcióihoz (bejelentkezés, jelszó visszaállítás, session kezelés) szükségesek.
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -39,9 +37,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

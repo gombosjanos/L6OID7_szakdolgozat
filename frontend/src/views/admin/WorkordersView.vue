@@ -189,7 +189,6 @@ async function fetchList(){
 
 function onRowClick(_, row){ const r=row?.item||row; const id=getId(r); if(!id) return; router.push(`/admin/munkalapok/${id}`) }
 function openDetail(evtOrItem, maybeRow){
-  // Vuetify 3 emits (event, { item }) for click:row; support both shapes
   const r = (maybeRow && (maybeRow.item || maybeRow)) || (evtOrItem?.item ? evtOrItem.item : evtOrItem)
   const id = getId(r)
   if(!id) return
@@ -220,8 +219,6 @@ async function deleteWorkorder(item){
     fetchList()
   }catch(e){ setSnack(e?.message || 'Törlés sikertelen', 'error') }
 }
-
-// Initialize data on component mount
 onMounted(() => {
   fetchList()
 })
@@ -234,18 +231,16 @@ if(isClient){
 .table-scroll{ overflow-x: auto; }
 :deep(.v-btn:not(.v-btn--icon)) { text-align: center; }
 :deep(.v-btn:not(.v-btn--icon) .v-btn__content) { justify-content: center; width: 100%; }
-/* Make rows feel clickable */
 :deep(.clickable-table .v-table__wrapper tbody tr){
   cursor: pointer;
   transition: background-color .15s ease-in-out;
 }
 :deep(.clickable-table .v-table__wrapper tbody tr:hover){
-  background-color: rgba(46,125,50,.08); /* primary tint */
+  background-color: rgba(46,125,50,.08);
 }
 :deep(.clickable-table .v-table__wrapper tbody tr:active){
   background-color: rgba(46,125,50,.14);
 }
-/* Chevron indicator on first column */
 :deep(.clickable-table .row-link){ display:flex; align-items:center; gap:6px; }
 :deep(.clickable-table .row-link .chev){ opacity:.2; transition: opacity .15s, transform .15s; }
 :deep(.clickable-table .v-table__wrapper tbody tr:hover .row-link .chev){ opacity:.6; transform: translateX(2px); }

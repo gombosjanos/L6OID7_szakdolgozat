@@ -11,7 +11,7 @@ return new class extends Migration {
         Schema::create('munkalap_naplo', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('munkalap_id');
-            $table->string('tipus', 30); // statusz | jegyzet
+            $table->string('tipus', 30);
             $table->text('uzenet');
             $table->timestamp('letrehozva')->nullable();
         });

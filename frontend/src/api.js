@@ -10,7 +10,7 @@ export const api = axios.create({
   },
 })
 
-// minden kérés előtt hozzáadjuk a tokent, ha létezik
+// token hozzáadása minden kérés előtt ha létezik
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {
