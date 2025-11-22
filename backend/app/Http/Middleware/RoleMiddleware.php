@@ -14,9 +14,17 @@ class RoleMiddleware
         if (!$user) {
             abort(401, 'Nincs bejelentkezve');
         }
-        if (!empty($roles) && !in_array($user->jogosultsag, $roles, true)) {
-            abort(403, 'Nincs jogosultság');
+
+        // Jogosultság ellenőrzés kis/nagybetű függetlenül,
+        // így az "Ugyfel" és "ugyfel" is ugyanazt jelenti.
+        if (!empty($roles)) {
+            $userRole = strtolower((string) $user->jogosultsag);
+            $allowed  = array_map(static fn ($r) => strtolower((string) $r), $roles);
+            if (!in_array($userRole, $allowed, true)) {
+                abort(403, 'Nincs jogosultság');
+            }
         }
+
         return $next($request);
     }
 }

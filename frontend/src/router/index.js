@@ -6,14 +6,17 @@ import AdminCustomersView from '../views/admin/CustomersView.vue'
 import AdminMachinesView from '../views/admin/MachinesView.vue'
 import AdminWorkordersView from '../views/admin/WorkordersView.vue'
 import AdminWorkorderDetail from '../views/admin/WorkorderDetail.vue'
+import AdminWorkorderPrint from '../views/admin/WorkorderPrint.vue'
+import AdminOfferPrint from '../views/admin/OfferPrint.vue'
 import AdminPartsView from '../views/admin/PartsView.vue'
 
 import RegisterView from '../views/RegisterView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
 import UgyfelView from '../views/UgyfelView.vue'
-import UgyfelWorkorderDetail from '../views/UgyfelWorkorderDetail.vue'
+import UgyfelWorkorderDetail from '../views/ugyfel/WorkorderDetail.vue'
 import SzereloView from '../views/SzereloView.vue'
 import AdminWorkorderCreate from '../views/admin/WorkorderCreate.vue'
+import AdminWorkorderEdit from '../views/admin/WorkorderEdit.vue'
 import ProfileView from '../views/ProfileView.vue'
 
 const routes = [
@@ -30,6 +33,9 @@ const routes = [
       { path: 'admin/munkalapok', component: AdminWorkordersView },
       { path: 'admin/munkalapok/uj', component: AdminWorkorderCreate },
       { path: 'admin/munkalapok/:id', name: 'AdminWorkorderDetail', component: AdminWorkorderDetail, props: true },
+      { path: 'admin/munkalapok/:id/szerkesztes', name: 'AdminWorkorderEdit', component: AdminWorkorderEdit, props: true },
+      { path: 'admin/munkalapok/:id/nyomtat', name: 'AdminWorkorderPrint', component: AdminWorkorderPrint, props: true },
+      { path: 'admin/munkalapok/:id/ajanlat-nyomtat', name: 'AdminOfferPrint', component: AdminOfferPrint, props: true },
       { path: 'admin/alkatreszek', component: AdminPartsView },
       { path: 'Ugyfel', component: UgyfelView },
       { path: 'Ugyfel/munkalapok/:id', name: 'UgyfelWorkorderDetail', component: UgyfelWorkorderDetail, props: true },
@@ -72,4 +78,3 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
-

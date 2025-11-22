@@ -11,12 +11,25 @@ class Munkalap extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'gep_id', 'javitando_id', 'hibaleiras', 'megjegyzes', 'statusz', 'letrehozva', 'munkalapsorsz'
+        'user_id',
+        'gep_id',
+        'javitando_id',
+        'hibaleiras',
+        'megjegyzes',
+        'statusz',
+        'letrehozva',
+        'munkalapsorsz',
+        'letrehozta',
     ];
 
     public function Ugyfel()
     {
         return $this->belongsTo(Felhasznalo::class, 'user_id', 'id');
+    }
+
+    public function letrehozo()
+    {
+        return $this->belongsTo(Felhasznalo::class, 'letrehozta', 'id');
     }
 
     public function gep()

@@ -4,7 +4,9 @@
       <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
       <v-toolbar-title>Munkalap #{{ displayId }}</v-toolbar-title>
       <v-spacer />
-      <v-chip size="small" :color="statusColor(detail.statusz)" variant="flat">{{ displayStatus(detail.statusz) }}</v-chip>
+      <v-chip class="status-chip" :color="statusColor(detail.statusz)" variant="flat">
+        {{ displayStatus(detail.statusz) }}
+      </v-chip>
     </v-toolbar>
 
     <v-alert v-if="errorMsg" type="error" variant="tonal" class="mb-3">{{ errorMsg }}</v-alert>
@@ -21,6 +23,17 @@
             <div class="mb-2"><strong>Állapot:</strong> {{ displayStatus(detail.statusz) }}</div>
             <div class="mb-2" v-if="detail.hibaleiras"><strong>Hiba leírás:</strong> {{ detail.hibaleiras }}</div>
             <div class="mb-2" v-if="detail.megjegyzes"><strong>Megjegyzés:</strong> {{ detail.megjegyzes }}</div>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="mb-4">
+          <v-card-title class="text-subtitle-1 font-weight-bold">Szerelő adatai</v-card-title>
+          <v-divider />
+          <v-card-text>
+            <div class="mb-2"><strong>Név:</strong> {{ getUgyfelNev(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>E-mail:</strong> {{ getUgyfelEmail(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>Telefon:</strong> {{ getUgyfelTelefon(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>Felhasználónév:</strong> {{ getUgyfelFnev(detail.letrehozo || {}) }}</div>
           </v-card-text>
         </v-card>
 
@@ -105,7 +118,7 @@
 
               <div class="mt-3 d-flex align-center" v-if="canDecide">
                 <v-btn color="success" variant="tonal" prepend-icon="mdi-check" class="me-2" :loading="processing" :disabled="processing" @click="accept">Elfogadom</v-btn>
-                <v-btn color="error" variant="tonal" prepend-icon="mdi-close" :loading="processing" :disabled="processing" @click="reject">ElutasĂ­tom</v-btn>
+                <v-btn color="error" variant="tonal" prepend-icon="mdi-close" :loading="processing" :disabled="processing" @click="reject">Elutasí­tom</v-btn>
               </div>
             </template>
           </v-card-text>
@@ -182,11 +195,12 @@ async function getObjectUrl(img){
 async function openImage(img){
   if(!img) return
   try{
-    const idx = images.value.findIndex(i => (i.id ?? i.ID) === (img.id ?? img.ID))
-    currentIndex.value = idx >= 0 ? idx : 0
-    lightboxUrl.value = await getObjectUrl(img)
-    lightboxOpen.value = true
-  }catch(e){ snack('Kep megnyitasa nem sikerult.', 'error') }
+    const url = await getObjectUrl(img)
+    const w = window.open(url, '_blank')
+    if(!w){ snack('A kép megnyitását a böngésző blokkolta.', 'warning') }
+  }catch(e){
+    snack('Kép megnyitása nem sikerült.', 'error')
+  }
 }
 
 Vue.watch(images, (list)=>{
@@ -213,6 +227,51 @@ const displayId = Vue.computed(()=> detail.value?.azonosito || id.value)
 
 function fmtDate(v){ try { return v ? new Date(v).toLocaleString('hu-HU') : '' } catch { return v || '' } }
 function fmtCurrency(v){ if (v==null||v==='') return ''; return new Intl.NumberFormat('hu-HU',{style:'currency',currency:'HUF',maximumFractionDigits:0}).format(Number(v)) }
+
+function getUgyfelNev(row){
+  try{
+    return row?.ugyfel?.nev
+      ?? row?.Ugyfel?.nev
+      ?? row?.Ugyfel_nev
+      ?? row?.nev
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
+function getUgyfelEmail(row){
+  try{
+    return row?.ugyfel?.email
+      ?? row?.Ugyfel?.email
+      ?? row?.Ugyfel_email
+      ?? row?.email
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
+function getUgyfelTelefon(row){
+  try{
+    return row?.ugyfel?.telefonszam
+      ?? row?.Ugyfel?.telefonszam
+      ?? row?.Ugyfel_telefon
+      ?? row?.telefonszam
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
+function getUgyfelFnev(row){
+  try{
+    return row?.ugyfel?.felhasznalonev
+      ?? row?.Ugyfel?.felhasznalonev
+      ?? row?.Ugyfel_felhasznalonev
+      ?? row?.felhasznalonev
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
 
 function statusColor(s){
   const k=(s||'').toLowerCase()
@@ -340,7 +399,13 @@ const offerStatusUI = Vue.computed(()=>{
   if (os) return os
   return coarseStatus(detail.value?.statusz)
 })
-const canDecide = Vue.computed(()=> offerStatusUI.value === 'elkuldve')
+const canDecide = Vue.computed(()=>{
+  const s = offerStatusUI.value
+  if (s === 'elfogadva' || s === 'elutasitva') return false
+  if (s === 'elkuldve') return true
+  const rows = offerRows.value || []
+  return rows.length > 0
+})
 
 const offerNote = Vue.computed(()=> (offer.value?.megjegyzes || '').toString().trim())
 
@@ -401,12 +466,14 @@ Vue.onMounted(load)
 </script>
 
 <style scoped>
-.text-right{ text-align:right }
-.prewrap{ white-space: pre-wrap }
-.image-card{ overflow:hidden; border-radius:12px; }
-.image-card .v-img{ background:#f5f5f5; }
-.image-card .image-meta{ background:rgba(0,0,0,0.02); }
-.image-card .text-truncate{ max-width:100%; }
+  .text-right{ text-align:right }
+  .prewrap{ white-space: pre-wrap }
+  .image-card{ overflow:hidden; border-radius:12px; }
+  .image-card .v-img{ background:#f5f5f5; }
+  .image-card .image-meta{ background:rgba(0,0,0,0.02); }
+  .image-card .text-truncate{ max-width:100%; }
+  .status-chip{ min-width:140px; justify-content:center; }
+  .status-chip :deep(.v-chip__content){ white-space:nowrap; }
 </style>
 
 

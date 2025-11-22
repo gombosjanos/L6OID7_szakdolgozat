@@ -1,23 +1,68 @@
 ﻿
 <template>
-  <v-container fluid class="pa-4 has-bottom-bar">
-    <v-toolbar density="comfortable" color="white" elevation="0" class="mb-3 detail-toolbar">
-      <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
-      <v-toolbar-title>Munkalap #{{ displayId }}</v-toolbar-title>
-      <v-spacer />
-      <v-chip size="small" :color="statusColorX(statusModel)" class="mr-2" variant="flat">{{ displayStatusX(statusModel) }}</v-chip>
-      <v-menu offset-y>
-        <template #activator="{ props }">
-          <v-btn v-bind="props" variant="flat" class="ml-2 actions-btn" prepend-icon="mdi-dots-vertical">Műveletek</v-btn>
-        </template>
-        <v-list class="menu-dark">
-          <v-list-item @click="saveWorkorder"><v-list-item-title>Státusz mentése</v-list-item-title></v-list-item>
-          <v-list-item @click="saveOffer"><v-list-item-title>Árajánlat mentése</v-list-item-title></v-list-item>
-          <v-list-item :disabled="!canSendOffer || sendingOffer" @click="sendOffer"><v-list-item-title>Árajánlat küldése</v-list-item-title></v-list-item>
-          <v-list-item @click="printOffer"><v-list-item-title>Nyomtatás</v-list-item-title></v-list-item>
-        </v-list>
-      </v-menu>
-    </v-toolbar>
+<v-container fluid class="pa-4 has-bottom-bar">
+  <!-- 1. sor: Vissza + cím -->
+  <v-toolbar
+    density="comfortable"
+    color="white"
+    elevation="0"
+    class="mb-2 detail-toolbar"
+  >
+    <v-btn
+      variant="elevated"
+      color="primary"
+      prepend-icon="mdi-arrow-left"
+      @click="goBack"
+    >
+      Vissza
+    </v-btn>
+    <v-toolbar-title>Munkalap #{{ displayId }}</v-toolbar-title>
+  </v-toolbar>
+
+  <!-- 2. sor: státusz + műveletek -->
+  <div class="detail-toolbar-row mb-3">
+    <v-chip
+      class="status-chip"
+      :color="statusColorX(statusModel)"
+      variant="flat"
+    >
+      {{ displayStatusX(statusModel) }}
+    </v-chip>
+    <v-spacer />
+    <v-menu offset-y>
+      <template #activator="{ props }">
+        <v-btn
+          v-bind="props"
+          variant="flat"
+          class="actions-btn"
+          prepend-icon="mdi-dots-vertical"
+        >
+          Műveletek
+        </v-btn>
+      </template>
+      <v-list class="menu-dark">
+        <v-list-item @click="saveWorkorder">
+          <v-list-item-title>Státusz mentése</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="saveOffer">
+          <v-list-item-title>Árajánlat mentése</v-list-item-title>
+        </v-list-item>
+        <v-list-item
+          :disabled="!canSendOffer || sendingOffer"
+          @click="sendOffer"
+        >
+          <v-list-item-title>Árajánlat küldése</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="openWorkorderPrint">
+          <v-list-item-title>Munkalap nyomtatása</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="openOfferPrint">
+          <v-list-item-title>Árajánlat nyomtatása</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </div>
+
 
     <v-alert v-if="errorMsg" type="error" variant="tonal" class="mb-3">{{ errorMsg }}</v-alert>
     <v-snackbar v-model="snackbar" :timeout="3000" :color="snackbarColor" location="top right">
@@ -28,7 +73,19 @@
     <v-row>
       <v-col cols="12" lg="6">
         <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1">Alap adatok</v-card-title>
+          <v-card-title class="text-subtitle-1 d-flex align-center">
+            <span>Alap adatok</span>
+            <v-spacer />
+            <v-btn
+              size="small"
+              variant="tonal"
+              color="primary"
+              :disabled="isClosed"
+              @click="goToEdit"
+            >
+              Módosítás
+            </v-btn>
+          </v-card-title>
           <v-divider />
           <v-card-text>
             <div class="mb-2"><strong>Ügyfél:</strong> {{ getUgyfelNev(detail) }}</div>
@@ -36,8 +93,22 @@
             <div class="mb-2"><strong>Telefon:</strong> {{ getUgyfelTelefon(detail) }}</div>
             <div class="mb-2"><strong>Felhasználónév:</strong> {{ getUgyfelFnev(detail) }}</div>
             <div class="mb-2"><strong>Gép:</strong> {{ gepLabel(gepFromRow(detail)) }}</div>
+            <div class="mb-2"><strong>Hiba leírás:</strong> {{ detail.hibaleiras || '-' }}</div>
+            <div class="mb-2"><strong>Megjegyzés:</strong> {{ detail.megjegyzes || '-' }}</div>
             <div class="mb-2"><strong>Létrehozva:</strong> {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
             <div class="mb-2"><strong>Azonosító:</strong> {{ displayId }}</div>
+          </v-card-text>
+
+        </v-card>
+
+        <v-card class="mb-4">
+          <v-card-title class="text-subtitle-1">Szerelő adatai</v-card-title>
+          <v-divider />
+          <v-card-text>
+            <div class="mb-2"><strong>Név:</strong> {{ getUgyfelNev(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>E-mail:</strong> {{ getUgyfelEmail(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>Telefon:</strong> {{ getUgyfelTelefon(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>Felhasználónév:</strong> {{ getUgyfelFnev(detail.letrehozo || {}) }}</div>
           </v-card-text>
         </v-card>
 
@@ -203,6 +274,7 @@ const router = useRouter()
 const id = Vue.computed(() => route.params.id)
   const detail = Vue.ref({})
   const displayId = Vue.computed(()=> (detail.value && (detail.value.azonosito || detail.value.identifier)) || id.value)
+  const isClosed = Vue.computed(() => normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot) === 'atadva_lezarva')
 
   const snackbar = Vue.ref(false)
   const snackbarText = Vue.ref('')
@@ -215,14 +287,8 @@ const id = Vue.computed(() => route.params.id)
 
   // Role-based helpers
   const isClient = typeof window !== 'undefined'
-  const canManageImages = Vue.computed(()=>{
-    if(!isClient) return false
-    try {
-      const storage = window.localStorage
-      const role = (storage.getItem('jogosultsag') || storage.getItem('role') || '').toLowerCase()
-      return role === 'admin'
-    } catch { return false }
-  })
+  // Admin/szerelő route, itt nem szűrünk tovább: mindenki kezelheti a képeket
+  const canManageImages = Vue.computed(() => true)
 
 // Images / lightbox
 const images = Vue.ref([])
@@ -236,7 +302,16 @@ const imgUrlCache = Vue.ref({})
 const thumbPlaceholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="12"><rect width="100%" height="100%" fill="#f3f3f3"/></svg>'
 function thumbSrc(img){ if (!img) return thumbPlaceholder; return imgUrlCache.value[img.id] || thumbPlaceholder }
 async function getObjectUrl(img){ if (!img?.url || !img?.id) return ''; const cached = imgUrlCache.value[img.id]; if (cached) return cached; const headers = { }; try { const tk = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN'); if (tk) headers['Authorization'] = `Bearer ${tk}` } catch {}; const res = await fetch(img.url, { method: 'GET', headers, credentials: 'include' }); if(!res.ok){ throw new Error(`HTTP ${res.status}`) } const blob = await res.blob(); const objUrl = URL.createObjectURL(blob); imgUrlCache.value = { ...imgUrlCache.value, [img.id]: objUrl }; return objUrl }
-async function openImageModal(img){ if (!img) return; try{ const idx = images.value.findIndex(i => (i.id ?? i.ID) === (img.id ?? img.ID)); currentIndex.value = idx >= 0 ? idx : 0; lightboxUrl.value = await getObjectUrl(img); lightboxOpen.value = true }catch(e){ setSnack('Kep nagyitasa nem sikerult.', 'error') } }
+async function openImageModal(img){
+  if (!img) return
+  try {
+    const url = await getObjectUrl(img)
+    const w = window.open(url, '_blank')
+    if (!w) setSnack('A kép megnyitását a böngésző blokkolta.', 'warning')
+  } catch (e) {
+    setSnack('Kép megnyitása nem sikerült.', 'error')
+  }
+}
 async function showAt(index){ if (images.value.length === 0) return; const len = images.value.length; const i = ((index % len) + len) % len; currentIndex.value = i; const img = images.value[i]; try{ lightboxUrl.value = await getObjectUrl(img) }catch(e){} }
 function prevImage(){ showAt(currentIndex.value - 1) }
 function nextImage(){ showAt(currentIndex.value + 1) }
@@ -262,15 +337,81 @@ function displayStatusX(s){ const key=normalizeStatus(s); const map={ 'uj':'Új'
 async function saveWorkorder(){ if(!id.value) return; try{ const code = normalizeStatus(detail.value.statusz); await request(`/munkalapok/${id.value}`, { method:'PATCH', body:{ statusz: code, status: code, allapot: code } }); setSnack('Munkalap mentve') }catch(e){ errorMsg.value = e?.message || 'Mentesi hiba (munkalap).' } }
 
 // Helpers / labels
-function fmtDate(v){ try { return v ? new Date(v).toLocaleString('hu-HU') : '' } catch { return v || '' } }
-function getUgyfelNev(row){ try{ return row?.Ugyfel?.nev ?? row?.Ugyfel_nev ?? row?.nev ?? '-' }catch{ return '-' } }
-function getUgyfelEmail(row){ try{ return row?.Ugyfel?.email ?? row?.Ugyfel_email ?? row?.email ?? '-' }catch{ return '-' } }
-function getUgyfelTelefon(row){ try{ return row?.Ugyfel?.telefonszam ?? row?.Ugyfel_telefon ?? row?.telefonszam ?? '-' }catch{ return '-' } }
-function getUgyfelFnev(row){ try{ return row?.Ugyfel?.felhasznalonev ?? row?.Ugyfel_felhasznalonev ?? row?.felhasznalonev ?? '-' }catch{ return '-' } }
-function gepFromRow(row){ try{ return row?.gep || row?.eszkoz || null }catch{ return null } }
-function gepLabel(gep){ try{ if(!gep) return '-'; return gep.megnevezes || gep.nev || gep.tipus || '-' }catch{ return '-' } }
+function fmtDate(v){
+  try {
+    return v ? new Date(v).toLocaleString('hu-HU') : ''
+  } catch {
+    return v || ''
+  }
+}
+function getUgyfelNev(row){
+  try{
+    return row?.ugyfel?.nev
+      ?? row?.Ugyfel?.nev
+      ?? row?.Ugyfel_nev
+      ?? row?.nev
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
+function getUgyfelEmail(row){
+  try{
+    return row?.ugyfel?.email
+      ?? row?.Ugyfel?.email
+      ?? row?.Ugyfel_email
+      ?? row?.email
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
+function getUgyfelTelefon(row){
+  try{
+    return row?.ugyfel?.telefonszam
+      ?? row?.Ugyfel?.telefonszam
+      ?? row?.Ugyfel_telefon
+      ?? row?.telefonszam
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
+function getUgyfelFnev(row){
+  try{
+    return row?.ugyfel?.felhasznalonev
+      ?? row?.Ugyfel?.felhasznalonev
+      ?? row?.Ugyfel_felhasznalonev
+      ?? row?.felhasznalonev
+      ?? '-'
+  }catch{
+    return '-'
+  }
+}
+function gepFromRow(row){
+  try{
+    if (row?.gep) return row.gep
+    if (row?.gep_adatok) return row.gep_adatok
+    const gyarto = row?.gyarto || row?.gep_gyarto
+    const tipusnev = row?.tipusnev || row?.gep_tipus
+    const g_cikkszam = row?.g_cikkszam || row?.cikkszam || row?.gep_cikkszam
+    if (gyarto || tipusnev || g_cikkszam) return { gyarto, tipusnev, g_cikkszam }
+    return null
+  }catch{
+    return null
+  }
+}
+function gepLabel(gep){
+  try{
+    if(!gep) return '-'
+    const parts = [gep.gyarto, gep.tipusnev, gep.g_cikkszam, gep.megnevezes, gep.nev, gep.tipus]
+      .filter(Boolean)
+    return parts.join(' - ') || '-'
+  }catch{
+    return '-'
+  }
+}
 
-  // Images helpers
   function normalizeImageEntry(entry, index = 0){
     if(!entry) return null;
     const imageId = entry.id ?? entry.ID ?? entry.kep_id ?? null;
@@ -448,8 +589,54 @@ const canEditOffer = Vue.computed(()=> true)
       sendingOffer.value = false;
     }
   }
-function printOffer(){ try{ window.print() }catch{} }
+function openWorkorderPrint(){
+  if(!id.value) return;
+  try{
+    router.push({ name:'AdminWorkorderPrint', params:{ id: id.value } });
+  }catch{}
+}
+function openOfferPrint(){
+  if(!id.value) return;
+  try{
+    router.push({ name:'AdminOfferPrint', params:{ id: id.value } });
+  }catch{}
+}
+function goToEdit(){
+  if(!id.value) return;
+  const code = normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot);
+  if (code === 'atadva_lezarva') {
+    setSnack('Lezárt munkalap nem módosítható.', 'warning');
+    return;
+  }
+  try{
+    router.push({ name:'AdminWorkorderEdit', params:{ id: id.value } });
+  }catch{}
+}
 Vue.watch(tetelek, (list)=>{ try{ (list||[]).forEach(t=>{ t.db=Number(t.db||1); t.netto=Number(t.netto||0); t.afa_kulcs=Number(t.afa_kulcs||27); t.brutto = Math.round(t.netto * (1 + t.afa_kulcs/100)); }) }catch{} }, { deep:true })
+
+async function saveDescriptions(){
+  if(!id.value) return;
+  const code = normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot);
+  if (code === 'atadva_lezarva') {
+    setSnack('Lezárt munkalap adatai nem módosíthatók.', 'warning');
+    return;
+  }
+  try{
+    await request(`/munkalapok/${id.value}`, {
+      method:'PATCH',
+      body:{
+        statusz: code,
+        status: code,
+        allapot: code,
+        hibaleiras: detail.value.hibaleiras ?? '',
+        megjegyzes: detail.value.megjegyzes ?? ''
+      }
+    });
+    setSnack('Leírások mentve');
+  }catch(e){
+    errorMsg.value = e?.message || 'Mentési hiba (leírások).';
+  }
+}
 
 function goBack(){ try{ router.back() }catch{} }
 async function loadAll(){
@@ -476,7 +663,7 @@ Vue.onMounted(()=>{ loadAll() })
 </script>
 
 <style scoped>
-.detail-toolbar{ gap: 8px; }
+.detail-toolbar{ gap: 8px; flex-wrap: wrap; }
 .has-bottom-bar{ min-height: 100vh; padding-bottom: 60px; overflow-y: auto; }
 .cursor-pointer{ cursor:pointer; }
 .note-text{ white-space: normal; line-height: 1.35; word-break: break-word; }
@@ -495,10 +682,87 @@ Vue.onMounted(()=>{ loadAll() })
 .num-input{ min-width: 110px; }
 .num-input input{ text-align: right; }
 .stack-col{ display:flex; flex-direction:column; gap:6px; }
+.status-chip{ min-width:150px; justify-content:center; }
+.status-chip :deep(.v-chip__content){ white-space:nowrap; }
 .stack-row{ display:flex; align-items:center; gap:8px; }
 .stack-label{ width: 54px; text-align:right; font-size:12px; color: rgba(0,0,0,0.6); text-transform: lowercase; }
 @media (max-width: 600px){
-  .images-grid{ flex-wrap: nowrap !important; overflow-x: auto; padding-bottom: 4px; margin-bottom: -4px; scroll-snap-type: x mandatory; }
-  .images-grid > .v-col{ flex: 0 0 80% !important; max-width: 80% !important; scroll-snap-align: start; }
+  /* A toolbar belső tartalma törjön több sorba */
+  .detail-toolbar :deep(.v-toolbar__content){
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Cím külön sorban, balra igazítva */
+  .detail-toolbar :deep(.v-toolbar-title){
+    flex-basis: 100%;
+    text-align: left;
+  }
+
+  /* Státusz chip teljes szélességben egy külön sorban */
+  .detail-toolbar :deep(.status-chip){
+    flex-basis: 100%;
+    max-width: 100%;
+    margin-left: 0 !important;
+    justify-content: center;
+  }
+
+  /* Műveletek gomb is teljes szélességben, normál felirattal */
+  .detail-toolbar :deep(.actions-btn){
+    flex-basis: 100%;
+    max-width: 100%;
+    margin-left: 0 !important;
+    justify-content: center;
+  }
+
+  .images-grid{
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: -4px;
+    scroll-snap-type: x mandatory;
+  }
+  .images-grid > .v-col{
+    flex: 0 0 80% !important;
+    max-width: 80% !important;
+    scroll-snap-align: start;
+  }
 }
+
+.detail-toolbar-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:#ffffff;
+  padding:8px 16px;
+  border-radius:8px;
+}
+
+@media (max-width: 600px){
+  .detail-toolbar-row{
+    flex-wrap: wrap;
+  }
+  .detail-toolbar-row .status-chip{
+    flex-basis: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+  .detail-toolbar-row .actions-btn{
+    flex-basis: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  /* felül: Munkalap #... mindig jól látszódjon mobilon */
+  .detail-toolbar :deep(.v-toolbar__content){
+    flex-wrap: nowrap !important;
+    align-items: center;
+    gap: 8px;
+  }
+  .detail-toolbar :deep(.v-toolbar-title){
+    flex-basis: auto !important;
+    white-space: nowrap;
+  }
+}
+
 </style>

@@ -17,12 +17,9 @@ class MunkalapController extends Controller
 {
     use HandlesPhoneNumbers;
 
-    /**
-     * List workorders (optional filters: q, limit, user_id).
-     */
     public function index(Request $request)
     {
-        $query = Munkalap::query()->with(['Ugyfel', 'gep']);
+        $query = Munkalap::query()->with(['Ugyfel', 'gep', 'letrehozo']);
         $auth = $request->user();
         if ($request->has('user_id')) {
             $query->where('user_id', $request->get('user_id'));
@@ -46,18 +43,16 @@ class MunkalapController extends Controller
         }
 
         $items = $query->orderByDesc('ID')->get();
-        // Backward-compat: also expose as 'azonosito'
         foreach ($items as $it) {
             $it->setAttribute('azonosito', $it->munkalapsorsz);
         }
         return response()->json($items, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Create a new workorder.
-     */
     public function store(Request $request)
     {
+        $auth = $request->user();
+
         $data = $request->validate([
             'regisztralt' => 'sometimes|boolean',
             'user_id' => 'sometimes|nullable|integer',
@@ -71,7 +66,6 @@ class MunkalapController extends Controller
             'statusz' => 'sometimes|string|max:50',
         ]);
 
-        // Resolve customer: use user_id if given, else create/find by email
         if (empty($data['user_id'])) {
             if (!empty($data['Ugyfel_email'])) {
                 $existing = Felhasznalo::where('email', $data['Ugyfel_email'])->first();
@@ -80,7 +74,7 @@ class MunkalapController extends Controller
                 } else {
                     if (empty($data['Ugyfel_telefon'])) {
                         return response()->json([
-                            'message' => 'Ä‚Ĺˇj Ä‚Ä˝gyfÄ‚Â©l rÄ‚Â¶gzÄ‚Â­tÄ‚Â©sÄ‚Â©hez telefonszÄ‚Ë‡m megadÄ‚Ë‡sa kÄ‚Â¶telezÄąâ€.'
+                            'message' => 'Új ügyfél felvételéhez a telefonszám megadása kötelező.'
                         ], 422, [], JSON_UNESCAPED_UNICODE);
                     }
 
@@ -98,15 +92,15 @@ class MunkalapController extends Controller
                     $data['user_id'] = $created->getKey();
                 }
             } else {
-                return response()->json(['message' => 'Ă„â€šÄąâ€şgyfÄ‚Â©l kivÄ‚Ë‡lasztÄ‚Ë‡sa vagy adatok megadÄ‚Ë‡sa kÄ‚Â¶telezÄąâ€'], 422, [], JSON_UNESCAPED_UNICODE);
+                return response()->json(['message' => 'Ügyfél kiválasztása vagy adatok megadása kötelező'], 422, [], JSON_UNESCAPED_UNICODE);
             }
         }
 
         $payload = [
             'user_id' => $data['user_id'],
+            'letrehozta' => $auth ? $auth->getKey() : ($data['user_id'] ?? null),
             'gep_id' => $data['gep_id'],
             'javitando_id' => $data['javitando_id'] ?? null,
-            // Some schemas mark these NOT NULL Ä‚ËĂ˘â‚¬Â Ă˘â‚¬â„˘ store empty string if not provided
             'hibaleiras' => array_key_exists('hibaleiras', $data) ? ($data['hibaleiras'] ?? '') : '',
             'megjegyzes' => array_key_exists('megjegyzes', $data) ? ($data['megjegyzes'] ?? '') : '',
             'statusz' => $data['statusz'] ?? 'uj',
@@ -114,10 +108,8 @@ class MunkalapController extends Controller
         ];
 
         $record = DB::transaction(function () use ($payload) {
-            // Determine year from payload timestamp (or now)
             $ts = $payload['letrehozva'] ?? now();
             $yearInt = (int) date('Y', strtotime($ts));
-            // Lock rows for this year and compute max suffix
             $maxSeq = DB::table('munkalapok')
                 ->whereYear('letrehozva', $yearInt)
                 ->whereNotNull('munkalapsorsz')
@@ -127,53 +119,45 @@ class MunkalapController extends Controller
             $next = ((int)($maxSeq ?? 0)) + 1;
             $sorsz = $yearInt . '-' . $next;
 
-            // Insert with the computed sequence to satisfy NOT NULL
             $rec = Munkalap::create(array_merge($payload, ['munkalapsorsz' => $sorsz]));
             return $rec;
         });
-        // Backward-compat alias
         $record->setAttribute('azonosito', $record->munkalapsorsz);
-        // Best-effort notification to customer
         try {
             $record->loadMissing('Ugyfel');
             if ($record->Ugyfel) {
                 $record->Ugyfel->notify(new WorkorderCreated($record));
             }
-        } catch (\Throwable $e) { /* ignore notify errors */ }
+        } catch (\Throwable $e) { }
         return response()->json($record, 201, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Show a workorder with relations.
-     */
     public function show(string $id)
     {
-    $rec = Munkalap::with(['Ugyfel', 'gep', 'kepek'])->findOrFail($id);
-        // Authorization for customers: can only view own workorders
+        $rec = Munkalap::with(['Ugyfel', 'gep', 'kepek', 'letrehozo'])->findOrFail($id);
         $auth = request()->user();
         if ($auth && $auth->jogosultsag === 'Ugyfel' && (int)$rec->user_id !== (int)$auth->getKey()) {
-            abort(403, 'Nincs jogosultsÄ‚Ë‡g a munkalap megtekintÄ‚Â©sÄ‚Â©hez');
+            abort(403, 'Nincs jogosultság a munkalap megtekintéséhez');
         }
         $rec->setAttribute('azonosito', $rec->munkalapsorsz);
         return response()->json($rec, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Update a workorder (admin/szerelo only).
-     */
     public function update(Request $request, string $id)
     {
         $munkalap = Munkalap::findOrFail($id);
         $auth = $request->user();
         if (!$auth || !in_array($auth->jogosultsag, ['admin','szerelo'], true)) {
-            abort(403, 'Nincs jogosultsÄ‚Ë‡g a mÄ‚Ĺ‚dosĂ„â€šĂ‚Â­tÄ‚Ë‡shoz');
+            abort(403, 'Nincs jogosultság a módosí­táshoz');
         }
         $data = $request->validate([
+            'user_id' => 'sometimes|integer|exists:felhasznalok,id',
+            'gep_id' => 'sometimes|integer|exists:gepek,ID',
+            'javitando_id' => 'sometimes|nullable|integer',
             'statusz' => 'sometimes|string|max:50',
             'hibaleiras' => 'sometimes|string|nullable',
             'megjegyzes' => 'sometimes|string|nullable',
         ]);
-        // Avoid writing NULL to NOT NULL columns
         if (array_key_exists('hibaleiras', $data) && $data['hibaleiras'] === null) { $data['hibaleiras'] = ''; }
         if (array_key_exists('megjegyzes', $data) && $data['megjegyzes'] === null) { $data['megjegyzes'] = ''; }
         $statusWas = $munkalap->statusz;
@@ -182,30 +166,26 @@ class MunkalapController extends Controller
             MunkalapNaplo::create([
                 'munkalap_id' => $munkalap->ID,
                 'tipus' => 'statusz',
-                'uzenet' => "Ä‚Âllapot vÄ‚Ë‡ltozott: {$statusWas} Ä‚ËĂ˘â‚¬Â Ă˘â‚¬â„˘ {$data['statusz']}",
+                'uzenet' => "Állapot változott: {$statusWas} -> {$data['statusz']}",
                 'letrehozva' => now(),
             ]);
         }
-        // Notify customer on status change (best-effort)
         if (isset($data['statusz']) && $data['statusz'] !== $statusWas) {
             try {
                 $munkalap->loadMissing('Ugyfel');
                 if ($munkalap->Ugyfel) {
                     $munkalap->Ugyfel->notify(new WorkorderStatusChanged($munkalap, (string)$statusWas, (string)($data['statusz'] ?? '')));
                 }
-            } catch (\Throwable $e) { /* ignore notify errors */ }
+            } catch (\Throwable $e) { }
         }
         return response()->json($munkalap->fresh(), 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Delete a workorder (admin/szerelo only).
-     */
     public function destroy(Request $request, string $id)
     {
         $auth = $request->user();
         if (!$auth || !in_array($auth->jogosultsag, ['admin','szerelo'], true)) {
-            abort(403, 'Nincs jogosultsÄ‚Ë‡g a tÄ‚Â¶rlÄ‚Â©shez');
+            abort(403, 'Nincs jogosultság a törléshez');
         }
         $rec = Munkalap::with(['kepek','Ugyfel'])->findOrFail($id);
         $user = $rec->Ugyfel;
@@ -216,13 +196,10 @@ class MunkalapController extends Controller
             }
         }
         $rec->delete();
-        try { if ($user) { $user->notify(new WorkorderDeleted($wid)); } } catch (\Throwable $e) { /* ignore */ }
-        return response()->json(['message' => 'TÄ‚Â¶rÄ‚Â¶lve'], 200, [], JSON_UNESCAPED_UNICODE);
+        try { if ($user) { $user->notify(new WorkorderDeleted($wid)); } } catch (\Throwable $e) {  }
+        return response()->json(['message' => 'Törölve'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * GenerÄ‚Ë‡l egy egyedi felhasznÄ‚Ë‡lÄ‚Ĺ‚nevet nÄ‚Â©v vagy e-mail alapjÄ‚Ë‡n.
-     */
     protected function generateUniqueUsername(?string $name, ?string $email): string
     {
         $candidates = [];
@@ -270,5 +247,3 @@ class MunkalapController extends Controller
         return $username;
     }
 }
-
-

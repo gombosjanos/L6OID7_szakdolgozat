@@ -420,7 +420,7 @@ watch(confirmDialog, (value) => {
                 persistent-hint
               />
               <v-text-field :model-value="displayedRole" label="Szerep" readonly variant="outlined" density="comfortable" />
-              <div class="text-error text-caption mt-1">A jogosultság módosítása csak rendszergazda feladata.</div>
+              <div class="text-error text-caption mt-1">A jogosultság módosítása az adminisztrátor jogköréhez tartozik.</div>
               <v-text-field
                 v-if="editing"
                 class="password-field"

@@ -432,12 +432,29 @@ class AuthController extends Controller
             $remaining = [];
             $matched = false;
 
-            foreach ($list as $hash) {
-                if (!$matched && Hash::check($normalized, $hash)) {
+            foreach ($list as $stored) {
+                if ($matched) {
+                    // Már találtunk egyezést, a maradékot változtatás nélkül átvesszük
+                    $remaining[] = $stored;
+                    continue;
+                }
+
+                // 1) Normál eset: a kód hash-elve van tárolva (Hash::make)
+                if (is_string($stored) && Hash::check($normalized, $stored)) {
                     $matched = true;
                     continue;
                 }
-                $remaining[] = $hash;
+
+                // 2) Visszafelé kompatibilitás: ha régi, sima szöveges kódok vannak eltárolva
+                if (is_string($stored)) {
+                    $legacyNormalized = $this->normalizeRecoveryCode($stored);
+                    if ($legacyNormalized !== '' && hash_equals($normalized, $legacyNormalized)) {
+                        $matched = true;
+                        continue;
+                    }
+                }
+
+                $remaining[] = $stored;
             }
 
             if ($matched) {
