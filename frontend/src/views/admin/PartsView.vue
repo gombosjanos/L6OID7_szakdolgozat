@@ -1,8 +1,8 @@
-Ôªø<template>
+<template>
 
   <v-container fluid class="pa-4">
     <div class="top-bar mb-4">
-      <h2 class="text-h5 font-weight-medium">Alkatr√©szek</h2>
+      <h2 class="text-h5 font-weight-medium">AlkatrÈszek</h2>
       <div class="top-actions">
         <v-btn
           variant="outlined"
@@ -10,7 +10,7 @@
           class="refresh-btn"
           @click="fetchParts"
         >
-          Friss√≠t√©s
+          FrissÌtÈs
         </v-btn>
         <v-btn
           v-if="isAdmin"
@@ -19,7 +19,7 @@
           @click="openCreate()"
           prepend-icon="mdi-plus"
         >
-          √öj alkatr√©sz
+          ⁄j alkatrÈsz
         </v-btn>
       </div>
     </div>
@@ -31,7 +31,7 @@
             v-model="search"
             variant="outlined"
             density="comfortable"
-            label="Keres√©s (cikksz√°m vagy megnevez√©s)"
+            label="KeresÈs (cikksz·m vagy megnevezÈs)"
             prepend-inner-icon="mdi-magnify"
             clearable
             class="search-input"
@@ -62,13 +62,13 @@
         <template #item.nettoar="{ item }">{{ fmtCurrency(item.nettoar) }}</template>
         <template #item.bruttoar="{ item }">{{ fmtCurrency(item.bruttoar) }}</template>
         <template #item.actions="{ item }">
-          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-pencil" @click="openEdit(item)">Szerkeszt√©s</v-btn>
-          <v-btn v-if="isAdmin" size="small" variant="text" color="error" prepend-icon="mdi-delete" @click="remove(item)">T√∂rl√©s</v-btn>
+          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-pencil" @click="openEdit(item)">SzerkesztÈs</v-btn>
+          <v-btn v-if="isAdmin" size="small" variant="text" color="error" prepend-icon="mdi-delete" @click="remove(item)">TˆrlÈs</v-btn>
         </template>
         <template #no-data>
           <div class="pa-6 text-medium-emphasis">
-            <div>Nincs megjelen√≠thet≈ë adat.</div>
-            <div v-if="!loading && !errorMsg" class="mt-2">Pr√≥b√°ljon √∫j alkatr√©szt felvenni az ‚Äû√öj alkatr√©sz‚Äù gombbal.</div>
+            <div>Nincs megjelenÌthetı adat.</div>
+            <div v-if="!loading && !errorMsg" class="mt-2">PrÛb·ljon ˙j alkatrÈszt felvenni az Ñ⁄j alkatrÈszî gombbal.</div>
           </div>
         </template>
       </v-data-table>
@@ -77,35 +77,35 @@
     <v-dialog v-model="dialog" max-width="680">
       <v-card>
         <v-card-title class="d-flex align-center">
-          <span class="text-h6">{{ form.id ? 'Alkatr√©sz szerkeszt√©se' : '√öj alkatr√©sz' }}</span>
+          <span class="text-h6">{{ form.id ? 'AlkatrÈsz szerkesztÈse' : '⁄j alkatrÈsz' }}</span>
         </v-card-title>
         <v-divider />
         <v-card-text>
           <v-row>
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.a_cikkszam" :disabled="isSzerelo" label="Cikksz√°m" variant="outlined" density="comfortable" />
+              <v-text-field v-model="form.a_cikkszam" :disabled="isSzerelo" label="Cikksz·m" variant="outlined" density="comfortable" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field v-model="form.alaktresznev" :disabled="isSzerelo" label="Megnevez√©s" variant="outlined" density="comfortable" />
+              <v-text-field v-model="form.alaktresznev" :disabled="isSzerelo" label="MegnevezÈs" variant="outlined" density="comfortable" />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field v-model.number="form.nettoar" :disabled="isSzerelo" type="number" step="0.01" label="Nett√≥ √°r" variant="outlined" density="comfortable" />
+              <v-text-field v-model.number="form.nettoar" :disabled="isSzerelo" type="number" step="0.01" label="NettÛ ·r" variant="outlined" density="comfortable" />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field v-model.number="form.bruttoar" :disabled="isSzerelo" type="number" step="0.01" label="Brutt√≥ √°r" variant="outlined" density="comfortable" />
+              <v-text-field v-model.number="form.bruttoar" :disabled="isSzerelo" type="number" step="0.01" label="BruttÛ ·r" variant="outlined" density="comfortable" />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field v-model.number="form.afa_kulcs" :disabled="isSzerelo" type="number" step="0.1" label="ƒÇFA %" variant="outlined" density="comfortable" />
+              <v-text-field v-model.number="form.afa_kulcs" :disabled="isSzerelo" type="number" step="0.1" label="√FA %" variant="outlined" density="comfortable" />
             </v-col>
             <v-col cols="12" md="3">
-              <v-text-field v-model.number="form.keszlet" type="number" min="0" step="1" label="K√©szlet" variant="outlined" density="comfortable" />
+              <v-text-field v-model.number="form.keszlet" type="number" min="0" step="1" label="KÈszlet" variant="outlined" density="comfortable" />
             </v-col>
           </v-row>
         </v-card-text>
         <v-divider />
         <v-card-actions class="justify-end">
-          <v-btn variant="text" @click="dialog=false">M√©gse</v-btn>
-          <v-btn color="primary" @click="save">Ment√©s</v-btn>
+          <v-btn variant="text" @click="dialog=false">MÈgse</v-btn>
+          <v-btn color="primary" @click="save">MentÈs</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -114,7 +114,6 @@
 
 <script setup>
 import * as Vue from 'vue'
-// Role (script-only)
 const user = (() => { try { return JSON.parse(localStorage.getItem('user') || 'null') } catch { return null } })()
 const role = (user?.jogosultsag || '').toString().toLowerCase()
 const isAdmin = role === 'admin'
@@ -122,11 +121,11 @@ const isSzerelo = role === 'szerelo'
 
 
 const headers = [
-  { title: 'Cikksz√°m', value: 'a_cikkszam', sortable: true },
-  { title: 'Megnevez√©s', value: 'alaktresznev', sortable: true },
-  { title: 'K√©szlet', value: 'keszlet', sortable: true, align: 'end', width: 110 },
-  { title: 'Nett√≥ egys√©g√°r', value: 'nettoar', sortable: true, align: 'end' },
-  { title: 'Brutt√≥ egys√©g√°r', value: 'bruttoar', sortable: true, align: 'end' },
+  { title: 'Cikksz·m', value: 'a_cikkszam', sortable: true },
+  { title: 'MegnevezÈs', value: 'alaktresznev', sortable: true },
+  { title: 'KÈszlet', value: 'keszlet', sortable: true, align: 'end', width: 110 },
+  { title: 'NettÛ egysÈg·r', value: 'nettoar', sortable: true, align: 'end' },
+  { title: 'BruttÛ egysÈg·r', value: 'bruttoar', sortable: true, align: 'end' },
   { title: '', value: 'actions', sortable: false, align: 'end', width: 180 },
 ]
 
@@ -177,7 +176,7 @@ async function fetchParts() {
     const data = await request('/alkatreszek', { method: 'GET', body: { q: search.value, limit: String(limit.value) } })
     items.value = Array.isArray(data) ? data : []
   } catch(e) {
-    errorMsg.value = e?.message || 'Bet√∂lt√©si hiba'
+    errorMsg.value = e?.message || 'BetˆltÈsi hiba'
   } finally {
     loading.value = false
   }
@@ -204,7 +203,7 @@ function openEdit(item) {
 async function save() {
   try{
     if(isSzerelo){
-      if(!form.value.id){ setSnack("Nincs jogosults√°g √∫j alkatr√©sz felv√©tel√©hez",'error'); return }
+      if(!form.value.id){ setSnack("Nincs jogosults·g ˙j alkatrÈsz felvÈtelÈhez",'error'); return }
       const payload = { keszlet: Number(form.value.keszlet||0) }
       await request(`/alkatreszek/${form.value.id}/keszlet`, { method: 'PATCH', body: payload })
     } else {
@@ -216,7 +215,7 @@ async function save() {
         afa_kulcs: form.value.afa_kulcs,
         keszlet: form.value.keszlet,
       }
-      if (!payload.a_cikkszam) { setSnack('Cikksz√°m k√∂telez≈ë','error'); return }
+      if (!payload.a_cikkszam) { setSnack('Cikksz·m kˆtelezı','error'); return }
       if (form.value.id) await request(`/alkatreszek/${form.value.id}`, { method: 'PUT', body: payload })
       else await request('/alkatreszek', { method: 'POST', body: payload })
     }
@@ -225,13 +224,13 @@ async function save() {
     await fetchParts()
   }catch(e){
     console.error(e)
-    errorMsg.value = e?.message || 'Ment√©s sikertelen'
-    setSnack('Ment√©s sikertelen', 'error')
+    errorMsg.value = e?.message || 'MentÈs sikertelen'
+    setSnack('MentÈs sikertelen', 'error')
   }
 }
 
 async function remove(item) {
-  if (!confirm('Biztosan t√∂rli?')) return
+  if (!confirm('Biztosan tˆrli?')) return
   await request(`/alkatreszek/${item.ID}`, { method: 'DELETE' })
   await fetchParts()
 }

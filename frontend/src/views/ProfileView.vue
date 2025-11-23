@@ -195,7 +195,7 @@ async function loadTwoFactorStatus(){
       localStorage.setItem('user', JSON.stringify(user.value))
     }
   } catch (e) {
-    console.debug('2FA status error', e?.response?.data || e)
+    
   } finally {
     twoFactorLoading.value = false
   }
@@ -211,7 +211,7 @@ watch(
     try {
       qrDataUrl.value = await QRCode.toDataURL(value, { width: 220, margin: 1 })
     } catch (error) {
-      console.debug('QR generation failed', error)
+      
       qrDataUrl.value = ''
     }
   },
@@ -747,4 +747,5 @@ watch(confirmDialog, (value) => {
   text-transform: uppercase;
 }
 </style>
+
 

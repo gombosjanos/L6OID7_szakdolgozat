@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2025. Nov 11. 00:06
+-- Létrehozás ideje: 2025. Nov 23. 17:26
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -41,10 +41,8 @@ CREATE TABLE `alkatreszek` (
 --
 
 INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `bruttoar`, `keszlet`) VALUES
-(1, 'Fűnyíró kerék MTD TC 51  D180', 'MTD734-1911A', 1496, 1900, 54),
-(2, 'Gömbcsukló 7/16-20 MTD 7230448A - utángyártott', 'KRDEFGP010418', 2984, 3790, 0),
-(3, 'AL-KO 160 FLA NEW COVER', '451791', 68969, 87590, 0),
-(4, 'AL-KO PRO 125 LC1P61FE 125', '441223', 51685, 65640, 0),
+(3, 'AL-KO 160 FLA NEW COVERas', '451791', 68969, 87590, -1),
+(4, 'AL-KO PRO 125 LC1P61FE 125', '441223', 51685, 65640, -1),
 (5, 'AL-KO PRO 140QSS  LC1P61 FA 4PS R3000', '474316', 74370, 94450, 0),
 (6, 'AL-KO PRO 160QSS LC1 P65 FA  5 PS R3000', '474317', 80394, 102100, 0),
 (7, 'BENZIN MOTOR LC1 P65 FA  5 PS E-START', '440944', 88276, 112110, 0),
@@ -53,7 +51,7 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (10, 'Gázrudazat', 'SL280032925', 2984, 3790, 2),
 (11, 'Gázrudazat  644, 651', 'SL280028525', 2039, 2590, 3),
 (12, 'Karburátor tömítés 0,5', 'SL2061443', 622, 790, 28),
-(13, 'Porlasztó', '416976', 18181, 23090, 1),
+(13, 'Porlasztó', '416976', 18181, 23090, 0),
 (14, 'Porlasztó AL-KO BKS 35/35 II, 40/40 II - Már nem szállítható!', '411254', 18480, 23470, 0),
 (15, 'PORLASZTÓ BKS 3835/4040 - WALBRO', '414510', 18890, 23990, 8),
 (16, 'Porlasztó BKS 4540', '414429', 22118, 28090, 4),
@@ -605,9 +603,9 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (562, 'DUGATTYÚ KOMPLETT HUSQVARNA 40 JONSERED 2041 AIP - utángyártott', 'GPPL0705035', 5110, 6490, 0),
 (563, 'DUGATTYÚ KOMPLETT HUSQVARNA 445 450 42MM - utángyártott', 'GPPL0705067', 2197, 2790, 0),
 (564, 'DUGATTYÚ KOMPLETT HUSQVARNA 445 AIP - utángyártott', 'GPPL0705042', 5110, 6490, 0),
-(565, 'DUGATTYÚ KOMPLETT HUSQVARNA 445 FARMERTEC - utángyártott', 'GPPL0705101', 2197, 2790, 0);
+(565, 'DUGATTYÚ KOMPLETT HUSQVARNA 445 FARMERTEC - utángyártott', 'GPPL0705101', 2197, 2790, 0),
+(566, 'DUGATTYÚ KOMPLETT HUSQVARNA 45, 245R AIP - utángyártott', 'GPPL0705062', 5110, 6490, 0);
 INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `bruttoar`, `keszlet`) VALUES
-(566, 'DUGATTYÚ KOMPLETT HUSQVARNA 45, 245R AIP - utángyártott', 'GPPL0705062', 5110, 6490, 0),
 (567, 'DUGATTYÚ KOMPLETT HUSQVARNA 450 44MM - utángyártott', 'GPPL0705087', 2197, 2790, 0),
 (568, 'DUGATTYÚ KOMPLETT HUSQVARNA 450 FARMERTEC - utángyártott', 'GPPL0705102', 2197, 2790, 0),
 (569, 'DUGATTYÚ KOMPLETT HUSQVARNA 51 - utángyártott', 'GPPL0705005', 1961, 2490, 0),
@@ -883,8 +881,8 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (839, 'FOGASKERÉK KERÉKMEGHAJTÁSHOZ 14 FOG JOBB OLDALI - utángyártott', 'GPPL1712006', 1252, 1590, 0),
 (840, 'FOGASKEREKE STIGA 1134-2816-01 EVEREST', 'GPPL1711005', 1724, 2190, 0),
 (841, 'FOGASKEREKE STIGA 1134-3547-01 EVEREST', 'GPPL1711006', 1724, 2190, 0),
-(842, 'FOJTóSZELEP LINK ZONGSHEN XP420 100007960', 'GPPL1343020', 465, 590, 0),
-(843, 'FOJTóSZELEP LINK ZONGSHEN XP420 100008047', 'GPPL1343019', 465, 590, 0),
+(842, 'FOJTĂŁSZELEP LINK ZONGSHEN XP420 100007960', 'GPPL1343020', 465, 590, 0),
+(843, 'FOJTĂŁSZELEP LINK ZONGSHEN XP420 100008047', 'GPPL1343019', 465, 590, 0),
 (844, 'FORDULATSZÁM SZABÁLYOZÓ RÚD ZONGSHEN XP620 17,6HP 100007961', 'GPPL1343013', 465, 590, 0),
 (845, 'FORDULATSZÁM SZABÁLYOZÓ RÚD ZONGSHEN XP620 17,6HP 100057503', 'GPPL1343010', 307, 390, 0),
 (846, 'FORGATTYÚS HÁZ HUSQVARNA 445, 445E, 450, 450E - utángyártott', 'GPPL2805102', 9126, 11590, 0),
@@ -1045,8 +1043,8 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (1001, 'GÁZKAR HUSQVARNA 350', 'GPPL2805106', 543, 690, 0),
 (1002, 'GÁZKAR HUSQVARNA 51, 55 - utángyártott', 'GPPL2805057', 622, 790, 0),
 (1003, 'GOLYÓSTOLL GARDEN PARTS', 'GPPLM002', 465, 590, 0),
-(1004, 'GYEPLAZÍTóK ÉKSZÍJ MTD HTD 320-5M-12 EVEREST - utángyártott', 'GPPL1925034', 1488, 1890, 0),
-(1005, 'GYEPLAZÍTóK ÉKSZÍJ PUBERT HUSQVARNA - utángyártott', 'GPPL1905021', 4402, 5590, 0),
+(1004, 'GYEPLAZÍTĂŁK ÉKSZÍJ MTD HTD 320-5M-12 EVEREST - utángyártott', 'GPPL1925034', 1488, 1890, 0),
+(1005, 'GYEPLAZÍTĂŁK ÉKSZÍJ PUBERT HUSQVARNA - utángyártott', 'GPPL1905021', 4402, 5590, 0),
 (1006, 'GYEPSZELLŐZTETŐ KÉS UNIVERZÁLIS, FŰNYÍRÓKHOZ 16\" 40,6CM - utángyártott', 'GPPL1406021', 3457, 4390, 0),
 (1007, 'GYERTYAKULCS 13X19-ES CSAVARHÚZÓVAL FŰKASZÁKHOZ ÉS LÁNCFŰRÉSZHEZ', 'GPPL0306001', 386, 490, 0),
 (1008, 'GYÚJTÁSKAPCSOLÓ ROBIN EY20 - utángyártott', 'GPPL0928001', 1409, 1790, 0),
@@ -1150,9 +1148,9 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (1106, 'GYÚJTÓTEKERCS STIHL FS38, FS45, FS55 FARMERTEC - utángyártott', 'GPPL0904007', 6921, 8790, 0),
 (1107, 'GYÚJTÓTEKERCS STIHL FS75, FS80, FS85 EVEREST', 'GPPL0904016', 5819, 7390, 0),
 (1108, 'GYÚJTÓTEKERCS STIHL FS87, FS90, FS100 EVEREST', 'GPPL0904017', 6921, 8790, 0),
-(1109, 'GYÚJTÓTEKERCS STIHL FS91, FS111, FS131, KM91 EVEREST', 'GPPL0904018', 9283, 11790, 0);
+(1109, 'GYÚJTÓTEKERCS STIHL FS91, FS111, FS131, KM91 EVEREST', 'GPPL0904018', 9283, 11790, 0),
+(1110, 'GYÚJTÓTEKERCS STIHL MS170 2-MIX, MS180 2-MIX EVEREST', 'GPPL0904011', 6921, 8790, 0);
 INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `bruttoar`, `keszlet`) VALUES
-(1110, 'GYÚJTÓTEKERCS STIHL MS170 2-MIX, MS180 2-MIX EVEREST', 'GPPL0904011', 6921, 8790, 0),
 (1111, 'GYÚJTÓTEKERCS STIHL MS171, MS181, MS211 FARMERTEC - utángyártott', 'GPPL0904006', 5346, 6790, 0),
 (1112, 'GYÚJTÓTEKERCS STIHL MS231, MS251 FARMERTEC - utángyártott', 'GPPL0904008', 6843, 8690, 0),
 (1113, 'GYÚJTÓTEKERCS STIHL MS261 EVEREST', 'GPPL0904012', 6921, 8790, 0),
@@ -1653,7 +1651,7 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (1608, 'KARBURÁTOR ZONGSHEN GB420', 'GPPL1043014', 8732, 11090, 0),
 (1609, 'KARBURÁTOR ZONGSHEN GB680', 'GPPL1043008', 27709, 35190, 0),
 (1610, 'KARBURÁTOR ZONGSHEN NH150H', 'GPPL1043010', 5425, 6890, 0),
-(1611, 'KARBURÁTOR ZONGSHEN NH150H TALAJLAZÍTó', 'GPPL1043016', 5819, 7390, 0),
+(1611, 'KARBURÁTOR ZONGSHEN NH150H TALAJLAZÍTĂŁ', 'GPPL1043016', 5819, 7390, 0),
 (1612, 'KARBURÁTOR ZONGSHEN NP100', 'GPPL1043005', 5425, 6890, 0),
 (1613, 'KARBURÁTOR ZONGSHEN NP150', 'GPPL1043011', 5583, 7090, 0),
 (1614, 'KARBURÁTOR ZONGSHEN XP140 4,5HP', 'GPPL1043001', 5425, 6890, 0),
@@ -1667,7 +1665,7 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (1622, 'KARBURÁTORHONDA GX200 - utángyártott', 'GPPL1002015', 3457, 4390, 0),
 (1623, 'KARTER HUSQVARNA 136, 136LE, 137, 137E, 141, 141LE, 142, 142E - utángyártott', 'GPPL2805084', 8024, 10190, 0),
 (1624, 'KARTER HUSQVARNA 340, 345, 350, 351 - utángyártott', 'GPPL2805090', 10937, 13890, 0),
-(1625, 'KéSRöGZÍTŐ‘ CSAVAR MTD, MENET 5/8 - utángyártott', 'GPPL1625006', 543, 690, 0),
+(1625, 'KĂ©SRĂ¶GZÍTŐ‘ CSAVAR MTD, MENET 5/8 - utángyártott', 'GPPL1625006', 543, 690, 0),
 (1626, 'KERÉK 150 MM UNIVERZÁLIS FÉM CSAPÁGGYAL GUMIKÖPENNYEL - utángyártott', 'GPPL1706020', 2197, 2790, 0),
 (1627, 'KERÉK 150 MM UNIVERZÁLIS MŰANYAG CSAPÁGYAZÁSSAL GUMIKÖPENNYEL - utángyártott', 'GPPL1706030', 2039, 2590, 0),
 (1628, 'KERÉK 175 MM UNIVERZÁLIS FÉM CSAPÁGGYAL GUMIKÖPENNYEL - utángyártott', 'GPPL1706021', 2197, 2790, 0),
@@ -1695,9 +1693,9 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (1650, 'KERÉK PERSELY MTD, YARD MAN, CUB CADET 741-0313, 741-0487A EVEREST', 'GPPL1725003', 701, 890, 0),
 (1651, 'KERÉK PERSELY MTD, YARD MAN, CUB CADET 741-0660 - utángyártott', 'GPPL1725002', 543, 690, 0),
 (1652, 'KEREK PERSELY TRAKTOR - utángyártott', 'GPPL1726002', 937, 1190, 0),
-(1653, 'KERÉKCSAPÁGY  UNIVERZÁLIS FŰNYÍRÓHOZ 28.6 x 12.1 EVEREST', 'GPPL1706038', 465, 590, 0);
+(1653, 'KERÉKCSAPÁGY  UNIVERZÁLIS FŰNYÍRÓHOZ 28.6 x 12.1 EVEREST', 'GPPL1706038', 465, 590, 0),
+(1654, 'KERÉKCSAPÁGY CASTELGARDEN TC102 35X20 - utángyártott', 'GPPL1711003', 1488, 1890, 0);
 INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `bruttoar`, `keszlet`) VALUES
-(1654, 'KERÉKCSAPÁGY CASTELGARDEN TC102 35X20 - utángyártott', 'GPPL1711003', 1488, 1890, 0),
 (1655, 'KERÉKCSAPÁGY FŰNYÍRÓHOZ ALKO 510923 EVEREST', 'GPPL1709002', 465, 590, 0),
 (1656, 'KERÉKCSAPÁGY KESKENY UNIVERZÁLIS FŰNYÍRÓ HOZ  - utángyártott', 'GPPL1706027', 386, 490, 0),
 (1657, 'KERÉKCSAPÁGY SZÉLES UNIVERZÁLIS FŰNYÍRÓ HOZ  - utángyártott', 'GPPL1706028', 465, 590, 0),
@@ -1957,13 +1955,13 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (1911, 'KÉS RÖGZÍTŐ CSAVAR BALOLDALI MENET HUSQVARNA TRAKTOR - utángyártott', 'GPPL1605007', 465, 590, 0),
 (1912, 'KÉS RÖGZÍTŐ CSAVAR JOBBOLDALI MENET HUSQVARNA TRAKTOR - utángyártott', 'GPPL1605006', 228, 290, 0),
 (1913, 'KÉS RÖVID MTD TRAKTOR OLDAL KIVETŐ 38CM DECK H 116CM 46\" - utángyártott', 'GPPL1425020', 3378, 4290, 0),
-(1914, 'KÉS TALAJLAZÍTó ALKO KOMPLETT 7 DB. - utángyártott', 'GPPL1409018', 3378, 4290, 0),
-(1915, 'KÉS TALAJLAZÍTó CASTORAMA SPS38 HECHT 5654 KOMPLETT 18 DB. - utángyártott', 'GPPL1499056', 5110, 6490, 0),
-(1916, 'KÉS TALAJLAZÍTó KYNAST - utángyártott', 'GPPL1422001', 543, 690, 0),
-(1917, 'KÉS TALAJLAZÍTó SOLO 516 518 519 PUBERT MAKITA - utángyártott', 'GPPL1499060', 780, 990, 0),
-(1918, 'KÉS TALAJLAZÍTó STIGA SVP40B PILOTE S400E, S400B KOMPLETT 16 DB. - utángyártott', 'GPPL1433007', 4480, 5690, 0),
-(1919, 'KÉS TALAJLAZÍTó WEIBANG WB384RB WB486CRB - utángyártott', 'GPPL1499074', 780, 990, 0),
-(1920, 'KÉS TALAJLAZÍTó WOLF - utángyártott', 'GPPL1441004', 543, 690, 0),
+(1914, 'KÉS TALAJLAZÍTĂŁ ALKO KOMPLETT 7 DB. - utángyártott', 'GPPL1409018', 3378, 4290, 0),
+(1915, 'KÉS TALAJLAZÍTĂŁ CASTORAMA SPS38 HECHT 5654 KOMPLETT 18 DB. - utángyártott', 'GPPL1499056', 5110, 6490, 0),
+(1916, 'KÉS TALAJLAZÍTĂŁ KYNAST - utángyártott', 'GPPL1422001', 543, 690, 0),
+(1917, 'KÉS TALAJLAZÍTĂŁ SOLO 516 518 519 PUBERT MAKITA - utángyártott', 'GPPL1499060', 780, 990, 0),
+(1918, 'KÉS TALAJLAZÍTĂŁ STIGA SVP40B PILOTE S400E, S400B KOMPLETT 16 DB. - utángyártott', 'GPPL1433007', 4480, 5690, 0),
+(1919, 'KÉS TALAJLAZÍTĂŁ WEIBANG WB384RB WB486CRB - utángyártott', 'GPPL1499074', 780, 990, 0),
+(1920, 'KÉS TALAJLAZÍTĂŁ WOLF - utángyártott', 'GPPL1441004', 543, 690, 0),
 (1921, 'KÉS talajlazító CEDRUS WR01, OM-LINE WE40L', 'GPPL1499082', 701, 890, 0),
 (1922, 'KÉS TÁRCAAGY KOMPLETT 5-ÁGÚ CSILLAG 4XCSAVAR RÖGZÍTÉS HUSQVARNA CRAFTSMAN - utángyártott', 'GPPL1605010', 11567, 14690, 0),
 (1923, 'KÉS TÁRCAAGY KOMPLETT 5-ÁGÚ CSILLAG 4XCSAVAR RÖGZÍTÉS HUSQVARNA TRAKTOROK FŰTARTÁLLYAL - utángyártott', 'GPPL1605018', 13929, 17690, 0),
@@ -2748,11 +2746,11 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (2700, 'MEGHAJTÓMOTOR ZONGSHEN GB680 680CC 22 TWIN 25,4 MM VÍZSZINTES TENGELY', 'GPPL0199020', 313378, 397990, 0),
 (2701, 'MEGHAJTÓMOTOR ZONGSHEN NH150H 149CC 4,0 VÍZSZINTES TENGELY', 'GPPL0199022', 69520, 88290, 0),
 (2702, 'MEGHAJTÓMOTOR ZONGSHEN XP140A 141CC 4,5 22,2MM 50MM FÜGGŐLEGES TENGELY', 'GPPL0199006', 46291, 58790, 0),
-(2703, 'MEGHAJTÓMOTOR ZONGSHEN XP140A 141CC 4,5 22,2MM 50MM FÜGGŐLEGES TENGELY KAPáLóGéPEK MOTOR', 'GPPL0199024', 46291, 58790, 0),
+(2703, 'MEGHAJTÓMOTOR ZONGSHEN XP140A 141CC 4,5 22,2MM 50MM FÜGGŐLEGES TENGELY KAPĂˇLĂŁGĂ©PEK MOTOR', 'GPPL0199024', 46291, 58790, 0),
 (2704, 'MEGHAJTÓMOTOR ZONGSHEN XP140A 141CC 4,5 22,2MM 70MM FÜGGŐLEGES TENGELY', 'GPPL0199030', 46291, 58790, 0),
 (2705, 'MEGHAJTÓMOTOR ZONGSHEN XP200A 196CC 6,5 22,2MM 50MM FÜGGŐLEGES TENGELY AUTO-CHOKE', 'GPPL0199007', 54480, 69190, 0),
-(2706, 'MEGHAJTÓMOTOR ZONGSHEN XP200A 196CC 6,5 22,2MM 50MM FÜGGŐLEGES TENGELY KAPáLóGéPEK MOTOR', 'GPPL0199016', 55583, 70590, 0),
-(2707, 'MEGHAJTÓMOTOR ZONGSHEN XP200A 196CC 6,5 22,2MM 70MM FÜGGŐLEGES TENGELY KAPáLóGéPEK MOTOR', 'GPPL0199025', 55583, 70590, 0),
+(2706, 'MEGHAJTÓMOTOR ZONGSHEN XP200A 196CC 6,5 22,2MM 50MM FÜGGŐLEGES TENGELY KAPĂˇLĂŁGĂ©PEK MOTOR', 'GPPL0199016', 55583, 70590, 0),
+(2707, 'MEGHAJTÓMOTOR ZONGSHEN XP200A 196CC 6,5 22,2MM 70MM FÜGGŐLEGES TENGELY KAPĂˇLĂŁGĂ©PEK MOTOR', 'GPPL0199025', 55583, 70590, 0),
 (2708, 'MEGHAJTÓMOTOR ZONGSHEN XP200A 196CC 6,5 22,2MM 70MM VÍZSZINTES TENGELY AUTO-CHOKE', 'GPPL0199012', 54480, 69190, 0),
 (2709, 'MEGHAJTÓMOTOR ZONGSHEN XP200A 196CC 6,5 25MM 70MM FÜGGŐLEGES TENGELY AUTO-CHOKE', 'GPPL0199027', 54480, 69190, 0),
 (2710, 'MEGHAJTÓMOTOR ZONGSHEN XP380A 382CC 11,5 FÜGGŐLEGES TENGELY', 'GPPL0199026', 161409, 204990, 0),
@@ -3384,7 +3382,7 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 (3335, 'UNIVERZÁLIS \"O\" FORMÁJÚ BOWDEN VÉG - O - utángyártott', 'GPPL1806012', 465, 590, 0),
 (3336, 'UNIVERZÁLIS \"Z\" FORMÁJÚ BOWDEN VÉG - utángyártott', 'GPPL1806010', 386, 490, 0),
 (3337, 'UNIVERZÁLIS \"Z\" FORMÁJÚ BOWDEN VÉG - utángyártott', 'GPPL1806011', 228, 290, 0),
-(3338, 'UNIVERZÁLIS \"Z\" FORMÁJÚ BOWDEN, ALUMÍNIUM, EGY áTMENŐ‘ LYUK - utángyártott', 'GPPL1806009', 307, 390, 0),
+(3338, 'UNIVERZÁLIS \"Z\" FORMÁJÚ BOWDEN, ALUMÍNIUM, EGY ĂˇTMENŐ‘ LYUK - utángyártott', 'GPPL1806009', 307, 390, 0),
 (3339, 'UNIVERZÁLIS GÁZBOWDEN 2,5M - utángyártott', 'GPPL1806021', 307, 390, 0),
 (3340, 'UNIVERZÁLIS GÁZBOWDEN MANETTÁVAL ÉPÍTŐIPARI FELSZERELÉS 1100mm EVEREST', 'GPPL1806024', 10307, 13090, 0),
 (3341, 'UNIVERZÁLIS GÁZBOWDEN MANETTÁVAL ÉPÍTŐIPARI FELSZERELÉS 2050mm EVEREST', 'GPPL1806025', 14953, 18990, 0),
@@ -50737,43 +50735,6 @@ INSERT INTO `alkatreszek` (`ID`, `alkatresznev`, `a_cikkszam`, `nettoar`, `brutt
 -- --------------------------------------------------------
 
 --
--- Tábla szerkezet ehhez a táblához `alkatreszek_javitasra`
---
-
-CREATE TABLE `alkatreszek_javitasra` (
-  `ID` int(11) NOT NULL,
-  `munkalap_id` int(11) NOT NULL,
-  `alkatresz_id` int(11) NOT NULL,
-  `mennyiseg` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `cache`
---
-
-CREATE TABLE `cache` (
-  `key` varchar(255) NOT NULL,
-  `value` mediumtext NOT NULL,
-  `expiration` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `cache_locks`
---
-
-CREATE TABLE `cache_locks` (
-  `key` varchar(255) NOT NULL,
-  `owner` varchar(255) NOT NULL,
-  `expiration` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Tábla szerkezet ehhez a táblához `felhasznalok`
 --
 
@@ -50795,11 +50756,10 @@ CREATE TABLE `felhasznalok` (
 --
 
 INSERT INTO `felhasznalok` (`id`, `nev`, `felhasznalonev`, `email`, `password`, `ketfaktor_secret`, `ketfaktor_enabled_at`, `ketfaktor_recovery_kodok`, `telefonszam`, `jogosultsag`) VALUES
-(3, 'asd', 'asd', 'asd@asd.com', '$2y$12$ex2iLX59qOmwjvfZMCiMq.A4L/BC/fBxZlbTRHcBz69XMCr8fzX7i', 'eyJpdiI6Ino1bXBsMXRCZEw2a2NjcDZsbnB1R2c9PSIsInZhbHVlIjoiczVwdUM4cnlKUlhOMVAydUh5SVZzdlpuY29yS2lidUw3NERVNmJ4aW5VaTluV1dSWWViVTJUTU1hbzIydmNldSIsIm1hYyI6IjllNGFkNmQ5ODNiMDIwYjA4NGVjNzU5MWNhMDkxYWQ1ZDllYzdmYmQ2MDY3NzUzNTg4YTM2MzliZGRmM2U0M2EiLCJ0YWciOiIifQ==', '2025-11-05 12:19:25', '[\"$2y$12$FpSHqxDe5rCYTAzXV37aquBLKYiWeW5lnbTCrpHQvRy8hZE5GxAIy\",\"$2y$12$2SIzBCy6wAZ7D5Hgq7eW0OTdm2jYL8KfLWPI\\/DQTDKZ9nkqVkFJ7m\",\"$2y$12$2jZm40KVO8RYpUDm5HINWeyPhgAo9j\\/isBqIpS1xKYC9PGLoOm7MO\",\"$2y$12$xy0OwxrTjVFd4VrUcBpYqutWGEDv.JGlyR6ymI9dOKgOFJLcRZbUG\",\"$2y$12$Lnf65jOIwCb4CtPm9mXgrOnkPO4WhUhiswAf4lwcwjtKVRia38Ss2\",\"$2y$12$JX\\/hF8yNmEOFv0RjNvfUwOgLvNuhaPVvJyAj9PLmFveAesP7ao7Ky\",\"$2y$12$M4fHKJrzbW\\/ef7KtToe3T.cmt3iPVk4y9YxFN.cnPWsITL2C\\/Vyb6\",\"$2y$12$Qc8B4tYCCIY1QALTDXsEtOPXHN\\/DD0qwVbwbWbRQh.RTfvlSwJwbm\"]', 'asd', 'admin'),
-(4, 'sanya', 'sanya', 'sanya@sanya.com', '$2y$12$61vG64QkP7nCLzt.gcX6ouN60FAOx8lRvnRGUILXz64vLX0mBQ1MW', NULL, NULL, NULL, '06205012465', 'szerelo'),
-(6, 'pityuka999', 'pityuka', 'gombosjanos02@gmail.com', '$2y$12$Lu12qHnyJXiauilji4tgyuwY6cCT96ijGz4MugSgc7/bb/kq/CrD2', NULL, NULL, NULL, '', 'Ugyfel'),
-(8, 'asd9', 'asd9', 'gombosjanos04@gmail.com', '$2y$12$NIDEzNnNfSeWUdUVrwTkbutKCmEFt6q3ECLrm1SPfomwUr3LDV48u', NULL, NULL, NULL, '+36205012465', 'Ugyfel'),
-(9, 'Gomboas', 'gjani2', 'gombosjanos02@outlook.com', '$2y$12$rBWGe/ZMjllp5xCkxrEgxO0GI7HOh5Nxe47dL3Wui.y34ClXBMQ3y', NULL, NULL, NULL, '+36205012464', 'Ugyfel');
+(3, 'asd', 'asd', 'asd@asd.com', '$2y$12$ex2iLX59qOmwjvfZMCiMq.A4L/BC/fBxZlbTRHcBz69XMCr8fzX7i', 'eyJpdiI6InVaeXhSaXowMm5CV3BJazVkTmhKd0E9PSIsInZhbHVlIjoia3VxanlTYjQ3TWZrL0hPZU1VZHNFN29tQXFBZEtIMjBLSVBGaHdjb3hIMzNFc3NMdkpNWW93bytwM2xtREQ1NyIsIm1hYyI6ImY1OGM3MDhhNWM1OWQxMjUxZWJiZDk3ZWYzY2VjNTU2ZDE0MDIxMzg2NmZkOTQ1NWFmMmE4NGY4ZjA4MTA4NGIiLCJ0YWciOiIifQ==', '2025-11-22 11:40:37', '[\"$2y$12$Gke3pAOwbi5KaBHI\\/oLq7OOzLvWXSRS9jH..qy4\\/TRSV1oSru0VOq\",\"$2y$12$BF9Tq55HoEqTbUHajI0FC.uULoqIRIXs3wg6vHIJik.XVaeJRfS02\",\"$2y$12$ffIuDWsyl0w64R0nqdT5hudpeKLj5sjziLgdF.2l46vEGxiRdPV3i\",\"$2y$12$4iCnM8oqUqFqC6lF6KjH6O1wNJrPiF2zCHVfLDL5Av8jFJV\\/G24N.\",\"$2y$12$mRBciNV94MKBCduJIZveYe8zunFf9dqrq5a96LtxAKpvgM9IL44pe\",\"$2y$12$er6QyNDv66ifXtfkKEIeleGxTnvatzKebYIKCeVdPXfg5wFtm\\/IgG\",\"$2y$12$5E.7E\\/dH0wFexe.DnzPbue3nP4Ni.Z2Ng2jiG4txTuaxoJwajdM7i\"]', 'asd', 'admin'),
+(4, 'sanya', 'sanya', 'sanya@sanya.com', '$2y$12$ihew3WTNQmV0VHHAigjtMeNXgmdNaKGXOxQQL7vPJXRCjoajFXxvy', NULL, NULL, NULL, '06205012465', 'szerelo'),
+(6, 'pityuka999', 'pityuka', 'gombosjanos02@gmail.com', '$2y$12$l0L4jGeKUU6EXvuwnbb6Ke3iWez1/gAYfgS.jLrsVTWu4/4QN3KWm', NULL, NULL, NULL, '', 'ugyfel'),
+(8, 'asd9', 'asd9', 'gombosjanos04@gmail.com', '$2y$12$NIDEzNnNfSeWUdUVrwTkbutKCmEFt6q3ECLrm1SPfomwUr3LDV48u', NULL, NULL, NULL, '+36205012465', 'ugyfel');
 
 -- --------------------------------------------------------
 
@@ -51091,20 +51051,8 @@ INSERT INTO `gepek` (`ID`, `gyarto`, `tipusnev`, `g_cikkszam`, `gyartasiev`) VAL
 (271, 'SOLO BY AL-KO', 'RIDER R7-65.8 HD', '127487', 0),
 (272, 'SOLO BY AL-KO', 'DUOTEC 2500', '119684', 0),
 (273, 'SOLO BY AL-KO', 'TCS DUOTEC 3000', '119685', 0),
-(274, 'sad', 'asd', '21312', 1020);
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `javitando_gepek`
---
-
-CREATE TABLE `javitando_gepek` (
-  `ID` int(11) NOT NULL,
-  `gep_id` int(11) NOT NULL,
-  `tulajdonos_id` bigint(20) UNSIGNED NOT NULL,
-  `sorozatszam` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
+(274, 'sad', 'asd', '21312', 1020),
+(275, 'asd', 'asd', 'asd', 3012);
 
 -- --------------------------------------------------------
 
@@ -51126,7 +51074,18 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (1, '2025_11_05_000001_add_two_factor_to_felhasznalok', 1),
 (2, '2025_11_05_000002_add_unique_index_to_telefonszam', 2),
 (3, '2025_11_05_000100_add_telefonszam_to_felhasznalok', 3),
-(4, '2025_11_05_000300_add_unique_index_to_felhasznalonev', 4);
+(4, '2025_11_05_000300_add_unique_index_to_felhasznalonev', 4),
+(5, '0001_01_01_000000_create_users_table', 5),
+(6, '0001_01_01_000001_create_cache_table', 5),
+(7, '0001_01_01_000002_create_jobs_table', 5),
+(8, '2025_10_05_164704_create_personal_access_tokens_table', 5),
+(9, '2025_10_28_000001_create_felhasznalok_table', 5),
+(10, '2025_10_28_200000_create_munkalap_naplo_table', 5),
+(11, '2025_10_28_210000_create_munkalap_ajanlat_tables', 5),
+(12, '2025_10_28_213500_alter_munkalap_ajanlat_tetelek_add_vat_and_type', 5),
+(13, '2025_11_04_100000_add_keszlet_to_alkatreszek_table', 5),
+(14, '2025_11_05_000050_rename_jelszo_to_password_on_felhasznalok_table', 5),
+(15, '2025_11_05_000400_create_munkalap_kepek_table', 5);
 
 -- --------------------------------------------------------
 
@@ -51139,19 +51098,21 @@ CREATE TABLE `munkalapok` (
   `munkalapsorsz` varchar(30) NOT NULL,
   `user_id` int(11) NOT NULL,
   `gep_id` int(11) NOT NULL,
-  `javitando_id` int(11) DEFAULT NULL,
   `hibaleiras` text NOT NULL,
   `megjegyzes` text NOT NULL,
   `statusz` text NOT NULL,
-  `letrehozva` datetime NOT NULL DEFAULT current_timestamp()
+  `letrehozva` datetime NOT NULL DEFAULT current_timestamp(),
+  `letrehozta` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_hungarian_ci;
 
 --
 -- A tábla adatainak kiíratása `munkalapok`
 --
 
-INSERT INTO `munkalapok` (`ID`, `munkalapsorsz`, `user_id`, `gep_id`, `javitando_id`, `hibaleiras`, `megjegyzes`, `statusz`, `letrehozva`) VALUES
-(11, '2025-1', 6, 4, NULL, 'qada', 'asdasd', 'ajanlat_elfogadva', '2025-11-04 17:55:44');
+INSERT INTO `munkalapok` (`ID`, `munkalapsorsz`, `user_id`, `gep_id`, `hibaleiras`, `megjegyzes`, `statusz`, `letrehozva`, `letrehozta`) VALUES
+(11, '2025-1', 6, 4, 'qada', 'asdasd', 'ajanlat_elfogadva', '2025-11-04 17:55:44', 6),
+(12, '2025-2', 6, 8, '', '', 'ajanlat_elutasitva', '2025-11-20 09:27:34', 6),
+(13, '2025-3', 8, 4, 'as', 'as', 'ajanlat_elfogadva', '2025-11-20 14:38:32', 6);
 
 -- --------------------------------------------------------
 
@@ -51173,7 +51134,9 @@ CREATE TABLE `munkalap_ajanlat` (
 --
 
 INSERT INTO `munkalap_ajanlat` (`id`, `munkalap_id`, `megjegyzes`, `statusz`, `osszeg_brutto`, `letrehozva`) VALUES
-(11, 11, 'megjegyzes', 'tervezet', 20900.00, '2025-11-04 16:56:01');
+(11, 11, 'megjegyzes', 'tervezet', 20900.00, '2025-11-04 16:56:01'),
+(12, 12, NULL, 'tervezet', 23090.00, '2025-11-20 08:32:10'),
+(13, 13, NULL, 'tervezet', 153231.00, '2025-11-20 13:39:14');
 
 -- --------------------------------------------------------
 
@@ -51209,8 +51172,15 @@ INSERT INTO `munkalap_ajanlat_tetelek` (`id`, `ajanlat_id`, `megnevezes`, `menny
 (73, 6, 'MunkadĂ­j', 1.00, 0.00, 1900.00),
 (75, 7, 'Fűnyíró kerék MTD TC 51  D180', 1.00, 1496.00, 1900.00),
 (78, 10, 'Fűnyíró kerék MTD TC 51  D180', 1.00, 1200.00, 5500.00),
-(81, 11, 'Fűnyíró kerék MTD TC 51  D180', 1.00, 1496.00, 1900.00),
-(82, 11, 'Munkadíj', 1.00, 0.00, 19000.00);
+(94, 11, 'Munkadíj', 1.00, 0.00, 0.00),
+(95, 11, 'Gömbcsukló 7/16-20 MTD 7230448A - utángyártott', 1.00, 2984.00, 3790.00),
+(96, 11, 'AL-KO 160 FLA NEW COVER', 1.00, 68969.00, 87591.00),
+(103, 12, 'Porlasztó', 1.00, 18181.00, 23090.00),
+(104, 12, 'Munkadíj', 1.00, 0.00, 0.00),
+(105, 12, 'Egyedi tétel', 1.00, 0.00, 0.00),
+(118, 13, 'AL-KO PRO 125 LC1P61FE 125', 1.00, 51685.00, 65640.00),
+(119, 13, 'Egyedi tétel', 1.00, 0.00, 0.00),
+(120, 13, 'AL-KO 160 FLA NEW COVERas', 1.00, 68969.00, 87591.00);
 
 -- --------------------------------------------------------
 
@@ -51234,7 +51204,10 @@ CREATE TABLE `munkalap_kepek` (
 --
 
 INSERT INTO `munkalap_kepek` (`id`, `munkalap_id`, `fajlnev`, `eredeti_nev`, `mime`, `meret`, `feltolto_id`, `letrehozva`) VALUES
-(1, 11, 'munkalapok/11/YIP35NrtuRnMy6gUrJNw2njsx78yvILQB8mjNFJG.jpg', '558675968_1208699131133241_9215710091390136405_n.jpg', 'image/jpeg', 433063, 3, '2025-11-06 20:40:06');
+(1, 11, 'munkalapok/11/YIP35NrtuRnMy6gUrJNw2njsx78yvILQB8mjNFJG.jpg', '558675968_1208699131133241_9215710091390136405_n.jpg', 'image/jpeg', 433063, 3, '2025-11-06 20:40:06'),
+(3, 11, 'munkalapok/11/FQhrvSd7BuCAMfu9WRezIL7FeOguIHMDopoDGQbW.png', 'lawn-mower_3627470.png', 'image/png', 17729, 3, '2025-11-10 22:45:23'),
+(5, 12, 'munkalapok/12/qLr3GPmDEwCLy0piL02zvV3Nr9EHGRmwkJmdsv4p.png', 'lawn-mower_3627470.png', 'image/png', 17729, 3, '2025-11-20 12:40:54'),
+(6, 13, 'munkalapok/13/4ebyc8DQrS2NoxgFIS5TkcZ8BvWMcvKz2d4MeMpZ.jpg', 'b8_wagon_roof_rails_4f925ca4b63f9f68baf2636fd19a1eaa43825eaa.jpg', 'image/jpeg', 136762, 3, '2025-11-20 13:38:48');
 
 -- --------------------------------------------------------
 
@@ -51262,7 +51235,14 @@ INSERT INTO `munkalap_naplo` (`id`, `munkalap_id`, `tipus`, `uzenet`, `letrehozv
 (5, 2, 'statusz', 'Állapot változott: uj → folyamatban', '2025-11-03 22:59:09'),
 (6, 2, 'statusz', 'Állapot változott: folyamatban → alkatreszre_var', '2025-11-03 23:02:10'),
 (7, 5, 'jegyzet', 'é', '2025-11-04 08:18:44'),
-(8, 11, 'statusz', 'Állapot változott: uj â†’ ajanlat_elkuldve', '2025-11-04 16:56:09');
+(11, 11, 'jegyzet', 'Napló bejegyzés asd', '2025-11-11 11:20:29'),
+(17, 11, 'jegyzet', 'asd', '2025-11-19 22:02:06'),
+(19, 11, 'statusz', 'Állapot változott: alkatreszre_var → ajanlat_elkuldve', '2025-11-19 22:27:53'),
+(20, 11, 'statusz', 'Állapot változott: ajanlat_elkuldve → uj', '2025-11-19 22:28:16'),
+(22, 12, 'jegyzet', 'asadas', '2025-11-20 08:30:20'),
+(24, 13, 'statusz', 'Állapot változott: ajanlat_elfogadva -> javitas_kesz', '2025-11-20 14:21:18'),
+(25, 13, 'statusz', 'Állapot változott: javitas_kesz -> atadva_lezarva', '2025-11-20 14:21:25'),
+(26, 13, 'jegyzet', 'asd', '2025-11-22 10:58:42');
 
 -- --------------------------------------------------------
 
@@ -51303,40 +51283,7 @@ INSERT INTO `personal_access_tokens` (`id`, `tokenable_type`, `tokenable_id`, `n
 (9, 'App\\Models\\Felhasznalo', 3, 'auth_token', '40ea6755026b6a35dbcb889f980a969cd9f8ee14f703dd66f97cf35a14d79c01', '[\"*\"]', '2025-10-29 11:10:05', NULL, '2025-10-29 10:47:54', '2025-10-29 11:10:05'),
 (10, 'App\\Models\\Felhasznalo', 3, 'auth_token', 'a83e91f5712f134cc071b0a5bc4a871ca5f0b795e6722d5db49fab6b823febcc', '[\"*\"]', '2025-10-29 11:17:18', NULL, '2025-10-29 11:16:52', '2025-10-29 11:17:18'),
 (12, 'App\\Models\\Felhasznalo', 3, 'auth_token', '0a92f95d08d773174298c52fa60c2f9a428691259d12b0e703708aff8f12be71', '[\"*\"]', '2025-10-30 08:38:27', NULL, '2025-10-30 08:34:17', '2025-10-30 08:38:27'),
-(19, 'App\\Models\\Felhasznalo', 4, 'auth_token', '4e16e80bbc99e8f7626efa850a27ef5dae80db36d391d0cd2f8ab356c93e003b', '[\"*\"]', '2025-11-04 14:02:55', NULL, '2025-11-04 14:02:53', '2025-11-04 14:02:55'),
-(30, 'App\\Models\\Felhasznalo', 3, 'auth_token', '1a3143103c68f3d3e08c50af61eb396076a24f96de9d9451ddd1f5ea1e75ce73', '[\"*\"]', '2025-11-10 21:31:41', NULL, '2025-11-05 21:45:06', '2025-11-10 21:31:41');
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `sessions`
---
-
-CREATE TABLE `sessions` (
-  `id` varchar(255) NOT NULL,
-  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `payload` longtext NOT NULL,
-  `last_activity` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Tábla szerkezet ehhez a táblához `users`
---
-
-CREATE TABLE `users` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(255) NOT NULL,
-  `remember_token` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(30, 'App\\Models\\Felhasznalo', 3, 'auth_token', '1a3143103c68f3d3e08c50af61eb396076a24f96de9d9451ddd1f5ea1e75ce73', '[\"*\"]', '2025-11-20 08:05:16', NULL, '2025-11-05 21:45:06', '2025-11-20 08:05:16');
 
 --
 -- Indexek a kiírt táblákhoz
@@ -51347,26 +51294,6 @@ CREATE TABLE `users` (
 --
 ALTER TABLE `alkatreszek`
   ADD PRIMARY KEY (`ID`);
-
---
--- A tábla indexei `alkatreszek_javitasra`
---
-ALTER TABLE `alkatreszek_javitasra`
-  ADD PRIMARY KEY (`ID`),
-  ADD KEY `munkalap_id` (`munkalap_id`),
-  ADD KEY `alkatresz_id` (`alkatresz_id`);
-
---
--- A tábla indexei `cache`
---
-ALTER TABLE `cache`
-  ADD PRIMARY KEY (`key`);
-
---
--- A tábla indexei `cache_locks`
---
-ALTER TABLE `cache_locks`
-  ADD PRIMARY KEY (`key`);
 
 --
 -- A tábla indexei `felhasznalok`
@@ -51386,14 +51313,6 @@ ALTER TABLE `gepek`
   ADD PRIMARY KEY (`ID`);
 
 --
--- A tábla indexei `javitando_gepek`
---
-ALTER TABLE `javitando_gepek`
-  ADD PRIMARY KEY (`ID`),
-  ADD KEY `gep_id` (`gep_id`),
-  ADD KEY `tulajdonos_id` (`tulajdonos_id`);
-
---
 -- A tábla indexei `migrations`
 --
 ALTER TABLE `migrations`
@@ -51405,8 +51324,7 @@ ALTER TABLE `migrations`
 ALTER TABLE `munkalapok`
   ADD PRIMARY KEY (`ID`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `gep_id` (`gep_id`),
-  ADD KEY `javitando_id` (`javitando_id`);
+  ADD KEY `gep_id` (`gep_id`);
 
 --
 -- A tábla indexei `munkalap_ajanlat`
@@ -51451,21 +51369,6 @@ ALTER TABLE `personal_access_tokens`
   ADD KEY `personal_access_tokens_expires_at_index` (`expires_at`);
 
 --
--- A tábla indexei `sessions`
---
-ALTER TABLE `sessions`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `sessions_user_id_index` (`user_id`),
-  ADD KEY `sessions_last_activity_index` (`last_activity`);
-
---
--- A tábla indexei `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `users_email_unique` (`email`);
-
---
 -- A kiírt táblák AUTO_INCREMENT értéke
 --
 
@@ -51485,66 +51388,49 @@ ALTER TABLE `felhasznalok`
 -- AUTO_INCREMENT a táblához `gepek`
 --
 ALTER TABLE `gepek`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=275;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=276;
 
 --
 -- AUTO_INCREMENT a táblához `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT a táblához `munkalapok`
 --
 ALTER TABLE `munkalapok`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT a táblához `munkalap_ajanlat`
 --
 ALTER TABLE `munkalap_ajanlat`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT a táblához `munkalap_ajanlat_tetelek`
 --
 ALTER TABLE `munkalap_ajanlat_tetelek`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
 
 --
 -- AUTO_INCREMENT a táblához `munkalap_kepek`
 --
 ALTER TABLE `munkalap_kepek`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT a táblához `munkalap_naplo`
 --
 ALTER TABLE `munkalap_naplo`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT a táblához `personal_access_tokens`
 --
 ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
-
---
--- AUTO_INCREMENT a táblához `users`
---
-ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- Megkötések a kiírt táblákhoz
---
-
---
--- Megkötések a táblához `javitando_gepek`
---
-ALTER TABLE `javitando_gepek`
-  ADD CONSTRAINT `javitando_gepek_gep_fk` FOREIGN KEY (`gep_id`) REFERENCES `gepek` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `javitando_gepek_tulajdonos_fk` FOREIGN KEY (`tulajdonos_id`) REFERENCES `felhasznalok` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

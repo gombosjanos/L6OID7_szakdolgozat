@@ -26,7 +26,6 @@ Artisan::command('parts:import {path : CSV file path} {--delimiter=; : CSV delim
 
     $norm = function ($s) {
         $s = trim((string)$s);
-        // normalize encoding to UTF-8
         if (!mb_check_encoding($s, 'UTF-8')) {
             $s = mb_convert_encoding($s, 'UTF-8', 'Windows-1250,Windows-1252,ISO-8859-2,ISO-8859-1');
         }
@@ -42,8 +41,6 @@ Artisan::command('parts:import {path : CSV file path} {--delimiter=; : CSV delim
     $header = fgetcsv($fh, 0, $delim);
     if (!$header) { $this->error('Empty CSV'); return 1; }
     $keys = array_map($norm, $header);
-
-    // find column indexes
     $idx = function ($candidates) use ($keys) {
         foreach ((array)$candidates as $c) {
             $i = array_search($c, $keys, true);

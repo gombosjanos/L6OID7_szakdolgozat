@@ -13,7 +13,6 @@ class Munkalap extends Model
     protected $fillable = [
         'user_id',
         'gep_id',
-        'javitando_id',
         'hibaleiras',
         'megjegyzes',
         'statusz',
@@ -35,16 +34,6 @@ class Munkalap extends Model
     public function gep()
     {
         return $this->belongsTo(Gep::class, 'gep_id', 'ID');
-    }
-
-    public function javitando()
-    {
-        return $this->belongsTo(JavitandoGep::class, 'javitando_id', 'ID');
-    }
-
-    public function alkatreszek()
-    {
-        return $this->hasMany(AlkatreszJavitasra::class, 'munkalap_id', 'ID');
     }
 
     public function kepek()

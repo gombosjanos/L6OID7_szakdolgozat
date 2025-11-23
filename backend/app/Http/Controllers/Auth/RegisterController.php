@@ -10,9 +10,7 @@ use Illuminate\Http\JsonResponse;
 
 class RegisterController extends Controller
 {
-    /**
-     * Új Ugyfel regisztrálása E.164 formátumú telefonszámmal.
-     */
+    
     public function store(RegisterRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -29,3 +27,4 @@ class RegisterController extends Controller
         return response()->json(['ok' => true], 201, [], JSON_UNESCAPED_UNICODE);
     }
 }
+

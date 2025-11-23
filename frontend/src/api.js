@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 
 const baseURL = import.meta.env.VITE_API_BASE || '/api'
 
@@ -10,7 +10,6 @@ export const api = axios.create({
   },
 })
 
-// token hozzáadása minden kérés előtt ha létezik
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {

@@ -45,7 +45,7 @@
     </v-snackbar>
 
     <v-row>
-      <!-- Ügyfél blokk (csak regisztrált) -->
+      
       <v-col cols="12" md="6" lg="4">
         <v-card class="mb-4">
           <v-card-title class="text-subtitle-1">Ügyfél</v-card-title>
@@ -84,7 +84,7 @@
         </v-card>
       </v-col>
 
-      <!-- Gép blokk -->
+      
       <v-col cols="12" md="6" lg="4">
         <v-card class="mb-4">
           <v-card-title class="d-flex align-center">
@@ -138,7 +138,7 @@
         </v-card>
       </v-col>
 
-      <!-- Leírások -->
+      
       <v-col cols="12" lg="4">
         <v-card class="mb-4">
           <v-card-title class="text-subtitle-1">Leírások</v-card-title>
@@ -166,7 +166,7 @@
       </v-col>
     </v-row>
 
-    <!-- Új gép felvétele -->
+    
     <v-dialog v-model="addMachineDialog" max-width="560">
       <v-card>
         <v-card-title class="text-subtitle-1">
@@ -381,11 +381,9 @@ async function loadExisting () {
   if (!id.value) return
   try {
     const data = await request(`/munkalapok/${id.value}`)
-    // ügyfél
     if (data.Ugyfel || data.ugyfel) {
       Ugyfel.value = data.Ugyfel || data.ugyfel
     }
-    // gép
     if (data.gep) {
       gep.value = data.gep
     }
@@ -441,4 +439,5 @@ Vue.onMounted(() => {
   min-width: 140px;
 }
 </style>
+
 

@@ -136,7 +136,7 @@ const login = async () => {
       error.value = res.data.errors[firstKey][0]
     } else {
   error.value = res?.data?.message || res?.data?.error || 'Hibás email/felhasználónév vagy jelszó.'
-      console.debug('Login error', res?.data || e)
+      
     }
     if (res?.status !== 423 && res?.status !== 422) {
       resetTwoFactorState()
@@ -383,3 +383,4 @@ const login = async () => {
   .auth-card { border-radius: 14px; }
 }
 </style>
+

@@ -29,11 +29,11 @@ const logout = async () => {
   </header>
 </template>
 <style scoped>
-/* Hide the default navigation (hamburger) button in the header */
+
 :deep(.v-app-bar-nav-icon) {
   display: none !important;
 }
-/* Ensure header text is black and readable */
+
 .site-header h1,
 .site-header span {
   color: #000 !important;
@@ -42,4 +42,5 @@ const logout = async () => {
   color: #fff !important;
 }
 </style>
+
 

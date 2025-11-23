@@ -139,7 +139,6 @@ function triggerPrint() {
   try {
     window.print()
   } catch {
-    // ignore
   }
 }
 
@@ -147,7 +146,6 @@ function goBack() {
   try {
     router.back()
   } catch {
-    // ignore
   }
 }
 

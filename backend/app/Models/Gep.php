@@ -14,11 +14,6 @@ class Gep extends Model
         'gyarto', 'tipusnev', 'g_cikkszam', 'gyartasiev'
     ];
 
-    public function javitandoGepek()
-    {
-        return $this->hasMany(JavitandoGep::class, 'gep_id', 'ID');
-    }
-
     public function munkalapok()
     {
         return $this->hasMany(Munkalap::class, 'gep_id', 'ID');

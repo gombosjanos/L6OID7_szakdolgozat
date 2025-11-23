@@ -10,17 +10,13 @@ use libphonenumber\PhoneNumberUtil;
 
 class RegisterRequest extends FormRequest
 {
-    /**
-     * Csak publikus regisztrációhoz engedjük a kérést.
-     */
+    
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Regisztrációs szabályok (telefonszám E.164 mobil formátum, megadott országok).
-     */
+    
     public function rules(): array
     {
         return [
@@ -35,7 +31,6 @@ class RegisterRequest extends FormRequest
             ],
             'email' => ['required', 'email', 'max:255', 'unique:felhasznalok,email'],
             'jelszo' => ['required', 'string', 'min:8', 'regex:/^(?=.*[A-Za-z])(?=.*\d).{8,}$/', 'confirmed'],
-            // Alternatív reguláris kifejezés: regex:/^\+[1-9]\d{6,14}$/
             'telefonszam' => [
                 'required',
                 (new Phone())
@@ -47,9 +42,7 @@ class RegisterRequest extends FormRequest
         ];
     }
 
-    /**
-     * Magyar hibaüzenetek (E.164 követelmény kihangsúlyozása).
-     */
+    
     public function messages(): array
     {
         return [
@@ -79,9 +72,7 @@ class RegisterRequest extends FormRequest
         ];
     }
 
-    /**
-     * Telefonszám normalizálása validálás előtt (szóköz, kötőjel, zárójel eltávolítása, 00 -> +).
-     */
+    
     protected function prepareForValidation(): void
     {
         $rawName = $this->input('nev');
@@ -106,9 +97,7 @@ class RegisterRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Telefonszám végső E.164 formázása a libphonenumber segítségével.
-     */
+    
     protected function passedValidation(): void
     {
         $value = $this->telefonszam;
@@ -131,3 +120,5 @@ class RegisterRequest extends FormRequest
         }
     }
 }
+
+

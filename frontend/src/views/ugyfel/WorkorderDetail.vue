@@ -1,4 +1,4 @@
-Ôªø<template>
+<template>
   <v-container fluid class="pa-4">
     <v-toolbar density="comfortable" color="white" elevation="0" class="mb-3">
       <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
@@ -17,52 +17,52 @@
           <v-card-title class="text-subtitle-1 font-weight-bold">Alap adatok</v-card-title>
           <v-divider />
           <v-card-text>
-            <div class="mb-2"><strong>Azonos√≠¬≠t√≥:</strong> {{ displayId }}</div>
-            <div class="mb-2"><strong>G√©p:</strong> {{ gepLabel(gepFromRow(detail)) }}</div>
-            <div class="mb-2"><strong>L√©trehozva:</strong> {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
-            <div class="mb-2"><strong>√Ållapot:</strong> {{ displayStatus(detail.statusz) }}</div>
-            <div class="mb-2" v-if="detail.hibaleiras"><strong>Hiba le√≠r√°s:</strong> {{ detail.hibaleiras }}</div>
-            <div class="mb-2" v-if="detail.megjegyzes"><strong>Megjegyz√©s:</strong> {{ detail.megjegyzes }}</div>
+            <div class="mb-2"><strong>AzonosÌ≠tÛ:</strong> {{ displayId }}</div>
+            <div class="mb-2"><strong>GÈp:</strong> {{ gepLabel(gepFromRow(detail)) }}</div>
+            <div class="mb-2"><strong>LÈtrehozva:</strong> {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
+            <div class="mb-2"><strong>¡llapot:</strong> {{ displayStatus(detail.statusz) }}</div>
+            <div class="mb-2" v-if="detail.hibaleiras"><strong>Hiba leÌr·s:</strong> {{ detail.hibaleiras }}</div>
+            <div class="mb-2" v-if="detail.megjegyzes"><strong>MegjegyzÈs:</strong> {{ detail.megjegyzes }}</div>
           </v-card-text>
         </v-card>
 
         <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1 font-weight-bold">Szerel≈ë adatai</v-card-title>
+          <v-card-title class="text-subtitle-1 font-weight-bold">Szerelı adatai</v-card-title>
           <v-divider />
           <v-card-text>
-            <div class="mb-2"><strong>N√©v:</strong> {{ getUgyfelNev(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>NÈv:</strong> {{ getUgyfelNev(detail.letrehozo || {}) }}</div>
             <div class="mb-2"><strong>E-mail:</strong> {{ getUgyfelEmail(detail.letrehozo || {}) }}</div>
             <div class="mb-2"><strong>Telefon:</strong> {{ getUgyfelTelefon(detail.letrehozo || {}) }}</div>
-            <div class="mb-2"><strong>Felhaszn√°l√≥n√©v:</strong> {{ getUgyfelFnev(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>Felhaszn·lÛnÈv:</strong> {{ getUgyfelFnev(detail.letrehozo || {}) }}</div>
           </v-card-text>
         </v-card>
 
         <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1 font-weight-bold">Csatolt k√©pek</v-card-title>
+          <v-card-title class="text-subtitle-1 font-weight-bold">Csatolt kÈpek</v-card-title>
           <v-divider />
           <v-card-text>
-            <div v-if="!hasImages" class="text-medium-emphasis">Nem √©rkezett m√©g k√©p ehhez a munkalaphoz.</div>
+            <div v-if="!hasImages" class="text-medium-emphasis">Nem Èrkezett mÈg kÈp ehhez a munkalaphoz.</div>
             <v-row v-else class="ga-2">
               <v-col v-for="img in images" :key="img._key" cols="12" sm="6">
                 <v-card variant="outlined" class="image-card">
                   <v-img
                     :src="thumbSrc(img)"
-                    :alt="img.eredeti_nev || 'Munkalap k√©p'"
+                    :alt="img.eredeti_nev || 'Munkalap kÈp'"
                     aspect-ratio="4/3"
                     class="rounded cursor-pointer"
                     :lazy-src="thumbPlaceholder"
                     cover
                   />
                   <v-card-text class="py-2 px-3 image-meta">
-                    <div class="text-body-2 text-truncate" :title="img.eredeti_nev">{{ img.eredeti_nev || 'Felt√∂lt√∂tt k√©p' }}</div>
+                    <div class="text-body-2 text-truncate" :title="img.eredeti_nev">{{ img.eredeti_nev || 'Feltˆltˆtt kÈp' }}</div>
                     <div class="text-caption text-medium-emphasis">
                       {{ fmtDate(img.letrehozva || img.created_at) }}
-                      <span v-if="img.meret"> √¢‚Ç¨Àò {{ formatFileSize(img.meret) }}</span>
+                      <span v-if="img.meret"> ‚Ä¢ {{ formatFileSize(img.meret) }}</span>
                     </div>
                   </v-card-text>
                   <v-card-actions class="py-2 px-3">
                     <v-btn variant="text" size="small" color="primary" prepend-icon="mdi-magnify-plus" @click="openImage(img)">
-                      Nagy√≠t√°s
+                      NagyÌt·s
                     </v-btn>
                   </v-card-actions>
                 </v-card>
@@ -75,26 +75,26 @@
       <v-col cols="12" md="7">
         <v-card>
           <v-card-title class="d-flex align-center">
-            <span class="text-subtitle-1 font-weight-bold">√Åraj√°nlat</span>
+            <span class="text-subtitle-1 font-weight-bold">¡raj·nlat</span>
             <v-spacer />
             <v-chip v-if="offerStatusUI" size="small" :color="offerStatusColor(offerStatusUI)" variant="tonal">{{ displayOfferStatus(offerStatusUI) }}</v-chip>
           </v-card-title>
           <v-divider />
           <v-card-text>
             <v-alert v-if="offerNote" type="warning" variant="elevated" class="mb-3">
-              <div class="text-subtitle-1 mb-2 font-weight-bold">Megjegyz√©s</div>
+              <div class="text-subtitle-1 mb-2 font-weight-bold">MegjegyzÈs</div>
               <div class="prewrap">{{ offerNote }}</div>
             </v-alert>
-            <div v-if="offerRows.length===0" class="text-medium-emphasis">M√©g nincs el√©rhet≈ë √°raj√°nlat.</div>
+            <div v-if="offerRows.length===0" class="text-medium-emphasis">MÈg nincs elÈrhetı ·raj·nlat.</div>
             <template v-else>
               <v-table density="compact">
                 <thead>
                   <tr>
-                    <th>Megnevez√©s</th>
+                    <th>MegnevezÈs</th>
                     <th class="text-right">Db</th>
-                    <th class="text-right">Egys√©g√°r (nett√≥)</th>
-                    <th class="text-right">√ÅFA%</th>
-                    <th class="text-right">√ñsszesen (brutt√≥)</th>
+                    <th class="text-right">EgysÈg·r (nettÛ)</th>
+                    <th class="text-right">¡FA%</th>
+                    <th class="text-right">÷sszesen (bruttÛ)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -108,7 +108,7 @@
                 </tbody>
                 <tfoot>
                   <tr>
-                    <th colspan="2" class="text-right">√ñsszesen:</th>
+                    <th colspan="2" class="text-right">÷sszesen:</th>
                     <th class="text-right">{{ fmtCurrency(totalNetto) }}</th>
                     <th></th>
                     <th class="text-right">{{ fmtCurrency(totalBrutto) }}</th>
@@ -118,7 +118,7 @@
 
               <div class="mt-3 d-flex align-center" v-if="canDecide">
                 <v-btn color="success" variant="tonal" prepend-icon="mdi-check" class="me-2" :loading="processing" :disabled="processing" @click="accept">Elfogadom</v-btn>
-                <v-btn color="error" variant="tonal" prepend-icon="mdi-close" :loading="processing" :disabled="processing" @click="reject">Elutas√≠¬≠tom</v-btn>
+                <v-btn color="error" variant="tonal" prepend-icon="mdi-close" :loading="processing" :disabled="processing" @click="reject">ElutasÌ≠tom</v-btn>
               </div>
             </template>
           </v-card-text>
@@ -128,24 +128,24 @@
   </v-container>
     <v-dialog v-model="lightboxOpen" max-width="98vw" scrim="rgba(0,0,0,0.8)">
     <v-card class="pa-0 lb-card" color="black">
-  <button class="lb-close" @click="lightboxOpen=false" aria-label="Bez√°r√°s">
+  <button class="lb-close" @click="lightboxOpen=false" aria-label="Bez·r·s">
     <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" role="img" aria-hidden="true">
       <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
     </svg>
   </button>
   <div class="lb-counter">{{ (currentIndex+1) }} / {{ images.length }}</div>
-  <button class="lb-nav lb-left" @click="prevImage" :disabled="images.length<=1" aria-label="El≈ëz≈ë">
+  <button class="lb-nav lb-left" @click="prevImage" :disabled="images.length<=1" aria-label="Elızı">
     <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" role="img" aria-hidden="true">
       <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
     </svg>
   </button>
-  <button class="lb-nav lb-right" @click="nextImage" :disabled="images.length<=1" aria-label="K√∂vetkez≈ë">
+  <button class="lb-nav lb-right" @click="nextImage" :disabled="images.length<=1" aria-label="Kˆvetkezı">
     <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" role="img" aria-hidden="true">
       <path d="m8.59 16.59 4.58-4.59-4.58-4.59L10 6l6 6-6 6z"/>
     </svg>
   </button>
   <div class="lb-body">
-    <img :src="lightboxUrl" alt="K√©p" />
+    <img :src="lightboxUrl" alt="KÈp" />
   </div>
 </v-card>
   </v-dialog>
@@ -197,9 +197,9 @@ async function openImage(img){
   try{
     const url = await getObjectUrl(img)
     const w = window.open(url, '_blank')
-    if(!w){ snack('A k√©p megnyit√°s√°t a b√∂ng√©sz≈ë blokkolta.', 'warning') }
+    if(!w){ snack('A kÈp megnyit·s·t a bˆngÈszı blokkolta.', 'warning') }
   }catch(e){
-    snack('K√©p megnyit√°sa nem siker√ºlt.', 'error')
+    snack('KÈp megnyit·sa nem siker¸lt.', 'error')
   }
 }
 
@@ -288,14 +288,14 @@ function statusColor(s){
 }
 function displayStatus(s){
   const map={
-    'uj':'√∫j',
+    'uj':'˙j',
     'folyamatban':'Folyamatban',
-    'ajanlat_elkuldve':'√Åraj√°nlat elk√ºldve',
-    'alkatreszre_var':'Alkatr√©szre v√°r',
-    'javitas_kesz':'JavƒÇ¬≠t√°s k√©sz',
-    'atadva_lezarva':'√Åtadva/Lez√°rva',
-    'ajanlat_elfogadva':'√Åraj√°nlat elfogadva',
-    'ajanlat_elutasitva':'√Åraj√°nlat elutasƒÇ¬≠tva',
+    'ajanlat_elkuldve':'¡raj·nlat elk¸ldve',
+    'alkatreszre_var':'AlkatrÈszre v·r',
+    'javitas_kesz':'Jav√≠t·s kÈsz',
+    'atadva_lezarva':'¡tadva/Lez·rva',
+    'ajanlat_elfogadva':'¡raj·nlat elfogadva',
+    'ajanlat_elutasitva':'¡raj·nlat elutas√≠tva',
   }
   const k=(s||'').toLowerCase()
   return map[k] || s || '-'
@@ -303,7 +303,7 @@ function displayStatus(s){
 function normalizeStatus(s){ try{ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (s||'').toString().toLowerCase() } }
 
 function gepFromRow(row){ if(row?.gep) return row.gep; if(row?.gep_adatok) return row.gep_adatok; const gyarto=row?.gyarto||row?.gep_gyarto; const tipusnev=row?.tipusnev||row?.gep_tipus; const g_cikkszam=row?.g_cikkszam||row?.cikkszam||row?.gep_cikkszam; if(gyarto||tipusnev||g_cikkszam) return {gyarto,tipusnev,g_cikkszam}; return null }
-function gepLabel(gep){ if(!gep) return '-'; try{ const gyarto = gep.gyarto || gep.gep_gyarto || ''; const tipus = gep.tipusnev || gep.gep_tipus || ''; const cikkszam = gep.g_cikkszam || gep.cikkszam || gep.gep_cikkszam || ''; const head = [gyarto, tipus].filter(Boolean).join(' '); return [head, cikkszam].filter(Boolean).join(' √¢‚Ç¨Àò ') }catch{ return '-' } }
+function gepLabel(gep){ if(!gep) return '-'; try{ const gyarto = gep.gyarto || gep.gep_gyarto || ''; const tipus = gep.tipusnev || gep.gep_tipus || ''; const cikkszam = gep.g_cikkszam || gep.cikkszam || gep.gep_cikkszam || ''; const head = [gyarto, tipus].filter(Boolean).join(' '); return [head, cikkszam].filter(Boolean).join(' ‚Ä¢ ') }catch{ return '-' } }
 
 function normalizeImageEntry(entry, index = 0){
   if(!entry) return null
@@ -351,9 +351,9 @@ async function oldOpenImage(img){
     const objUrl = URL.createObjectURL(blob)
     const w = window.open(objUrl, '_blank')
     setTimeout(()=> URL.revokeObjectURL(objUrl), 60000)
-    if(!w){ snack('A k√©p megnyit√°sa blokkolva lett a b√∂ng√©sz≈ë √°ltal.', 'warning') }
+    if(!w){ snack('A kÈp megnyit·sa blokkolva lett a bˆngÈszı ·ltal.', 'warning') }
   }catch(e){
-    snack('K√©p megnyit√°sa nem siker√ºlt.', 'error')
+    snack('KÈp megnyit·sa nem siker¸lt.', 'error')
   }
 }
 
@@ -367,19 +367,19 @@ const offerRows = Vue.computed(()=>{
 function normKey(k){ try{ return (k||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') }catch{ return (k||'').toString().toLowerCase() } }
 function toNum(v){ if (v==null) return 0; if (typeof v==='number') return isFinite(v)?v:0; const s=String(v).replace(/\s+/g,'').replace(/\./g,'').replace(',', '.'); const n=parseFloat(s); return isFinite(n)?n:0 }
 function pickVal(obj, candidates){ try{ const map={}; for(const k of Object.keys(obj||{})){ map[normKey(k)] = obj[k]; } for(const name of candidates){ const v = map[normKey(name)]; if (v!=null && v!=='') return v } }catch{} return undefined }
-function qtyOf(t){ const v = pickVal(t,['mennyiseg','mennyis√©g','db','darab']); const n = toNum(v); return n>0?n:0 }
-function vatOf(t){ const v = pickVal(t,['afa_kulcs','√°fa_kulcs','afa','√°fa']); const n = toNum(v); return n>0?n:27 }
+function qtyOf(t){ const v = pickVal(t,['mennyiseg','mennyisÈg','db','darab']); const n = toNum(v); return n>0?n:0 }
+function vatOf(t){ const v = pickVal(t,['afa_kulcs','·fa_kulcs','afa','·fa']); const n = toNum(v); return n>0?n:27 }
 function unitNetto(t){
-  const n1 = pickVal(t,['netto_egyseg_ar','nett√≥_egyseg_ar','nettoegysegar','netto','nett√≥','egyseg_ar','egys√©g√°r','egysegar'])
+  const n1 = pickVal(t,['netto_egyseg_ar','nettÛ_egyseg_ar','nettoegysegar','netto','nettÛ','egyseg_ar','egysÈg·r','egysegar'])
   if (n1!=null && n1!=='') { const n=toNum(n1); if(n>0) return n }
-  const ub = pickVal(t,['brutto_egyseg_ar','brutt√≥_egyseg_ar','bruttoegysegar'])
+  const ub = pickVal(t,['brutto_egyseg_ar','bruttÛ_egyseg_ar','bruttoegysegar'])
   if (ub!=null && ub!=='') { const a=vatOf(t); const b=toNum(ub); if (b>0) return b/(1+a/100) }
-  const qty = qtyOf(t); const sum = pickVal(t,['osszeg','√∂sszeg','osszeg_brutto','brutto_osszeg','brutto','brutt√≥']);
+  const qty = qtyOf(t); const sum = pickVal(t,['osszeg','ˆsszeg','osszeg_brutto','brutto_osszeg','brutto','bruttÛ']);
   if (qty>0 && sum!=null && sum!=='') { const a=vatOf(t); const bruttoEgys = toNum(sum)/qty; return bruttoEgys/(1+a/100) }
   return 0
 }
 function unitBrutto(t){
-  const ub = pickVal(t,['brutto_egyseg_ar','brutt√≥_egyseg_ar','bruttoegysegar'])
+  const ub = pickVal(t,['brutto_egyseg_ar','bruttÛ_egyseg_ar','bruttoegysegar'])
   if (ub!=null && ub!=='') { const b=toNum(ub); if (b>0) return b }
   const n = unitNetto(t); const a = vatOf(t); return n*(1+a/100)
 }
@@ -420,7 +420,7 @@ function offerStatusColor(s){
 }
 function displayOfferStatus(s){
   const k=(s||'').toString().toLowerCase()
-  const map={ elkuldve:'Elfogad√°sra v√°r', elfogadva:'Elfogadva', elutasitva:'ElutasƒÇ¬≠tva' }
+  const map={ elkuldve:'Elfogad·sra v·r', elfogadva:'Elfogadva', elutasitva:'Elutas√≠tva' }
   return map[k] || '-'
 }
 
@@ -429,7 +429,7 @@ async function load(){
     errorMsg.value = ''
     const d = await api.get(`/munkalapok/${id.value}`)
     detail.value = d?.data || {}
-    images.value = normalizeImages(detail.value?.kepek); try{ const first = images.value.slice(0,8); for (const it of first){ /* fire-and-forget */ getObjectUrl(it).catch(()=>{}) } }catch{}
+    images.value = normalizeImages(detail.value?.kepek); try{ const first = images.value.slice(0,8); for (const it of first){  getObjectUrl(it).catch(()=>{}) } }catch{}
     const a = await api.get(`/munkalapok/${id.value}/ajanlat`)
     offer.value = a?.data || null
     try {
@@ -437,7 +437,7 @@ async function load(){
       images.value = normalizeImages(img?.data); try{ const first = images.value.slice(0,8); for (const it of first){ getObjectUrl(it).catch(()=>{}) } }catch{}
     } catch {}
   }catch(e){
-    errorMsg.value = e?.response?.data?.message || e?.message || 'Bet√∂lt√©si hiba.'
+    errorMsg.value = e?.response?.data?.message || e?.message || 'BetˆltÈsi hiba.'
   }
 }
 
@@ -445,18 +445,18 @@ async function accept(){
   try{
     processing.value = true
     await api.post(`/munkalapok/${id.value}/ajanlat/accept`)
-    snack('√Åraj√°nlat elfogadva')
+    snack('¡raj·nlat elfogadva')
     await load()
-  }catch(e){ errorMsg.value = e?.response?.data?.message || 'Elfogad√°s nem siker√ºlt.' }
+  }catch(e){ errorMsg.value = e?.response?.data?.message || 'Elfogad·s nem siker¸lt.' }
   finally{ processing.value=false }
 }
 async function reject(){
   try{
     processing.value = true
     await api.post(`/munkalapok/${id.value}/ajanlat/reject`)
-    snack('√Åraj√°nlat elutas√≠¬≠tva','warning')
+    snack('¡raj·nlat elutasÌ≠tva','warning')
     await load()
-  }catch(e){ errorMsg.value = e?.response?.data?.message || 'Elutas√≠t√°s nem siker√ºlt.' }
+  }catch(e){ errorMsg.value = e?.response?.data?.message || 'ElutasÌt·s nem siker¸lt.' }
   finally{ processing.value=false }
 }
 
@@ -513,5 +513,6 @@ Vue.onMounted(load)
 .lb-right{ right:14px; }
 .lb-nav[disabled]{ opacity:.35; cursor:default; }
 </style>
+
 
 

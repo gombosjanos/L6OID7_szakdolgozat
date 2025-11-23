@@ -98,7 +98,7 @@ const register = async () => {
       error.value = res.data?.errors ? Object.values(res.data.errors)[0][0] : res.data.message
     } else {
       error.value = res?.data?.message || res?.data?.error || 'Hiba történt a regisztráció során.'
-      console.debug('Register error', res?.data || e)
+      
     }
   } finally {
     loading.value = false
@@ -359,3 +359,4 @@ const register = async () => {
   .auth-card { border-radius: 14px; }
 }
 </style>
+

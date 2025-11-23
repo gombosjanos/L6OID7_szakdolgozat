@@ -13,9 +13,4 @@ class Alkatresz extends Model
     protected $fillable = [
         'gyarto', 'alkatresznev', 'a_cikkszam', 'nettoar', 'bruttoar', 'keszlet'
     ];
-
-    public function javitasok()
-    {
-        return $this->hasMany(AlkatreszJavitasra::class, 'alkatresz_id', 'ID');
-    }
 }

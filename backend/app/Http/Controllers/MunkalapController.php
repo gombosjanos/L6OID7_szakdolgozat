@@ -60,7 +60,6 @@ class MunkalapController extends Controller
             'Ugyfel_email' => 'sometimes|nullable|email|max:100',
             'Ugyfel_telefon' => 'sometimes|nullable|string|max:32',
             'gep_id' => 'required|integer',
-            'javitando_id' => 'sometimes|nullable|integer',
             'hibaleiras' => 'sometimes|nullable|string',
             'megjegyzes' => 'sometimes|nullable|string',
             'statusz' => 'sometimes|string|max:50',
@@ -100,7 +99,6 @@ class MunkalapController extends Controller
             'user_id' => $data['user_id'],
             'letrehozta' => $auth ? $auth->getKey() : ($data['user_id'] ?? null),
             'gep_id' => $data['gep_id'],
-            'javitando_id' => $data['javitando_id'] ?? null,
             'hibaleiras' => array_key_exists('hibaleiras', $data) ? ($data['hibaleiras'] ?? '') : '',
             'megjegyzes' => array_key_exists('megjegyzes', $data) ? ($data['megjegyzes'] ?? '') : '',
             'statusz' => $data['statusz'] ?? 'uj',
@@ -153,7 +151,6 @@ class MunkalapController extends Controller
         $data = $request->validate([
             'user_id' => 'sometimes|integer|exists:felhasznalok,id',
             'gep_id' => 'sometimes|integer|exists:gepek,ID',
-            'javitando_id' => 'sometimes|nullable|integer',
             'statusz' => 'sometimes|string|max:50',
             'hibaleiras' => 'sometimes|string|nullable',
             'megjegyzes' => 'sometimes|string|nullable',

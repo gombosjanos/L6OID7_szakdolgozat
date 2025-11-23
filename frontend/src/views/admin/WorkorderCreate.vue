@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-4">
-    <!-- Toolbar -->
+    
     <v-toolbar density="comfortable" color="white" elevation="0" class="mb-4">
       <v-btn variant="elevated" color="primary" prepend-icon="mdi-arrow-left" @click="goBack">Vissza</v-btn>
       <v-toolbar-title>Új munkalap</v-toolbar-title>
@@ -17,7 +17,7 @@
     </v-snackbar>
 
     <v-row>
-      <!-- Ugyfel blokk -->
+      
       <v-col cols="12" md="6" lg="4">
         <v-card class="mb-4">
           <v-card-title class="text-subtitle-1">Ugyfel</v-card-title>
@@ -28,7 +28,7 @@
               <v-switch hide-details color="primary" v-model="isRegistered" inset></v-switch>
             </div>
 
-            <!-- Regisztrált -->
+            
             <div v-if="isRegistered">
               <v-autocomplete
                 v-model="Ugyfel"
@@ -46,7 +46,7 @@
                 @focus="onSearchUgyfel('')"
               />
 
-              <!-- kiválasztott Ugyfel összegzés -->
+              
               <v-alert v-if="Ugyfel" type="info" variant="tonal" class="mt-2">
                 <div><strong>{{ Ugyfel.nev }}</strong></div>
                 <div class="text-medium-emphasis">{{ Ugyfel.email || '-' }}</div>
@@ -54,7 +54,7 @@
               </v-alert>
             </div>
 
-            <!-- Nem regisztrált -->
+            
             <div v-else>
               <v-text-field v-model.trim="Ugyfel_nev" :rules="nameRules" label="Név" variant="outlined" density="comfortable" />
               <v-text-field v-model.trim="Ugyfel_email" :rules="emailRules" label="E-mail" type="email" variant="outlined" density="comfortable" />
@@ -74,7 +74,7 @@
         </v-card>
       </v-col>
 
-      <!-- Gép blokk -->
+      
       <v-col cols="12" md="6" lg="4">
         <v-card class="mb-4">
           <v-card-title class="d-flex align-center">
@@ -100,7 +100,7 @@
               @focus="onSearchGep('')"
             />
 
-            <!-- kiválasztott gép összegzés -->
+            
             <v-alert v-if="gep" type="info" variant="tonal" class="mt-2">
               <div><strong>{{ gep.gyarto || '-' }}</strong> — {{ gep.tipusnev || '-' }}</div>
               <div class="text-medium-emphasis">Cikkszám: {{ gep.g_cikkszam || '-' }}</div>
@@ -110,7 +110,7 @@
         </v-card>
       </v-col>
 
-      <!-- Leírások -->
+      
       <v-col cols="12" lg="4">
         <v-card class="mb-4">
           <v-card-title class="text-subtitle-1">Leírások</v-card-title>
@@ -123,7 +123,7 @@
       </v-col>
     </v-row>
 
-    <!-- Új gép felvétele -->
+    
     <v-dialog v-model="addMachineDialog" max-width="560">
       <v-card>
         <v-card-title class="text-subtitle-1">Új gép hozzáadása</v-card-title>
@@ -300,3 +300,4 @@ if(typeof window !== 'undefined'){
 <style scoped>
 .create-btn{ font-weight: 800; letter-spacing: .2px; }
 </style>
+

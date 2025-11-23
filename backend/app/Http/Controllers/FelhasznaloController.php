@@ -16,7 +16,6 @@ class FelhasznaloController extends Controller
         $q = $request->query('q');
         $limit = (int)($request->query('limit', 50));
         $query = Felhasznalo::query();
-        // szerelő csak ügyfeleket láthat
         if ($request->user() && $request->user()->jogosultsag === 'szerelo') {
             $query->where('jogosultsag', 'Ugyfel');
         }

@@ -32,7 +32,7 @@ const load = async () => {
   } catch (e) {
     error.value =
       e?.response?.data?.message || e.message || 'Nem sikerült betölteni a munkalapokat.'
-    console.debug('Load munkalapok error', e?.response?.data || e)
+    
   } finally {
     loading.value = false
   }
@@ -224,4 +224,5 @@ function displayStatus(s) {
   background-color: #f5f7fa;
 }
 </style>
+
 

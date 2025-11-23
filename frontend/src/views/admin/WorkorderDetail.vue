@@ -1,7 +1,7 @@
-Ôªø
+
 <template>
 <v-container fluid class="pa-4 has-bottom-bar">
-  <!-- 1. sor: Vissza + c√≠m -->
+  
   <v-toolbar
     density="comfortable"
     color="white"
@@ -19,7 +19,7 @@
     <v-toolbar-title>Munkalap #{{ displayId }}</v-toolbar-title>
   </v-toolbar>
 
-  <!-- 2. sor: st√°tusz + m≈±veletek -->
+  
   <div class="detail-toolbar-row mb-3">
     <v-chip
       class="status-chip"
@@ -37,27 +37,27 @@
           class="actions-btn"
           prepend-icon="mdi-dots-vertical"
         >
-          M≈±veletek
+          M˚veletek
         </v-btn>
       </template>
       <v-list class="menu-dark">
         <v-list-item @click="saveWorkorder">
-          <v-list-item-title>St√°tusz ment√©se</v-list-item-title>
+          <v-list-item-title>St·tusz mentÈse</v-list-item-title>
         </v-list-item>
         <v-list-item @click="saveOffer">
-          <v-list-item-title>√Åraj√°nlat ment√©se</v-list-item-title>
+          <v-list-item-title>¡raj·nlat mentÈse</v-list-item-title>
         </v-list-item>
         <v-list-item
           :disabled="!canSendOffer || sendingOffer"
           @click="sendOffer"
         >
-          <v-list-item-title>√Åraj√°nlat k√ºld√©se</v-list-item-title>
+          <v-list-item-title>¡raj·nlat k¸ldÈse</v-list-item-title>
         </v-list-item>
         <v-list-item @click="openWorkorderPrint">
-          <v-list-item-title>Munkalap nyomtat√°sa</v-list-item-title>
+          <v-list-item-title>Munkalap nyomtat·sa</v-list-item-title>
         </v-list-item>
         <v-list-item @click="openOfferPrint">
-          <v-list-item-title>√Åraj√°nlat nyomtat√°sa</v-list-item-title>
+          <v-list-item-title>¡raj·nlat nyomtat·sa</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -83,45 +83,45 @@
               :disabled="isClosed"
               @click="goToEdit"
             >
-              M√≥dos√≠t√°s
+              MÛdosÌt·s
             </v-btn>
           </v-card-title>
           <v-divider />
           <v-card-text>
-            <div class="mb-2"><strong>√úgyf√©l:</strong> {{ getUgyfelNev(detail) }}</div>
+            <div class="mb-2"><strong>‹gyfÈl:</strong> {{ getUgyfelNev(detail) }}</div>
             <div class="mb-2"><strong>E-mail:</strong> {{ getUgyfelEmail(detail) }}</div>
             <div class="mb-2"><strong>Telefon:</strong> {{ getUgyfelTelefon(detail) }}</div>
-            <div class="mb-2"><strong>Felhaszn√°l√≥n√©v:</strong> {{ getUgyfelFnev(detail) }}</div>
-            <div class="mb-2"><strong>G√©p:</strong> {{ gepLabel(gepFromRow(detail)) }}</div>
-            <div class="mb-2"><strong>Hiba le√≠r√°s:</strong> {{ detail.hibaleiras || '-' }}</div>
-            <div class="mb-2"><strong>Megjegyz√©s:</strong> {{ detail.megjegyzes || '-' }}</div>
-            <div class="mb-2"><strong>L√©trehozva:</strong> {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
-            <div class="mb-2"><strong>Azonos√≠t√≥:</strong> {{ displayId }}</div>
+            <div class="mb-2"><strong>Felhaszn·lÛnÈv:</strong> {{ getUgyfelFnev(detail) }}</div>
+            <div class="mb-2"><strong>GÈp:</strong> {{ gepLabel(gepFromRow(detail)) }}</div>
+            <div class="mb-2"><strong>Hiba leÌr·s:</strong> {{ detail.hibaleiras || '-' }}</div>
+            <div class="mb-2"><strong>MegjegyzÈs:</strong> {{ detail.megjegyzes || '-' }}</div>
+            <div class="mb-2"><strong>LÈtrehozva:</strong> {{ fmtDate(detail.letrehozva || detail.created_at) }}</div>
+            <div class="mb-2"><strong>AzonosÌtÛ:</strong> {{ displayId }}</div>
           </v-card-text>
 
         </v-card>
 
         <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1">Szerel≈ë adatai</v-card-title>
+          <v-card-title class="text-subtitle-1">Szerelı adatai</v-card-title>
           <v-divider />
           <v-card-text>
-            <div class="mb-2"><strong>N√©v:</strong> {{ getUgyfelNev(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>NÈv:</strong> {{ getUgyfelNev(detail.letrehozo || {}) }}</div>
             <div class="mb-2"><strong>E-mail:</strong> {{ getUgyfelEmail(detail.letrehozo || {}) }}</div>
             <div class="mb-2"><strong>Telefon:</strong> {{ getUgyfelTelefon(detail.letrehozo || {}) }}</div>
-            <div class="mb-2"><strong>Felhaszn√°l√≥n√©v:</strong> {{ getUgyfelFnev(detail.letrehozo || {}) }}</div>
+            <div class="mb-2"><strong>Felhaszn·lÛnÈv:</strong> {{ getUgyfelFnev(detail.letrehozo || {}) }}</div>
           </v-card-text>
         </v-card>
 
         <v-card class="mb-4">
-          <v-card-title class="text-subtitle-1">St√°tusz</v-card-title>
+          <v-card-title class="text-subtitle-1">St·tusz</v-card-title>
           <v-divider />
           <v-card-text>
-            <v-select v-model="statusModel" :items="statusItems" item-title="title" item-value="value" label="St√°tusz" variant="outlined" density="compact" style="max-width: 260px; margin-left: 12px;" @update:modelValue="() => saveWorkorder()" />
+            <v-select v-model="statusModel" :items="statusItems" item-title="title" item-value="value" label="St·tusz" variant="outlined" density="compact" style="max-width: 260px; margin-left: 12px;" @update:modelValue="() => saveWorkorder()" />
           </v-card-text>
         </v-card>
 
         <v-card>
-          <v-card-title class="text-subtitle-1 d-flex align-center"><span>Napl√≥</span><v-spacer /></v-card-title>
+          <v-card-title class="text-subtitle-1 d-flex align-center"><span>NaplÛ</span><v-spacer /></v-card-title>
           <v-divider />
           <v-card-text>
             <v-list density="compact">
@@ -132,14 +132,14 @@
                     <div class="text-caption text-medium-emphasis">{{ fmtDate(n.letrehozva || n.created_at) }}</div>
                   </div>
                   <div class="d-flex ga-1 ml-2">
-                    <v-btn size="x-small" variant="text" color="primary" class="mr-1" @click.stop="editNote(n)">Szerkeszt√©s</v-btn>
-                    <v-btn size="x-small" variant="text" color="error" @click.stop="deleteNote(n)">T√∂rl√©s</v-btn>
+                    <v-btn size="x-small" variant="text" color="primary" class="mr-1" @click.stop="editNote(n)">SzerkesztÈs</v-btn>
+                    <v-btn size="x-small" variant="text" color="error" @click.stop="deleteNote(n)">TˆrlÈs</v-btn>
                   </div>
                 </div>
               </v-list-item>
             </v-list>
-            <v-textarea v-model="note" rows="2" auto-grow label="Megjegyz√©s hozz√°ad√°sa" variant="outlined" density="comfortable" />
-            <div class="d-flex justify-end mt-2"><v-btn size="small" variant="tonal" color="primary" @click="addNote">Hozz√°ad√°s</v-btn></div>
+            <v-textarea v-model="note" rows="2" auto-grow label="MegjegyzÈs hozz·ad·sa" variant="outlined" density="comfortable" />
+            <div class="d-flex justify-end mt-2"><v-btn size="small" variant="tonal" color="primary" @click="addNote">Hozz·ad·s</v-btn></div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -147,24 +147,24 @@
       <v-col cols="12" lg="6">
         <v-card class="offer-card">
           <v-card-title class="d-flex align-center">
-            <span class="text-subtitle-1">√Åraj√°nlat</span>
+            <span class="text-subtitle-1">¡raj·nlat</span>
             <v-spacer />
-            <v-autocomplete v-model="pickerSelected" :items="pickerItems" :loading="pickerLoading" :search="pickerSearch" @update:search="onPickerSearch" @focus="ensurePartsLoaded" @update:modelValue="onPickerSelect" item-title="label" item-value="value" return-object label="T√©tel hozz√°ad√°sa" clear-on-select hide-details variant="outlined" density="comfortable" style="max-width: 420px" :disabled="!canEditOffer" />
+            <v-autocomplete v-model="pickerSelected" :items="pickerItems" :loading="pickerLoading" :search="pickerSearch" @update:search="onPickerSearch" @focus="ensurePartsLoaded" @update:modelValue="onPickerSelect" item-title="label" item-value="value" return-object label="TÈtel hozz·ad·sa" clear-on-select hide-details variant="outlined" density="comfortable" style="max-width: 420px" :disabled="!canEditOffer" />
           </v-card-title>
           <v-card-text>
-            <v-text-field v-model="offerUzenet" label="√úzenet az √°raj√°nlatban (opcion√°lis)" variant="outlined" density="comfortable" class="mb-3" :disabled="!canEditOffer" />
+            <v-text-field v-model="offerUzenet" label="‹zenet az ·raj·nlatban (opcion·lis)" variant="outlined" density="comfortable" class="mb-3" :disabled="!canEditOffer" />
             <div class="offer-scroll">
               <v-table density="compact">
                 <thead>
                   <tr>
-                    <th rowspan="2" style="min-width:420px; width:420px">Megnevez√©s</th>
+                    <th rowspan="2" style="min-width:420px; width:420px">MegnevezÈs</th>
                     <th class="text-center" style="min-width:220px; width:220px">Db</th>
-                    <th class="text-center" style="min-width:220px; width:220px">√ÅFA</th>
-                    <th class="text-center" rowspan="2" style="min-width:120px; width:120px">T√∂rl√©s</th>
+                    <th class="text-center" style="min-width:220px; width:220px">¡FA</th>
+                    <th class="text-center" rowspan="2" style="min-width:120px; width:120px">TˆrlÈs</th>
                   </tr>
                   <tr>
-                    <th class="text-center">Nett√≥</th>
-                    <th class="text-center">Brutt√≥</th>
+                    <th class="text-center">NettÛ</th>
+                    <th class="text-center">BruttÛ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -186,7 +186,7 @@
                           <v-text-field v-model.number="t.db" type="number" min="1" step="1" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.db,4,8)" :disabled="!canEditOffer" />
                         </div>
                         <div class="stack-row">
-                          <span class="stack-label">nett√≥</span>
+                          <span class="stack-label">nettÛ</span>
                           <v-text-field v-model.number="t.netto" type="number" step="0.01" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.netto,8,24)" :disabled="!canEditOffer" />
                         </div>
                       </div>
@@ -194,17 +194,17 @@
                     <td>
                       <div class="stack-col">
                         <div class="stack-row">
-                          <span class="stack-label">√ÅFA%</span>
+                          <span class="stack-label">¡FA%</span>
                           <v-text-field v-model.number="t.afa_kulcs" type="number" step="1" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.afa_kulcs,3,6)" :disabled="!canEditOffer" />
                         </div>
                         <div class="stack-row">
-                          <span class="stack-label">brutt√≥</span>
+                          <span class="stack-label">bruttÛ</span>
                           <v-text-field v-model.number="t.brutto" type="number" step="0.01" hide-details variant="outlined" density="compact" class="num-input" :style="numStyle(t.brutto,8,24)" :disabled="!canEditOffer" />
                         </div>
                       </div>
                     </td>
                     <td class="text-right align-top">
-                      <v-btn size="small" variant="outlined" color="error" prepend-icon="mdi-delete" @click="removeTetel(i)" :disabled="!canEditOffer">T√∂rl√©s</v-btn>
+                      <v-btn size="small" variant="outlined" color="error" prepend-icon="mdi-delete" @click="removeTetel(i)" :disabled="!canEditOffer">TˆrlÈs</v-btn>
                     </td>
                   </tr>
                 </tbody>
@@ -212,8 +212,8 @@
             </div>
             <v-divider class="my-3" />
             <div class="d-flex justify-end ga-4">
-              <div class="text-right"><div class="text-caption">√ñsszesen Nett√≥</div><div class="text-subtitle-2">{{ fmtCurrency(totalNetto) }}</div></div>
-              <div class="text-right"><div class="text-caption">√ñsszesen Brutt√≥</div><div class="text-subtitle-2">{{ fmtCurrency(totalBrutto) }}</div></div>
+              <div class="text-right"><div class="text-caption">÷sszesen NettÛ</div><div class="text-subtitle-2">{{ fmtCurrency(totalNetto) }}</div></div>
+              <div class="text-right"><div class="text-caption">÷sszesen BruttÛ</div><div class="text-subtitle-2">{{ fmtCurrency(totalBrutto) }}</div></div>
             </div>
           </v-card-text>
         </v-card>
@@ -222,22 +222,22 @@
       <v-col cols="12">
         <v-card class="mb-4">
           <v-card-title class="text-subtitle-1 d-flex align-center">
-            <span>K√©pek</span><v-spacer />
+            <span>KÈpek</span><v-spacer />
             <template v-if="canManageImages">
-              <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-upload" :loading="uploadingImage" :disabled="uploadingImage" @click="triggerImageSelect">Felt√∂lt√©s</v-btn>
+              <v-btn color="primary" variant="tonal" size="small" prepend-icon="mdi-upload" :loading="uploadingImage" :disabled="uploadingImage" @click="triggerImageSelect">FeltˆltÈs</v-btn>
             </template>
             <input ref="fileInput" type="file" accept="image/*" multiple class="d-none" @change="handleImageSelection" />
           </v-card-title>
           <v-divider />
           <v-card-text>
-            <div v-if="imagesLoading" class="text-medium-emphasis d-flex align-center ga-2"><v-progress-circular indeterminate color="primary" size="20" /><span>K√©pek bet√∂lt√©se...</span></div>
-            <div v-else-if="!hasImages" class="text-medium-emphasis">M√©g nincs felt√∂lt√∂tt k√©p ehhez a munkalaphoz.</div>
+            <div v-if="imagesLoading" class="text-medium-emphasis d-flex align-center ga-2"><v-progress-circular indeterminate color="primary" size="20" /><span>KÈpek betˆltÈse...</span></div>
+            <div v-else-if="!hasImages" class="text-medium-emphasis">MÈg nincs feltˆltˆtt kÈp ehhez a munkalaphoz.</div>
             <v-row v-else class="images-grid ga-3">
               <v-col v-for="img in images" :key="img._key" cols="12" sm="6" md="6" lg="4" xl="3">
                 <v-card variant="outlined" class="image-card">
-                  <v-img :src="thumbSrc(img)" :alt="img.eredeti_nev || 'Munkalap k√©p'" aspect-ratio="4/3" class="rounded cursor-pointer" @click="openImageModal(img)" :lazy-src='thumbPlaceholder' cover />
+                  <v-img :src="thumbSrc(img)" :alt="img.eredeti_nev || 'Munkalap kÈp'" aspect-ratio="4/3" class="rounded cursor-pointer" @click="openImageModal(img)" :lazy-src='thumbPlaceholder' cover />
                   <v-card-text class="py-2 px-3 image-meta"><div class="text-caption text-medium-emphasis">{{ fmtDate(img.letrehozva || img.created_at) }}</div></v-card-text>
-                  <v-card-actions class="py-2 px-3"><v-btn variant="text" size="small" color="primary" prepend-icon="mdi-magnify-plus" @click="openImageModal(img)">Nagy√≠t√°s</v-btn><v-spacer /><v-btn v-if="canManageImages" variant="text" size="small" color="error" prepend-icon="mdi-delete" @click="deleteImage(img)">T√∂rl√©s</v-btn></v-card-actions>
+                  <v-card-actions class="py-2 px-3"><v-btn variant="text" size="small" color="primary" prepend-icon="mdi-magnify-plus" @click="openImageModal(img)">NagyÌt·s</v-btn><v-spacer /><v-btn v-if="canManageImages" variant="text" size="small" color="error" prepend-icon="mdi-delete" @click="deleteImage(img)">TˆrlÈs</v-btn></v-card-actions>
                 </v-card>
               </v-col>
             </v-row>
@@ -249,7 +249,7 @@
     <v-dialog v-model="lightboxOpen" fullscreen transition="dialog-bottom-transition">
       <v-card>
         <v-toolbar density="comfortable"><v-btn icon="mdi-close" @click="lightboxOpen = false" /><v-spacer /><v-btn icon="mdi-chevron-left" @click="prevImage" /><v-btn icon="mdi-chevron-right" @click="nextImage" /></v-toolbar>
-        <v-card-text class="d-flex align-center justify-center"><img :src="lightboxUrl" alt="K√©p" style="max-width:100%; max-height: calc(100vh - 64px);" /></v-card-text>
+        <v-card-text class="d-flex align-center justify-center"><img :src="lightboxUrl" alt="KÈp" style="max-width:100%; max-height: calc(100vh - 64px);" /></v-card-text>
       </v-card>
     </v-dialog>
   </v-container>
@@ -285,12 +285,9 @@ const id = Vue.computed(() => route.params.id)
   const naplo = Vue.ref([])
   const note = Vue.ref('')
 
-  // Role-based helpers
   const isClient = typeof window !== 'undefined'
-  // Admin/szerel≈ë route, itt nem sz≈±r√ºnk tov√°bb: mindenki kezelheti a k√©peket
   const canManageImages = Vue.computed(() => true)
 
-// Images / lightbox
 const images = Vue.ref([])
 const imagesLoading = Vue.ref(false)
 const uploadingImage = Vue.ref(false)
@@ -307,9 +304,9 @@ async function openImageModal(img){
   try {
     const url = await getObjectUrl(img)
     const w = window.open(url, '_blank')
-    if (!w) setSnack('A k√©p megnyit√°s√°t a b√∂ng√©sz≈ë blokkolta.', 'warning')
+    if (!w) setSnack('A kÈp megnyit·s·t a bˆngÈszı blokkolta.', 'warning')
   } catch (e) {
-    setSnack('K√©p megnyit√°sa nem siker√ºlt.', 'error')
+    setSnack('KÈp megnyit·sa nem siker¸lt.', 'error')
   }
 }
 async function showAt(index){ if (images.value.length === 0) return; const len = images.value.length; const i = ((index % len) + len) % len; currentIndex.value = i; const img = images.value[i]; try{ lightboxUrl.value = await getObjectUrl(img) }catch(e){} }
@@ -317,26 +314,24 @@ function prevImage(){ showAt(currentIndex.value - 1) }
 function nextImage(){ showAt(currentIndex.value + 1) }
 Vue.watch(images, (list)=>{ try{ (Array.isArray(list)?list:[]).forEach(it => { getObjectUrl(it).catch(()=>{}) }) }catch{} }, { immediate: true })
 
-// Status / header
 const statusItems = [
-  { title: '√öj', value: 'uj' },
+  { title: '⁄j', value: 'uj' },
   { title: 'Folyamatban', value: 'folyamatban' },
-  { title: '√Åraj√°nlat elk√ºldve', value: 'ajanlat_elkuldve' },
-  { title: 'Alkatr√©szre v√°r', value: 'alkatreszre_var' },
-  { title: 'Jav√≠t√°s k√©sz', value: 'javitas_kesz' },
-  { title: '√Åraj√°nlat elutas√≠tva', value: 'ajanlat_elutasitva' },
-  { title: '√Åtadva/Lez√°rva', value: 'atadva_lezarva' },
-  { title: '√Åraj√°nlat elfogadva', value: 'ajanlat_elfogadva' },
+  { title: '¡raj·nlat elk¸ldve', value: 'ajanlat_elkuldve' },
+  { title: 'AlkatrÈszre v·r', value: 'alkatreszre_var' },
+  { title: 'JavÌt·s kÈsz', value: 'javitas_kesz' },
+  { title: '¡raj·nlat elutasÌtva', value: 'ajanlat_elutasitva' },
+  { title: '¡tadva/Lez·rva', value: 'atadva_lezarva' },
+  { title: '¡raj·nlat elfogadva', value: 'ajanlat_elfogadva' },
 ];
 const originalStatus = Vue.ref('');
   function deaccent(input){ try { return String(input || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); } catch { return String(input || '').toLowerCase(); } }
   function normalizeStatus(s){ const n = deaccent(s); if (n.includes('uj')) return 'uj'; if (n.includes('folyamatban')) return 'folyamatban'; if (n.includes('elkuldve')) return 'ajanlat_elkuldve'; if (n.includes('var')) return 'alkatreszre_var'; if (n.includes('kesz')) return 'javitas_kesz'; if (n.includes('elutasit')) return 'ajanlat_elutasitva'; if (n.includes('atadva') || n.includes('lezarva')) return 'atadva_lezarva'; if (n.includes('elfogad')) return 'ajanlat_elfogadva'; return (s || '').toString().toLowerCase(); }
 const statusModel = Vue.computed({ get(){ return normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot) }, set(v){ detail.value.statusz = v } })
 function statusColorX(s){ switch(normalizeStatus(s)){ case 'uj': return 'grey'; case 'folyamatban': return 'blue'; case 'ajanlat_elkuldve': return 'purple'; case 'alkatreszre_var': return 'orange'; case 'javitas_kesz': return 'green'; case 'ajanlat_elfogadva': return 'indigo'; case 'atadva_lezarva': return 'teal'; case 'ajanlat_elutasitva': return 'red'; default: return 'grey' } }
-function displayStatusX(s){ const key=normalizeStatus(s); const map={ 'uj':'√öj','folyamatban':'Folyamatban','ajanlat_elkuldve':'√Åraj√°nlat elk√ºldve','alkatreszre_var':'Alkatr√©szre v√°r','javitas_kesz':'Jav√≠t√°s k√©sz','ajanlat_elutasitva':'√Åraj√°nlat elutas√≠tva','atadva_lezarva':'√Åtadva/Lez√°rva','ajanlat_elfogadva':'√Åraj√°nlat elfogadva', }; return map[key] || s || '-' }
+function displayStatusX(s){ const key=normalizeStatus(s); const map={ 'uj':'⁄j','folyamatban':'Folyamatban','ajanlat_elkuldve':'¡raj·nlat elk¸ldve','alkatreszre_var':'AlkatrÈszre v·r','javitas_kesz':'JavÌt·s kÈsz','ajanlat_elutasitva':'¡raj·nlat elutasÌtva','atadva_lezarva':'¡tadva/Lez·rva','ajanlat_elfogadva':'¡raj·nlat elfogadva', }; return map[key] || s || '-' }
 async function saveWorkorder(){ if(!id.value) return; try{ const code = normalizeStatus(detail.value.statusz); await request(`/munkalapok/${id.value}`, { method:'PATCH', body:{ statusz: code, status: code, allapot: code } }); setSnack('Munkalap mentve') }catch(e){ errorMsg.value = e?.message || 'Mentesi hiba (munkalap).' } }
 
-// Helpers / labels
 function fmtDate(v){
   try {
     return v ? new Date(v).toLocaleString('hu-HU') : ''
@@ -428,21 +423,19 @@ function gepLabel(gep){
   }
 function normalizeImageList(list){ return (Array.isArray(list) ? list : []).map((item, idx) => normalizeImageEntry(item, idx)).filter(Boolean) }
 const hasImages = Vue.computed(()=> (images.value || []).length > 0)
-async function fetchImages(silent = false){ if(!id.value) return; const showSpinner = !silent && images.value.length === 0; if(showSpinner) imagesLoading.value = true; try{ const data = await request(`/munkalapok/${id.value}/kepek`); images.value = normalizeImageList(data); try{ const first = images.value.slice(0,8); for (const it of first){ getObjectUrl(it).catch(()=>{}) } }catch{} }catch(e){ if(!silent){ setSnack(e?.message || 'K√©pek bet√∂lt√©se nem siker√ºlt.', 'error') } }finally{ if(showSpinner) imagesLoading.value = false } }
+async function fetchImages(silent = false){ if(!id.value) return; const showSpinner = !silent && images.value.length === 0; if(showSpinner) imagesLoading.value = true; try{ const data = await request(`/munkalapok/${id.value}/kepek`); images.value = normalizeImageList(data); try{ const first = images.value.slice(0,8); for (const it of first){ getObjectUrl(it).catch(()=>{}) } }catch{} }catch(e){ if(!silent){ setSnack(e?.message || 'KÈpek betˆltÈse nem siker¸lt.', 'error') } }finally{ if(showSpinner) imagesLoading.value = false } }
 function triggerImageSelect(){ try{ fileInput.value?.click() }catch{} }
-async function handleImageSelection(event){ const files = Array.from(event?.target?.files || []); event.target.value = ''; if (!files.length || !id.value){ return } uploadingImage.value = true; try { const formData = new FormData(); for (const file of files){ formData.append('kepek[]', file) } const headers = { Accept: 'application/json' }; try { const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN'); if (token) headers.Authorization = `Bearer ${token}` } catch {} const res = await fetch(`/api/munkalapok/${id.value}/kepek`, { method: 'POST', headers, body: formData, credentials: 'include' }); if (!res.ok){ const text = await res.text().catch(() => ''); throw new Error(text || 'Felt√∂lt√©si hiba t√∂rt√©nt.') } const payload = await res.json().catch(() => ({})); const added = normalizeImageList(payload?.kepek ?? payload ?? []); images.value = [...added, ...images.value]; setSnack('K√©pek felt√∂ltve') } catch (e) { setSnack(e?.message || 'A k√©pfelt√∂lt√©s nem siker√ºlt.', 'error') } finally { uploadingImage.value = false } }
-async function deleteImage(img){ if(!img || !id.value) return; const imageId = img.id ?? img.ID; if(!imageId) return; if(!confirm('Biztosan t√∂rl√∂d ezt a k√©pet?')) return; try{ const headers = { Accept: 'application/json' }; try { const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN'); if (token) headers.Authorization = `Bearer ${token}` } catch {} const res = await fetch(`/api/munkalapok/${id.value}/kepek/${imageId}`, { method: 'DELETE', headers, credentials: 'include' }); if (!res.ok){ const text = await res.text().catch(() => ''); throw new Error(text || 'Nem siker√ºlt t√∂r√∂lni a k√©pet.') } images.value = images.value.filter(item => (item.id ?? item.ID) !== imageId); setSnack('K√©p t√∂r√∂lve', 'success') }catch(e){ setSnack(e?.message || 'Nem siker√ºlt t√∂r√∂lni a k√©pet.', 'error') } }
+async function handleImageSelection(event){ const files = Array.from(event?.target?.files || []); event.target.value = ''; if (!files.length || !id.value){ return } uploadingImage.value = true; try { const formData = new FormData(); for (const file of files){ formData.append('kepek[]', file) } const headers = { Accept: 'application/json' }; try { const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN'); if (token) headers.Authorization = `Bearer ${token}` } catch {} const res = await fetch(`/api/munkalapok/${id.value}/kepek`, { method: 'POST', headers, body: formData, credentials: 'include' }); if (!res.ok){ const text = await res.text().catch(() => ''); throw new Error(text || 'FeltˆltÈsi hiba tˆrtÈnt.') } const payload = await res.json().catch(() => ({})); const added = normalizeImageList(payload?.kepek ?? payload ?? []); images.value = [...added, ...images.value]; setSnack('KÈpek feltˆltve') } catch (e) { setSnack(e?.message || 'A kÈpfeltˆltÈs nem siker¸lt.', 'error') } finally { uploadingImage.value = false } }
+async function deleteImage(img){ if(!img || !id.value) return; const imageId = img.id ?? img.ID; if(!imageId) return; if(!confirm('Biztosan tˆrlˆd ezt a kÈpet?')) return; try{ const headers = { Accept: 'application/json' }; try { const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || localStorage.getItem('AUTH_TOKEN'); if (token) headers.Authorization = `Bearer ${token}` } catch {} const res = await fetch(`/api/munkalapok/${id.value}/kepek/${imageId}`, { method: 'DELETE', headers, credentials: 'include' }); if (!res.ok){ const text = await res.text().catch(() => ''); throw new Error(text || 'Nem siker¸lt tˆrˆlni a kÈpet.') } images.value = images.value.filter(item => (item.id ?? item.ID) !== imageId); setSnack('KÈp tˆrˆlve', 'success') }catch(e){ setSnack(e?.message || 'Nem siker¸lt tˆrˆlni a kÈpet.', 'error') } }
 
-// Notes helpers
 function escapeHtml(str){ const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }; return String(str || '').replace(/[&<>"']/g, (m) => map[m]) }
 function normalizeNewlines(str){ return String(str||'').replace(/\r\n|\r|\n/g, '\n') }
 function formatNoteHtml(n){ const raw = n?.uzenet ?? n?.szoveg ?? n?.megjegyzes ?? ''; const safe = escapeHtml(normalizeNewlines(raw)).replace(/\n/g,'<br>'); return safe }
-async function addNote(){ if(!id.value) return; const txt = (note.value || '').trim(); if(!txt) return; try{ await request(`/munkalapok/${id.value}/naplo`, { method:'POST', body:{ uzenet: txt } }); naplo.value.unshift({ id: Date.now(), uzenet: txt, letrehozva: new Date().toISOString() }); note.value = '' }catch(e){ setSnack(e?.message || 'Jegyzet ment√©se nem siker√ºlt', 'error') } }
+async function addNote(){ if(!id.value) return; const txt = (note.value || '').trim(); if(!txt) return; try{ await request(`/munkalapok/${id.value}/naplo`, { method:'POST', body:{ uzenet: txt } }); naplo.value.unshift({ id: Date.now(), uzenet: txt, letrehozva: new Date().toISOString() }); note.value = '' }catch(e){ setSnack(e?.message || 'Jegyzet mentÈse nem siker¸lt', 'error') } }
 function noteId(n){ return n?.id ?? n?.ID }
-async function editNote(n){ const idVal = noteId(n); if(!id.value || !idVal) return; const current = (n?.uzenet || n?.szoveg || n?.megjegyzes || "").toString(); const next = window.prompt("Jegyzet szerkeszt√©se:", current); if(next==null) return; try{ await request(`/munkalapok/${id.value}/naplo/${idVal}`, { method:"PATCH", body:{ uzenet: next } }); n.uzenet = next }catch(e){ setSnack(e?.message||"Szerkeszt√©s nem siker√ºlt","error") } }
-async function deleteNote(n){ const idVal = noteId(n); if(!id.value || !idVal) return; if(!window.confirm("Biztosan t√∂rl√∂d ezt a bejegyz√©st?")) return; try{ await request(`/munkalapok/${id.value}/naplo/${idVal}`, { method:"DELETE" }); naplo.value = naplo.value.filter(x=> noteId(x)!==idVal) }catch(e){ setSnack(e?.message||"T√∂rl√©s nem siker√ºlt","error") } }
+async function editNote(n){ const idVal = noteId(n); if(!id.value || !idVal) return; const current = (n?.uzenet || n?.szoveg || n?.megjegyzes || "").toString(); const next = window.prompt("Jegyzet szerkesztÈse:", current); if(next==null) return; try{ await request(`/munkalapok/${id.value}/naplo/${idVal}`, { method:"PATCH", body:{ uzenet: next } }); n.uzenet = next }catch(e){ setSnack(e?.message||"SzerkesztÈs nem siker¸lt","error") } }
+async function deleteNote(n){ const idVal = noteId(n); if(!id.value || !idVal) return; if(!window.confirm("Biztosan tˆrlˆd ezt a bejegyzÈst?")) return; try{ await request(`/munkalapok/${id.value}/naplo/${idVal}`, { method:"DELETE" }); naplo.value = naplo.value.filter(x=> noteId(x)!==idVal) }catch(e){ setSnack(e?.message||"TˆrlÈs nem siker¸lt","error") } }
 
-// Offer / Arajanlat
 const offer = Vue.ref(null)
 const tetelek = Vue.ref([])
 const pickerSelected = Vue.ref(null)
@@ -472,7 +465,7 @@ async function onPickerSearch(val){
     const arr = Array.isArray(res) ? res : [];
     const partItems = arr.map(p => {
       const id = (p.ID ?? p.id);
-      const name = (p.alkatresznev ?? p.alaktresznev ?? p.nev ?? p.megnevezes) || 'Alkatr√©sz';
+      const name = (p.alkatresznev ?? p.alaktresznev ?? p.nev ?? p.megnevezes) || 'AlkatrÈsz';
       const code = (p.a_cikkszam ?? p.cikkszam ?? p.code ?? '');
       const vat = Number(p.afa_kulcs ?? 27);
       const n = p.nettoar != null ? Number(p.nettoar) : (p.bruttoar != null ? Math.round(Number(p.bruttoar) / (1 + vat/100)) : 0);
@@ -483,8 +476,8 @@ async function onPickerSearch(val){
       }
     });
     pickerItems.value = [
-      { label:'Munkad√≠j', value:'munkadij' },
-      { label:'Egyedi t√©tel', value:'egyedi' },
+      { label:'MunkadÌj', value:'munkadij' },
+      { label:'Egyedi tÈtel', value:'egyedi' },
       ...partItems
     ]
   } finally {
@@ -502,16 +495,16 @@ async function onPickerSelect(opt){
   if(!opt) return;
   if(typeof opt.value === 'string'){
     if(opt.value === 'munkadij'){
-      tetelek.value.push({ tipus:'munkadij', megnevezes:'Munkad√≠j', db:1, netto:0, brutto:0, afa_kulcs:27 })
+      tetelek.value.push({ tipus:'munkadij', megnevezes:'MunkadÌj', db:1, netto:0, brutto:0, afa_kulcs:27 })
     } else if (opt.value === 'egyedi'){
-      tetelek.value.push({ tipus:'egyedi', megnevezes:'Egyedi t√©tel', db:1, netto:0, brutto:0, afa_kulcs:27 })
+      tetelek.value.push({ tipus:'egyedi', megnevezes:'Egyedi tÈtel', db:1, netto:0, brutto:0, afa_kulcs:27 })
     }
   } else if (opt.value && typeof opt.value === 'object'){
     const v = opt.value;
     const vat = Number(v.afa_kulcs ?? 27);
     const n = Number(v.netto ?? 0);
     const b = Number(v.brutto ?? Math.round(n * (1 + vat/100)));
-    tetelek.value.push({ tipus:'alkatresz', alkatresz_id: v.id, megnevezes: (v.name || 'Alkatr√©sz'), db: 1, netto: n, brutto: b, afa_kulcs: vat })
+    tetelek.value.push({ tipus:'alkatresz', alkatresz_id: v.id, megnevezes: (v.name || 'AlkatrÈsz'), db: 1, netto: n, brutto: b, afa_kulcs: vat })
   }
   pickerSelected.value = null
 }
@@ -538,9 +531,9 @@ const canEditOffer = Vue.computed(()=> true)
         uzenet: offerUzenet.value,
       };
       await request(`/munkalapok/${id.value}/ajanlat`,{ method:'POST', body: payload });
-      setSnack('√Åraj√°nlat mentve')
+      setSnack('¡raj·nlat mentve')
     }catch(e){
-      errorMsg.value = e?.message || 'Ment√©si hiba (√°raj√°nlat).'
+      errorMsg.value = e?.message || 'MentÈsi hiba (·raj·nlat).'
     } finally {
       savingOffer.value = false
     }
@@ -582,9 +575,9 @@ const canEditOffer = Vue.computed(()=> true)
       sendingOffer.value = true;
       await saveOffer();
       await request(`/munkalapok/${id.value}/ajanlat`,{ method:'POST', body:{ statusz: 'elkuldve' } });
-      setSnack('√Åraj√°nlat elk√ºldve');
+      setSnack('¡raj·nlat elk¸ldve');
     }catch(e){
-      errorMsg.value = e?.message || 'K√ºld√©si hiba (√°raj√°nlat).';
+      errorMsg.value = e?.message || 'K¸ldÈsi hiba (·raj·nlat).';
     } finally {
       sendingOffer.value = false;
     }
@@ -605,7 +598,7 @@ function goToEdit(){
   if(!id.value) return;
   const code = normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot);
   if (code === 'atadva_lezarva') {
-    setSnack('Lez√°rt munkalap nem m√≥dos√≠that√≥.', 'warning');
+    setSnack('Lez·rt munkalap nem mÛdosÌthatÛ.', 'warning');
     return;
   }
   try{
@@ -618,7 +611,7 @@ async function saveDescriptions(){
   if(!id.value) return;
   const code = normalizeStatus(detail.value.statusz || detail.value.status || detail.value.allapot);
   if (code === 'atadva_lezarva') {
-    setSnack('Lez√°rt munkalap adatai nem m√≥dos√≠that√≥k.', 'warning');
+    setSnack('Lez·rt munkalap adatai nem mÛdosÌthatÛk.', 'warning');
     return;
   }
   try{
@@ -632,9 +625,9 @@ async function saveDescriptions(){
         megjegyzes: detail.value.megjegyzes ?? ''
       }
     });
-    setSnack('Le√≠r√°sok mentve');
+    setSnack('LeÌr·sok mentve');
   }catch(e){
-    errorMsg.value = e?.message || 'Ment√©si hiba (le√≠r√°sok).';
+    errorMsg.value = e?.message || 'MentÈsi hiba (leÌr·sok).';
   }
 }
 
@@ -687,19 +680,19 @@ Vue.onMounted(()=>{ loadAll() })
 .stack-row{ display:flex; align-items:center; gap:8px; }
 .stack-label{ width: 54px; text-align:right; font-size:12px; color: rgba(0,0,0,0.6); text-transform: lowercase; }
 @media (max-width: 600px){
-  /* A toolbar bels≈ë tartalma t√∂rj√∂n t√∂bb sorba */
+  
   .detail-toolbar :deep(.v-toolbar__content){
     flex-wrap: wrap;
     gap: 8px;
   }
 
-  /* C√≠m k√ºl√∂n sorban, balra igaz√≠tva */
+  
   .detail-toolbar :deep(.v-toolbar-title){
     flex-basis: 100%;
     text-align: left;
   }
 
-  /* St√°tusz chip teljes sz√©less√©gben egy k√ºl√∂n sorban */
+  
   .detail-toolbar :deep(.status-chip){
     flex-basis: 100%;
     max-width: 100%;
@@ -707,7 +700,7 @@ Vue.onMounted(()=>{ loadAll() })
     justify-content: center;
   }
 
-  /* M≈±veletek gomb is teljes sz√©less√©gben, norm√°l felirattal */
+  
   .detail-toolbar :deep(.actions-btn){
     flex-basis: 100%;
     max-width: 100%;
@@ -753,7 +746,7 @@ Vue.onMounted(()=>{ loadAll() })
     justify-content: center;
   }
 
-  /* fel√ºl: Munkalap #... mindig j√≥l l√°tsz√≥djon mobilon */
+  
   .detail-toolbar :deep(.v-toolbar__content){
     flex-wrap: nowrap !important;
     align-items: center;
@@ -766,3 +759,11 @@ Vue.onMounted(()=>{ loadAll() })
 }
 
 </style>
+
+
+
+
+
+
+
+

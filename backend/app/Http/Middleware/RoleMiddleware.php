@@ -15,8 +15,6 @@ class RoleMiddleware
             abort(401, 'Nincs bejelentkezve');
         }
 
-        // Jogosultság ellenőrzés kis/nagybetű függetlenül,
-        // így az "Ugyfel" és "ugyfel" is ugyanazt jelenti.
         if (!empty($roles)) {
             $userRole = strtolower((string) $user->jogosultsag);
             $allowed  = array_map(static fn ($r) => strtolower((string) $r), $roles);
