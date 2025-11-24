@@ -44,6 +44,18 @@ return new class extends Migration
     {
         $connection = Schema::getConnection();
         $prefixedTable = $connection->getTablePrefix() . $table;
+        $driver = $connection->getDriverName();
+
+        if ($driver === 'sqlite') {
+            $list = $connection->select("PRAGMA index_list('{$prefixedTable}')");
+            foreach ($list as $idx) {
+                if (($idx->name ?? null) === $index) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         $result = $connection->select("SHOW INDEX FROM `{$prefixedTable}` WHERE Key_name = ?", [$index]);
         return !empty($result);
     }
