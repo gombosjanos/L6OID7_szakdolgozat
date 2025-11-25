@@ -6,9 +6,7 @@ use Illuminate\Contracts\Console\Kernel;
 
 trait CreatesApplication
 {
-    /**
-     * Bootstraps the application for the test environment.
-     */
+    
     public function createApplication()
     {
         $app = require __DIR__.'/../bootstrap/app.php';
