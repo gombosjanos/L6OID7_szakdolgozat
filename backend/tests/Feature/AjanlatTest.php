@@ -143,6 +143,6 @@ class AjanlatTest extends FeatureTestCase
             ],
         ])->assertStatus(200);
 
-        $this->markTestIncomplete('Email notification on quote creation is expected but not implemented yet.');
+        $this->markTestIncomplete('Email értesítés árajánatra nem létezik még.');
     }
 }

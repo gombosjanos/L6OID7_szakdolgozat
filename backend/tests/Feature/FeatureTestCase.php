@@ -77,7 +77,6 @@ abstract class FeatureTestCase extends TestCase
 
     private function uniquePhone(): string
     {
-        // Generate a Hungarian-style test phone that stays unique across test runs.
         return '+36' . random_int(200000000, 299999999);
     }
 }

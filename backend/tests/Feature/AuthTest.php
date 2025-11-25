@@ -26,7 +26,7 @@ class AuthTest extends FeatureTestCase
                 'user' => ['id', 'email', 'jogosultsag'],
             ]);
 
-        $this->assertNotEmpty($response->json('token'), 'Sanctum token should be present');
+        $this->assertNotEmpty($response->json('token'), 'Sanctum token-nek léteznie kéne');
         $this->assertSame('admin', $response->json('user.jogosultsag'));
         $this->assertDatabaseCount('personal_access_tokens', 1);
     }
@@ -95,13 +95,13 @@ class AuthTest extends FeatureTestCase
         ]);
 
         $token = $login->json('token');
-        $this->assertNotEmpty($token, 'Login should return a token');
+        $this->assertNotEmpty($token, 'Bejelentkezésnek token-t kéne létrehoznia');
 
         $logout = $this->withHeader('Authorization', 'Bearer ' . $token)
             ->postJson('/api/logout');
         $logout->assertStatus(200);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
-        $this->markTestIncomplete('Protected endpoint still returns 200 after logout; token revocation verified by empty tokens table.');
+        $this->markTestIncomplete('A védett végpont kilépés után is 200-as kódot dob; token visszavonás alátámasztva az üres tábla által');
     }
 }
