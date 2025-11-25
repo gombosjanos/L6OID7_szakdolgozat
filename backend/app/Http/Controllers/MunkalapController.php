@@ -108,12 +108,27 @@ class MunkalapController extends Controller
         $record = DB::transaction(function () use ($payload) {
             $ts = $payload['letrehozva'] ?? now();
             $yearInt = (int) date('Y', strtotime($ts));
-            $maxSeq = DB::table('munkalapok')
-                ->whereYear('letrehozva', $yearInt)
-                ->whereNotNull('munkalapsorsz')
-                ->lockForUpdate()
-                ->selectRaw("MAX(CAST(SUBSTRING_INDEX(munkalapsorsz, '-', -1) AS UNSIGNED)) as m")
-                ->value('m');
+            $connection = DB::connection();
+            if ($connection->getDriverName() === 'sqlite') {
+                $existing = DB::table('munkalapok')
+                    ->whereYear('letrehozva', $yearInt)
+                    ->whereNotNull('munkalapsorsz')
+                    ->lockForUpdate()
+                    ->pluck('munkalapsorsz');
+                $maxSeq = $existing
+                    ->map(function ($value) {
+                        $parts = explode('-', (string) $value);
+                        return (int) end($parts);
+                    })
+                    ->max();
+            } else {
+                $maxSeq = DB::table('munkalapok')
+                    ->whereYear('letrehozva', $yearInt)
+                    ->whereNotNull('munkalapsorsz')
+                    ->lockForUpdate()
+                    ->selectRaw("MAX(CAST(SUBSTRING_INDEX(munkalapsorsz, '-', -1) AS UNSIGNED)) as m")
+                    ->value('m');
+            }
             $next = ((int)($maxSeq ?? 0)) + 1;
             $sorsz = $yearInt . '-' . $next;
 

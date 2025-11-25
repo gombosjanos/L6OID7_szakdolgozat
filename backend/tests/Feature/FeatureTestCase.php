@@ -28,7 +28,7 @@ abstract class FeatureTestCase extends TestCase
             'nev' => $attributes['nev'] ?? 'Teszt Felhasznalo',
             'felhasznalonev' => $attributes['felhasznalonev'] ?? Str::random(8),
             'email' => $attributes['email'] ?? Str::random(8) . '@example.test',
-            'telefonszam' => $attributes['telefonszam'] ?? '+36123456789',
+            'telefonszam' => $attributes['telefonszam'] ?? $this->uniquePhone(),
             'jogosultsag' => $attributes['jogosultsag'] ?? 'Ugyfel',
             'ketfaktor_secret' => $attributes['ketfaktor_secret'] ?? null,
             'ketfaktor_enabled_at' => $attributes['ketfaktor_enabled_at'] ?? null,
@@ -73,5 +73,11 @@ abstract class FeatureTestCase extends TestCase
     protected function migrateFreshUsing(): array
     {
         return array_merge($this->baseMigrateFreshUsing(), ['--force' => true]);
+    }
+
+    private function uniquePhone(): string
+    {
+        // Generate a Hungarian-style test phone that stays unique across test runs.
+        return '+36' . random_int(200000000, 299999999);
     }
 }

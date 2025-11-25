@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Ajanlat extends Model
 {
     protected $table = 'munkalap_ajanlat';
-    protected $primaryKey = 'ID';
+    protected $primaryKey = 'id';
     public $timestamps = false;
 
     protected $fillable = [
